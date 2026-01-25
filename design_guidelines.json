@@ -1,0 +1,179 @@
+{
+  "identity": {
+    "name": "SoundMirror",
+    "tagline": "See the Sound. Master the Speech.",
+    "tone": "Clinical Precision meets Empathetic Education",
+    "aesthetic": "Dark Mode Medical, High-Contrast, Cyber-Anatomy",
+    "target_audience": "Deaf/Mute individuals, Speech Therapy patients, Language Learners"
+  },
+  "design_philosophy": {
+    "core_principles": [
+      "Accessibility First: Visual cues replace audio. High contrast is non-negotiable.",
+      "The Mirror Effect: The UI is a reflection of the user's potential voice. Clean, distortion-free.",
+      "Anatomical Clarity: No cartoons. Precise, medical-grade sprite visualization.",
+      "Fluid Feedback: Instant visual response to input (text or voice)."
+    ],
+    "anti_patterns": [
+      "No 'Talking Head' avatars (uncanny valley). Use schematic/medical sprites.",
+      "No low-contrast grey text.",
+      "No distracting decorative gradients in the practice area.",
+      "No hidden navigation. Everything must be explicit."
+    ]
+  },
+  "typography": {
+    "font_family": {
+      "headings": "Manrope, sans-serif",
+      "body": "Inter, sans-serif",
+      "mono": "JetBrains Mono, monospace"
+    },
+    "scale": {
+      "h1": "text-4xl md:text-5xl font-bold tracking-tight",
+      "h2": "text-3xl font-semibold tracking-tight",
+      "h3": "text-2xl font-medium",
+      "body": "text-base leading-relaxed",
+      "caption": "text-sm text-muted-foreground",
+      "phoneme": "text-lg font-mono tracking-widest uppercase"
+    },
+    "weights": {
+      "regular": "400",
+      "medium": "500",
+      "bold": "700"
+    }
+  },
+  "colors": {
+    "theme": "dark",
+    "palette": {
+      "background": {
+        "default": "#020617",
+        "paper": "#0F172A",
+        "subtle": "#1E293B"
+      },
+      "foreground": {
+        "default": "#F8FAFC",
+        "muted": "#94A3B8",
+        "inverse": "#020617"
+      },
+      "primary": {
+        "DEFAULT": "#38BDF8",
+        "foreground": "#0F172A",
+        "hover": "#0EA5E9",
+        "glow": "0 0 20px rgba(56, 189, 248, 0.5)"
+      },
+      "secondary": {
+        "DEFAULT": "#64748B",
+        "foreground": "#F8FAFC"
+      },
+      "accent": {
+        "DEFAULT": "#22D3EE",
+        "foreground": "#0F172A"
+      },
+      "success": {
+        "DEFAULT": "#4ADE80",
+        "foreground": "#022C22"
+      },
+      "warning": {
+        "DEFAULT": "#FBBF24",
+        "foreground": "#451A03"
+      },
+      "error": {
+        "DEFAULT": "#FB7185",
+        "foreground": "#4C0519"
+      },
+      "visualization": {
+        "wave_active": "#22D3EE",
+        "wave_inactive": "#334155",
+        "lip_highlight": "#F472B6",
+        "tongue_highlight": "#FB7185"
+      }
+    }
+  },
+  "layout_strategies": {
+    "container": "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8",
+    "spacing": {
+      "section": "py-12 md:py-16",
+      "component": "p-6 md:p-8"
+    },
+    "grids": {
+      "dashboard": "grid grid-cols-1 md:grid-cols-12 gap-6",
+      "practice_arena": "grid grid-cols-1 lg:grid-cols-12 gap-8 h-[calc(100vh-4rem)]"
+    },
+    "z_index": {
+      "toast": 50,
+      "modal": 40,
+      "dropdown": 30,
+      "sticky_nav": 20,
+      "default": 1
+    }
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_15px_rgba(56,189,248,0.3)] transition-all duration-300",
+      "secondary": "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+      "ghost": "hover:bg-accent hover:text-accent-foreground",
+      "outline": "border border-input bg-background hover:bg-accent hover:text-accent-foreground"
+    },
+    "cards": {
+      "default": "bg-card text-card-foreground rounded-xl border border-border/50 shadow-sm hover:border-primary/30 transition-colors",
+      "interactive": "cursor-pointer hover:shadow-md hover:scale-[1.01] transition-all duration-200"
+    },
+    "inputs": {
+      "default": "bg-background border-input focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+    },
+    "custom": {
+      "SpriteAnimator": {
+        "description": "The core visualization component. Renders two synchronized images (Front/Side).",
+        "props": ["frameIndex", "frontSrc", "sideSrc", "isPlaying"],
+        "style": "relative aspect-square bg-black/20 rounded-2xl overflow-hidden border border-white/10 shadow-inner"
+      },
+      "PhonemeTimeline": {
+        "description": "Horizontal scrollable timeline showing phonemes in sequence.",
+        "style": "flex gap-2 overflow-x-auto py-4 px-2 scrollbar-hide mask-linear-fade"
+      },
+      "WaveformVisualizer": {
+        "description": "Canvas-based audio visualizer.",
+        "style": "w-full h-24 bg-black/40 rounded-lg border border-white/5"
+      }
+    }
+  },
+  "assets": {
+    "icons": "lucide-react",
+    "images": {
+      "hero_bg": "https://images.unsplash.com/photo-1766339796353-86a05ecdeb0d?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzl8MHwxfHNlYXJjaHw0fHxzb3VuZCUyMHdhdmUlMjB2aXN1YWxpemF0aW9uJTIwYWJzdHJhY3QlMjBuZW9ufGVufDB8fHx8MTc2OTM0NjgwN3ww&ixlib=rb-4.1.0&q=85",
+      "practice_placeholder": "https://images.pexels.com/photos/7176286/pexels-photo-7176286.jpeg",
+      "speech_therapy": "https://images.pexels.com/photos/5473177/pexels-photo-5473177.jpeg"
+    }
+  },
+  "motion": {
+    "transitions": {
+      "default": "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+      "slow": "all 0.5s cubic-bezier(0.4, 0, 0.2, 1)"
+    },
+    "animations": {
+      "fade_in": "animate-in fade-in duration-300",
+      "slide_up": "animate-in slide-in-from-bottom-4 duration-300",
+      "pulse_glow": "animate-pulse"
+    }
+  },
+  "accessibility": {
+    "contrast": "Ensure WCAG AA compliance (4.5:1) for all text.",
+    "focus_states": "Visible 2px ring offset-2 ring-primary for all interactive elements.",
+    "reduced_motion": "Respect prefers-reduced-motion media query.",
+    "aria": "All custom controls must have appropriate aria-labels and roles."
+  },
+  "instructions_to_main_agent": [
+    "1. Theme Setup: Update tailwind.config.js to use the specific 'Medical Dark' palette defined above.",
+    "2. Layout: Implement the 'Bento' grid for the Home page using the defined grid classes.",
+    "3. Components: Use Shadcn UI for standard elements (Buttons, Cards, Dialogs). Create custom components for the SpriteAnimator and PhonemeTimeline.",
+    "4. State Management: Ensure the 'Practice' page state (current frame, playing status) is lifted or managed via context to synchronize the dual views.",
+    "5. Offline Capability: Ensure all assets (sprites) are locally referenceable or cached. Do not rely on external CDNs for core functionality.",
+    "6. Testing: Add data-testid to all interactive elements (e.g., 'play-button', 'record-button', 'phoneme-card')."
+  ],
+  "universal_guidelines": [
+    "Do not use generic centered layouts. Use asymmetry and grids.",
+    "Use 2-3x more spacing than typical designs.",
+    "Every interaction needs micro-animations.",
+    "Dark colors look good when used independently without gradients. DO NOT use dark colors as gradients.",
+    "Use glass-morphism effects with backdrop filters (12-24px blur) for overlays.",
+    "Use 'sonner' for toasts."
+  ]
+}
