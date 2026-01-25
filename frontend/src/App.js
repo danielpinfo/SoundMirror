@@ -1330,6 +1330,9 @@ function LetterPracticePage() {
   const alphabet = ALPHABETS[lang] || ALPHABETS.en;
 
   const handlePlay = () => { 
+    // Start animation immediately
+    setIsPlaying(true);
+    
     if ('speechSynthesis' in window && selectedLetter) { 
       // Cancel any ongoing speech first
       window.speechSynthesis.cancel();
@@ -1338,24 +1341,17 @@ function LetterPracticePage() {
       u.rate = playbackSpeed; 
       u.lang = lang;
       
-      // Start animation when speech starts
-      u.onstart = () => {
-        setIsPlaying(true);
-      };
-      
-      // Stop animation when speech ends
+      // Don't wait for onstart - animation already started
+      // Just stop animation when speech ends
       u.onend = () => {
-        setIsPlaying(false);
+        // Let animation complete naturally via onAnimationComplete
       };
       
       u.onerror = () => {
-        setIsPlaying(false);
+        // Animation will complete on its own
       };
       
       window.speechSynthesis.speak(u);
-    } else {
-      // No TTS available, just play animation
-      setIsPlaying(true);
     }
   };
   
