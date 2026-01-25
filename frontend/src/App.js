@@ -644,42 +644,42 @@ function Layout({ children }) {
 // Direct frame mapping for each phoneme (peak articulation frame)
 const PHONEME_FRAMES = {
   // Vowels - wide open mouth positions
-  'a': { start: 0, peak: 25, end: 0 },      // Open "ah"
-  'e': { start: 0, peak: 45, end: 0 },      // "eh" 
-  'i': { start: 0, peak: 65, end: 0 },      // "ee" spread lips
-  'o': { start: 0, peak: 85, end: 0 },      // "oh" rounded
-  'u': { start: 0, peak: 105, end: 0 },     // "oo" pursed
+  'a': { peak: 25 },      // Open "ah"
+  'e': { peak: 45 },      // "eh" 
+  'i': { peak: 65 },      // "ee" spread lips
+  'o': { peak: 85 },      // "oh" rounded
+  'u': { peak: 105 },     // "oo" pursed
   
   // Stops - lip closure
-  'p': { start: 0, peak: 120, end: 0 },     // Lip closure
-  'b': { start: 0, peak: 120, end: 0 },     // Same as p
-  'm': { start: 0, peak: 125, end: 0 },     // Lips closed
-  't': { start: 0, peak: 135, end: 0 },     // Tongue to ridge
-  'd': { start: 0, peak: 135, end: 0 },     // Same as t
-  'k': { start: 0, peak: 150, end: 0 },     // Back closure
-  'g': { start: 0, peak: 150, end: 0 },     // Same as k
+  'p': { peak: 120 },     // Lip closure
+  'b': { peak: 120 },     // Same as p
+  'm': { peak: 125 },     // Lips closed
+  't': { peak: 135 },     // Tongue to ridge
+  'd': { peak: 135 },     // Same as t
+  'k': { peak: 150 },     // Back closure
+  'g': { peak: 150 },     // Same as k
   
   // Fricatives
-  'f': { start: 0, peak: 165, end: 0 },     // Lip to teeth
-  'v': { start: 0, peak: 165, end: 0 },     // Same as f
-  's': { start: 0, peak: 180, end: 0 },     // Teeth close
-  'z': { start: 0, peak: 180, end: 0 },     // Same as s
-  'h': { start: 0, peak: 195, end: 0 },     // Open breath
+  'f': { peak: 165 },     // Lip to teeth
+  'v': { peak: 165 },     // Same as f
+  's': { peak: 180 },     // Teeth close
+  'z': { peak: 180 },     // Same as s
+  'h': { peak: 195 },     // Open breath
   
   // Liquids
-  'l': { start: 0, peak: 210, end: 0 },     // Tongue up
-  'r': { start: 0, peak: 225, end: 0 },     // Tongue curled
-  'n': { start: 0, peak: 140, end: 0 },     // Nasal
-  'w': { start: 0, peak: 105, end: 0 },     // Like u
-  'y': { start: 0, peak: 65, end: 0 },      // Like i
-  'j': { start: 0, peak: 200, end: 0 },     // Jaw forward
-  'c': { start: 0, peak: 150, end: 0 },     // Like k
-  'q': { start: 0, peak: 150, end: 0 },     // Like k
-  'x': { start: 0, peak: 180, end: 0 },     // Like ks
+  'l': { peak: 210 },     // Tongue up
+  'r': { peak: 225 },     // Tongue curled
+  'n': { peak: 140 },     // Nasal
+  'w': { peak: 105 },     // Like u
+  'y': { peak: 65 },      // Like i
+  'j': { peak: 200 },     // Jaw forward
+  'c': { peak: 150 },     // Like k
+  'q': { peak: 150 },     // Like k
+  'x': { peak: 180 },     // Like ks
   
   // Silence
-  '_': { start: 0, peak: 0, end: 0 },
-  ' ': { start: 0, peak: 0, end: 0 },
+  '_': { peak: 0 },
+  ' ': { peak: 0 },
 };
 
 const getPhonemeFrameData = (char) => {
@@ -690,109 +690,104 @@ const getPhonemeFrameData = (char) => {
 // ========== DUAL HEAD ANIMATOR ==========
 function DualHeadAnimator({ phonemeSequence = [], isPlaying = false, playbackRate = 1.0, onAnimationComplete, size = 'large' }) {
   const { t } = useLanguage();
-  const [frameIndex, setFrameIndex] = useState(0);
+  const [spriteFrame, setSpriteFrame] = useState(0);
   const [phonemeIdx, setPhonemeIdx] = useState(0);
   const [localFrame, setLocalFrame] = useState(0);
-  const intervalRef = useRef(null);
-  const frameCountRef = useRef(0);
+  const animFrameRef = useRef(0);
+  const lastTimeRef = useRef(0);
+  const rafRef = useRef(null);
   
   const sequence = Array.isArray(phonemeSequence) && phonemeSequence.length > 0 
     ? phonemeSequence.filter(Boolean) 
     : ['a'];
   
   const FRAMES_PER_PHONEME = 12;
-  const totalFrames = sequence.length * FRAMES_PER_PHONEME + 6; // +6 to return to 0
+  const totalFrames = sequence.length * FRAMES_PER_PHONEME + 6;
+  const frameTime = 100 / playbackRate; // ms per animation frame
   
-  // Calculate sprite frame for current animation position
-  const calculateSpriteFrame = useCallback((animFrame) => {
-    const phonemeIndex = Math.min(Math.floor(animFrame / FRAMES_PER_PHONEME), sequence.length - 1);
-    const frameInPhoneme = animFrame % FRAMES_PER_PHONEME;
-    
-    // Return to zero phase
-    if (animFrame >= sequence.length * FRAMES_PER_PHONEME) {
-      const returnFrame = animFrame - (sequence.length * FRAMES_PER_PHONEME);
-      const lastPeak = getPhonemeFrameData(sequence[sequence.length - 1]).peak;
-      return Math.round(lastPeak * (1 - returnFrame / 6));
-    }
-    
-    const phoneme = sequence[phonemeIndex];
-    const data = getPhonemeFrameData(phoneme);
-    const peak = data.peak;
-    
-    // Create smooth curve: 0 -> peak -> 0
-    const halfFrames = FRAMES_PER_PHONEME / 2;
-    let spriteFrame;
-    
-    if (frameInPhoneme < halfFrames) {
-      // Ramp up to peak
-      const progress = frameInPhoneme / halfFrames;
-      spriteFrame = Math.round(peak * progress);
-    } else {
-      // Ramp down from peak
-      const progress = (FRAMES_PER_PHONEME - frameInPhoneme) / halfFrames;
-      spriteFrame = Math.round(peak * progress);
-    }
-    
-    return Math.max(0, Math.min(249, spriteFrame));
-  }, [sequence]);
-
-  // Animation using setInterval for reliable timing
+  // Animation loop using RAF with manual timing
   useEffect(() => {
-    if (isPlaying) {
-      frameCountRef.current = 0;
-      setFrameIndex(0);
-      setPhonemeIdx(0);
-      setLocalFrame(0);
+    if (!isPlaying) {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      return;
+    }
+    
+    animFrameRef.current = 0;
+    lastTimeRef.current = 0;
+    setSpriteFrame(0);
+    setPhonemeIdx(0);
+    setLocalFrame(0);
+    
+    const tick = (timestamp) => {
+      if (lastTimeRef.current === 0) lastTimeRef.current = timestamp;
       
-      const frameTime = Math.round(80 / playbackRate); // ms per frame
+      const delta = timestamp - lastTimeRef.current;
       
-      intervalRef.current = setInterval(() => {
-        frameCountRef.current += 1;
-        const f = frameCountRef.current;
+      if (delta >= frameTime) {
+        lastTimeRef.current = timestamp;
+        animFrameRef.current += 1;
+        const f = animFrameRef.current;
         
         if (f >= totalFrames) {
-          // Done - reset to 0
-          clearInterval(intervalRef.current);
-          setFrameIndex(0);
+          setSpriteFrame(0);
           setPhonemeIdx(0);
           setLocalFrame(0);
           onAnimationComplete?.();
           return;
         }
         
-        const sprite = calculateSpriteFrame(f);
+        // Calculate current position
         const pIdx = Math.min(Math.floor(f / FRAMES_PER_PHONEME), sequence.length - 1);
         const lFrame = f % FRAMES_PER_PHONEME;
         
-        setFrameIndex(sprite);
+        // Calculate sprite frame
+        let sprite = 0;
+        if (f >= sequence.length * FRAMES_PER_PHONEME) {
+          // Return to zero phase
+          const returnFrame = f - (sequence.length * FRAMES_PER_PHONEME);
+          const lastPeak = getPhonemeFrameData(sequence[sequence.length - 1]).peak;
+          sprite = Math.round(lastPeak * (1 - returnFrame / 6));
+        } else {
+          const peak = getPhonemeFrameData(sequence[pIdx]).peak;
+          const halfFrames = FRAMES_PER_PHONEME / 2;
+          
+          if (lFrame < halfFrames) {
+            sprite = Math.round(peak * (lFrame / halfFrames));
+          } else {
+            sprite = Math.round(peak * ((FRAMES_PER_PHONEME - lFrame) / halfFrames));
+          }
+        }
+        
+        sprite = Math.max(0, Math.min(249, sprite));
+        
+        setSpriteFrame(sprite);
         setPhonemeIdx(pIdx);
         setLocalFrame(lFrame);
-      }, frameTime);
-    } else {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
       }
-    }
+      
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    
+    rafRef.current = requestAnimationFrame(tick);
     
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, [isPlaying, playbackRate, totalFrames, calculateSpriteFrame, onAnimationComplete, sequence]);
+  }, [isPlaying, playbackRate, sequence, totalFrames, frameTime, onAnimationComplete]);
 
   // Reset when sequence changes
   useEffect(() => {
-    setFrameIndex(0);
+    setSpriteFrame(0);
     setPhonemeIdx(0);
     setLocalFrame(0);
-    frameCountRef.current = 0;
+    animFrameRef.current = 0;
+    lastTimeRef.current = 0;
   }, [sequence.join(',')]);
 
   const currentPhoneme = sequence[phonemeIdx] || '_';
   const isApexFrame = localFrame >= 5 && localFrame <= 7;
   const spriteSize = size === 'large' ? 320 : 240;
-  const frameNumber = String(frameIndex).padStart(3, '0');
+  const frameNumber = String(spriteFrame).padStart(3, '0');
 
   return (
     <div className="flex flex-col items-center gap-4" data-testid="dual-head-animator">
@@ -803,19 +798,18 @@ function DualHeadAnimator({ phonemeSequence = [], isPlaying = false, playbackRat
               {view === 'front' ? t('frontView') : t('sideView')}
             </div>
             <div 
-              className={`sprite-container relative overflow-hidden rounded-2xl bg-slate-900/50 border-2 transition-all duration-75 ${isApexFrame ? 'border-sky-400 ring-2 ring-sky-400/30' : 'border-slate-700/50'}`}
+              className={`relative overflow-hidden rounded-2xl bg-slate-900/50 border-2 transition-all duration-75 ${isApexFrame ? 'border-sky-400 ring-2 ring-sky-400/30' : 'border-slate-700/50'}`}
               style={{ 
                 width: spriteSize, 
-                height: spriteSize, 
+                height: spriteSize,
+                backgroundImage: `url(/assets/sprites/${view}/frame_${frameNumber}.png)`,
+                backgroundSize: 'contain',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
                 boxShadow: isApexFrame ? '0 0 40px rgba(56, 189, 248, 0.3)' : '0 4px 20px rgba(0,0,0,0.3)'
               }}
               data-testid={`animator-${view}`}
             >
-              <img
-                src={`/assets/sprites/${view}/frame_${frameNumber}.png`}
-                alt={`${view} view - frame ${frameIndex}`}
-                className="w-full h-full object-contain"
-              />
               {isApexFrame && (
                 <div className="absolute top-2 right-2 px-2 py-1 bg-sky-500/90 rounded text-[10px] font-bold text-slate-900 uppercase shadow-lg">
                   APEX
@@ -833,7 +827,7 @@ function DualHeadAnimator({ phonemeSequence = [], isPlaying = false, playbackRat
           Frame: <span className="font-mono text-cyan-400">{localFrame + 1}/{FRAMES_PER_PHONEME}</span>
         </span>
         <span className="text-xs text-slate-500">
-          Sprite: <span className="font-mono text-emerald-400 text-sm">{frameIndex}</span>
+          Sprite: <span className="font-mono text-emerald-400 text-sm">{spriteFrame}</span>
         </span>
       </div>
     </div>
