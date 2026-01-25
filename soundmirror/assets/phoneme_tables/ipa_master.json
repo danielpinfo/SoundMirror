@@ -1,0 +1,263 @@
+{
+  "version": "1.0.0",
+  "description": "IPA Master Phoneme Table - Frame mappings for SoundMirror",
+  "totalFrames": 250,
+  "neutralFrame": 0,
+  "framesPerPhoneme": 10,
+  "apexFrame": 5,
+  "phonemes": {
+    "neutral": {
+      "id": "P000",
+      "ipa": "_",
+      "name": "Neutral",
+      "frameStart": 0,
+      "frameEnd": 0,
+      "description": "Neutral closed mouth position",
+      "examples": ["silence", "pause"]
+    },
+    "a": {
+      "id": "P001",
+      "ipa": "/a/",
+      "name": "Open A",
+      "frameStart": 1,
+      "frameEnd": 10,
+      "description": "\"ah\" sound - open mouth, tongue low and flat",
+      "examples": ["father", "spa", "car"]
+    },
+    "i": {
+      "id": "P002",
+      "ipa": "/i/",
+      "name": "Close Front I",
+      "frameStart": 11,
+      "frameEnd": 20,
+      "description": "\"ee\" sound - lips spread wide, tongue high and front",
+      "examples": ["see", "machine", "feet"]
+    },
+    "u": {
+      "id": "P003",
+      "ipa": "/u/",
+      "name": "Close Back U",
+      "frameStart": 21,
+      "frameEnd": 30,
+      "description": "\"oo\" sound - lips rounded tight, tongue high and back",
+      "examples": ["food", "blue", "moon"]
+    },
+    "ɛ": {
+      "id": "P004",
+      "ipa": "/ɛ/",
+      "name": "Open-Mid E",
+      "frameStart": 31,
+      "frameEnd": 40,
+      "description": "\"eh\" sound - mouth half-open, tongue mid-front",
+      "examples": ["bed", "met", "head"]
+    },
+    "o": {
+      "id": "P005",
+      "ipa": "/o/",
+      "name": "Close-Mid O",
+      "frameStart": 41,
+      "frameEnd": 50,
+      "description": "\"oh\" sound - lips rounded, tongue mid-back, held without glide",
+      "examples": ["go", "show", "boat"]
+    },
+    "y": {
+      "id": "P006",
+      "ipa": "/y/",
+      "name": "Close Front Rounded",
+      "frameStart": 51,
+      "frameEnd": 60,
+      "description": "Rounded \"ee\" - tongue position of /i/ with rounded lips",
+      "examples": ["French tu", "German über"]
+    },
+    "p": {
+      "id": "P007",
+      "ipa": "/p/",
+      "name": "Bilabial Plosive",
+      "frameStart": 61,
+      "frameEnd": 70,
+      "description": "\"p\" sound - complete lip closure, then burst release",
+      "examples": ["pat", "pop", "happy"]
+    },
+    "t": {
+      "id": "P008",
+      "ipa": "/t/",
+      "name": "Alveolar Plosive",
+      "frameStart": 71,
+      "frameEnd": 80,
+      "description": "\"t\" sound - tongue tip touches alveolar ridge behind upper teeth",
+      "examples": ["top", "butter", "cat"]
+    },
+    "d": {
+      "id": "P009",
+      "ipa": "/d/",
+      "name": "Voiced Alveolar Plosive",
+      "frameStart": 81,
+      "frameEnd": 90,
+      "description": "\"d\" sound - same mouth position as /t/, but voiced",
+      "examples": ["dog", "ladder", "bad"]
+    },
+    "k": {
+      "id": "P010",
+      "ipa": "/k/",
+      "name": "Velar Plosive",
+      "frameStart": 91,
+      "frameEnd": 100,
+      "description": "\"k\" sound - back of tongue touches soft palate (velum)",
+      "examples": ["cat", "keep", "back"]
+    },
+    "g": {
+      "id": "P011",
+      "ipa": "/g/",
+      "name": "Voiced Velar Plosive",
+      "frameStart": 101,
+      "frameEnd": 110,
+      "description": "\"g\" sound - same mouth position as /k/, but voiced",
+      "examples": ["go", "bigger", "bag"]
+    },
+    "ʔ": {
+      "id": "P012",
+      "ipa": "/ʔ/",
+      "name": "Glottal Stop",
+      "frameStart": 111,
+      "frameEnd": 120,
+      "description": "Glottal stop - closure in throat, no oral obstruction",
+      "examples": ["uh-oh", "button (Cockney)", "Arabic hamza"]
+    },
+    "n": {
+      "id": "P013",
+      "ipa": "/n/",
+      "name": "Alveolar Nasal",
+      "frameStart": 121,
+      "frameEnd": 130,
+      "description": "\"n\" sound - tongue tip at alveolar ridge, air through nose",
+      "examples": ["no", "sunny", "pan"]
+    },
+    "ŋ": {
+      "id": "P014",
+      "ipa": "/ŋ/",
+      "name": "Velar Nasal",
+      "frameStart": 131,
+      "frameEnd": 140,
+      "description": "\"ng\" sound - back of tongue raised to velum, air through nose",
+      "examples": ["sing", "finger", "bank"]
+    },
+    "s": {
+      "id": "P015",
+      "ipa": "/s/",
+      "name": "Alveolar Fricative",
+      "frameStart": 141,
+      "frameEnd": 150,
+      "description": "\"s\" sound - tongue near alveolar ridge, hissing airflow",
+      "examples": ["see", "miss", "city"]
+    },
+    "ʃ": {
+      "id": "P016",
+      "ipa": "/ʃ/",
+      "name": "Postalveolar Fricative",
+      "frameStart": 151,
+      "frameEnd": 160,
+      "description": "\"sh\" sound - lips slightly rounded, tongue further back than /s/",
+      "examples": ["ship", "mission", "sugar"]
+    },
+    "θ": {
+      "id": "P017",
+      "ipa": "/θ/",
+      "name": "Dental Fricative",
+      "frameStart": 161,
+      "frameEnd": 170,
+      "description": "\"th\" (voiceless) - tongue tip between teeth, air flows over",
+      "examples": ["think", "bath", "tooth"]
+    },
+    "f": {
+      "id": "P018",
+      "ipa": "/f/",
+      "name": "Labiodental Fricative",
+      "frameStart": 171,
+      "frameEnd": 180,
+      "description": "\"f\" sound - lower lip touches upper teeth, air flows through",
+      "examples": ["fan", "coffee", "off"]
+    },
+    "h": {
+      "id": "P019",
+      "ipa": "/h/",
+      "name": "Glottal Fricative",
+      "frameStart": 181,
+      "frameEnd": 190,
+      "description": "\"h\" sound - open breath, no obstruction in mouth",
+      "examples": ["hat", "ahead", "who"]
+    },
+    "tʃ": {
+      "id": "P020",
+      "ipa": "/tʃ/",
+      "name": "Postalveolar Affricate",
+      "frameStart": 191,
+      "frameEnd": 200,
+      "description": "\"ch\" sound - starts like /t/, releases into /ʃ/",
+      "examples": ["chair", "teacher", "match"]
+    },
+    "r": {
+      "id": "P021",
+      "ipa": "/r/",
+      "name": "Alveolar Approximant",
+      "frameStart": 201,
+      "frameEnd": 210,
+      "description": "\"r\" sound (American) - tongue curled back slightly, no contact",
+      "examples": ["red", "very", "car (rhotic)"]
+    },
+    "l": {
+      "id": "P022",
+      "ipa": "/l/",
+      "name": "Alveolar Lateral",
+      "frameStart": 211,
+      "frameEnd": 220,
+      "description": "\"l\" sound - tongue tip at ridge, air flows around sides",
+      "examples": ["lip", "hello", "ball"]
+    },
+    "ɬ": {
+      "id": "P023",
+      "ipa": "/ɬ/",
+      "name": "Voiceless Lateral Fricative",
+      "frameStart": 221,
+      "frameEnd": 230,
+      "description": "Welsh \"ll\" - air flows around tongue with friction",
+      "examples": ["Welsh Llanelli", "Nahuatl"]
+    },
+    "ǃ": {
+      "id": "P024",
+      "ipa": "/ǃ/",
+      "name": "Dental Click",
+      "frameStart": 231,
+      "frameEnd": 240,
+      "description": "Dental click - tongue tip creates suction against teeth",
+      "examples": ["tsk tsk", "Xhosa/Zulu clicks"]
+    }
+  },
+  "frameMapping": {
+    "0": "neutral",
+    "1-10": "a",
+    "11-20": "i",
+    "21-30": "u",
+    "31-40": "ɛ",
+    "41-50": "o",
+    "51-60": "y",
+    "61-70": "p",
+    "71-80": "t",
+    "81-90": "d",
+    "91-100": "k",
+    "101-110": "g",
+    "111-120": "ʔ",
+    "121-130": "n",
+    "131-140": "ŋ",
+    "141-150": "s",
+    "151-160": "ʃ",
+    "161-170": "θ",
+    "171-180": "f",
+    "181-190": "h",
+    "191-200": "tʃ",
+    "201-210": "r",
+    "211-220": "l",
+    "221-230": "ɬ",
+    "231-240": "ǃ",
+    "241-249": "reserved"
+  }
+}
