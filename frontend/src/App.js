@@ -1139,8 +1139,35 @@ function WordPracticePage() {
   const phonemes = word.toLowerCase().replace(/[^a-z]/g, '').split('').map(c => PHONEME_MAP[c] || { letter: c.toUpperCase(), phoneme: c });
   const phonemeTokens = phonemes.map(p => p.phoneme);
 
-  const speakWord = useCallback(() => { if ('speechSynthesis' in window && !isMuted) { const u = new SpeechSynthesisUtterance(word); u.rate = playbackSpeed; u.lang = lang; window.speechSynthesis.speak(u); } }, [word, playbackSpeed, isMuted, lang]);
-  const handlePlay = () => { setIsPlaying(true); speakWord(); };
+  const handlePlay = () => { 
+    if ('speechSynthesis' in window && !isMuted) { 
+      // Cancel any ongoing speech first
+      window.speechSynthesis.cancel();
+      
+      const u = new SpeechSynthesisUtterance(word); 
+      u.rate = playbackSpeed; 
+      u.lang = lang;
+      
+      // Start animation when speech starts
+      u.onstart = () => {
+        setIsPlaying(true);
+      };
+      
+      // Stop animation when speech ends
+      u.onend = () => {
+        setIsPlaying(false);
+      };
+      
+      u.onerror = () => {
+        setIsPlaying(false);
+      };
+      
+      window.speechSynthesis.speak(u);
+    } else {
+      // No TTS or muted, just play animation
+      setIsPlaying(true);
+    }
+  };
   
   const startRecording = () => { 
     setIsRecording(true); 
