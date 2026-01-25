@@ -1200,142 +1200,113 @@ function LetterPracticePage() {
   const [playbackSpeed, setPlaybackSpeed] = useState(0.5);
   const alphabet = ALPHABETS[lang] || ALPHABETS.en;
 
+  // Default to letter 'A' so heads are always visible
+  const currentLetter = selectedLetter || alphabet[0];
+
   const handlePlay = () => { 
-    // Start animation immediately
+    if (!currentLetter) return;
     setIsPlaying(true);
     
-    if ('speechSynthesis' in window && selectedLetter) { 
-      // Cancel any ongoing speech first
+    if ('speechSynthesis' in window) { 
       window.speechSynthesis.cancel();
-      
-      const u = new SpeechSynthesisUtterance(selectedLetter.letter); 
+      const u = new SpeechSynthesisUtterance(currentLetter.letter); 
       u.rate = playbackSpeed; 
       u.lang = lang;
-      
-      // Don't wait for onstart - animation already started
-      // Just stop animation when speech ends
-      u.onend = () => {
-        // Let animation complete naturally via onAnimationComplete
-      };
-      
-      u.onerror = () => {
-        // Animation will complete on its own
-      };
-      
       window.speechSynthesis.speak(u);
     }
-  };
-  
-  const handleRecordingComplete = (data) => {
-    const h = JSON.parse(localStorage.getItem('soundmirror_history') || '[]');
-    h.unshift({ id: Date.now(), word: selectedLetter?.letter || '?', lang, visualScore: data.visualScore / 100, audioScore: data.audioScore / 100, score: (data.visualScore + data.audioScore) / 200, date: new Date().toISOString(), type: 'letter' });
-    localStorage.setItem('soundmirror_history', JSON.stringify(h.slice(0, 50)));
   };
 
   return (
     <div className="min-h-screen p-4 lg:p-6">
       <div className="max-w-7xl mx-auto">
+        {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <button onClick={() => navigate('/')} className="flex items-center gap-2 text-slate-400 hover:text-slate-200">
             <ArrowLeft className="w-5 h-5" />{t('back')}
           </button>
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-slate-100">{t('letterPractice')}</h1>
-            <p className="text-slate-500 text-sm">{t('letterPracticeDesc')}</p>
+            <h1 className="text-xl font-bold text-slate-100">{t('letterPractice')}</h1>
           </div>
           <LanguageSelector compact />
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-4">
-          {/* LEFT: Keyboard + Recording (smaller) */}
-          <div className="lg:col-span-1 space-y-4">
-            <div className="glass-card p-4">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">
+        {/* Main Layout: Keyboard LEFT, Heads RIGHT - Heads always visible */}
+        <div className="grid lg:grid-cols-5 gap-4">
+          {/* LEFT: Compact Keyboard + Controls */}
+          <div className="lg:col-span-2 space-y-3">
+            {/* Current Letter Display */}
+            <div className="glass-card p-3 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className={`text-4xl font-bold ${currentLetter.isVowel ? 'text-amber-400' : 'text-sky-400'}`}>
+                  {currentLetter.letter}
+                </span>
+                <div>
+                  <div className="text-lg text-slate-300">"{currentLetter.phoneme}"</div>
+                  <div className="text-xs text-slate-500">{currentLetter.isVowel ? 'Vowel' : 'Consonant'}</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="flex gap-1">
+                  {[0.25, 0.5, 1.0].map(v => (
+                    <button 
+                      key={v} 
+                      onClick={() => setPlaybackSpeed(v)} 
+                      className={`px-2 py-1 rounded text-xs ${playbackSpeed === v ? 'bg-sky-500/20 text-sky-400' : 'text-slate-500'}`}
+                    >{v}x</button>
+                  ))}
+                </div>
+                <button 
+                  onClick={handlePlay} 
+                  disabled={isPlaying} 
+                  className="btn-glow flex items-center gap-1 px-4 py-2 text-sm"
+                >
+                  {isPlaying ? <Volume2 className="w-4 h-4 animate-pulse" /> : <Play className="w-4 h-4" />}
+                  {isPlaying ? '...' : t('playSound')}
+                </button>
+              </div>
+            </div>
+            
+            {/* Compact Alphabet Grid */}
+            <div className="glass-card p-3">
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-2">
                 {t('selectLetter')} <span className="text-amber-400">({t('vowelsHighlighted')})</span>
-              </h3>
-              <div className="grid grid-cols-6 gap-1.5">
+              </div>
+              <div className="grid grid-cols-9 gap-1">
                 {alphabet.map((item) => (
                   <button 
                     key={item.letter} 
                     onClick={() => { setSelectedLetter(item); setIsPlaying(false); }}
-                    className={`p-2 rounded-lg text-center transition-all hover:scale-105 ${
-                      selectedLetter?.letter === item.letter 
-                        ? 'bg-sky-500/20 border-2 border-sky-400 shadow-lg shadow-sky-500/20' 
+                    className={`p-1.5 rounded text-center transition-all ${
+                      currentLetter?.letter === item.letter 
+                        ? 'bg-sky-500/30 border border-sky-400' 
                         : item.isVowel 
-                          ? 'bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20' 
-                          : 'bg-slate-800/50 border border-slate-700/50 hover:bg-slate-700/50'
+                          ? 'bg-amber-500/10 border border-amber-500/20' 
+                          : 'bg-slate-800/50 border border-slate-700/30'
                     }`}
                   >
-                    <div className={`text-lg font-bold ${item.isVowel ? 'text-amber-400' : 'text-slate-200'}`}>
+                    <div className={`text-sm font-bold ${item.isVowel ? 'text-amber-400' : 'text-slate-300'}`}>
                       {item.letter}
                     </div>
-                    <div className="text-[8px] text-slate-500 truncate">{item.phoneme}</div>
                   </button>
                 ))}
               </div>
             </div>
-            {selectedLetter && <RecordingPanel onRecordingComplete={handleRecordingComplete} compact />}
+
+            {/* Recording Panel */}
+            <RecordingPanel compact />
           </div>
 
-          {/* RIGHT: Heads (larger, dominant) */}
-          <div className="lg:col-span-2">
-            {selectedLetter ? (
-              <div className="glass-card p-6 h-full">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-4">
-                    <span className={`text-6xl font-bold ${selectedLetter.isVowel ? 'text-amber-400' : 'text-sky-400'}`}>
-                      {selectedLetter.letter}
-                    </span>
-                    <div>
-                      <div className="text-2xl text-slate-300">"{selectedLetter.phoneme}"</div>
-                      <div className="text-sm text-slate-500">{selectedLetter.isVowel ? 'Vowel' : 'Consonant'}</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="flex gap-1">
-                      {[0.25, 0.5, 1.0].map(v => (
-                        <button 
-                          key={v} 
-                          onClick={() => setPlaybackSpeed(v)} 
-                          className={`px-2 py-1 rounded text-xs font-medium transition-all ${
-                            playbackSpeed === v 
-                              ? 'bg-sky-500/20 text-sky-400 border border-sky-500/50' 
-                              : 'text-slate-400 hover:bg-slate-800'
-                          }`}
-                        >
-                          {v}x
-                        </button>
-                      ))}
-                    </div>
-                    <button 
-                      onClick={handlePlay} 
-                      disabled={isPlaying} 
-                      className="btn-glow flex items-center gap-2 px-5 py-2.5"
-                    >
-                      {isPlaying ? <Volume2 className="w-5 h-5 animate-pulse" /> : <Play className="w-5 h-5" />}
-                      {isPlaying ? t('playing') : t('playSound')}
-                    </button>
-                  </div>
-                </div>
-                <DualHeadAnimator 
-                  phonemeSequence={[selectedLetter.letter.toLowerCase()]} 
-                  isPlaying={isPlaying} 
-                  playbackRate={playbackSpeed} 
-                  frameDuration={Math.round(100 / playbackSpeed)} 
-                  onAnimationComplete={() => setIsPlaying(false)} 
-                  size="large" 
-                />
-              </div>
-            ) : (
-              <div className="glass-card p-12 text-center h-full flex flex-col items-center justify-center min-h-[500px]">
-                <div className="text-8xl mb-6">👈</div>
-                <h3 className="text-2xl font-semibold text-slate-300 mb-3">{t('selectLetter')}</h3>
-                <p className="text-slate-500 text-lg">
-                  {t('chooseAlphabet')}<br />
-                  <span className="text-amber-400">{t('vowelsGold')}</span>
-                </p>
-              </div>
-            )}
+          {/* RIGHT: Dual Head Animators - ALWAYS VISIBLE */}
+          <div className="lg:col-span-3">
+            <div className="glass-card p-4 h-full flex flex-col items-center justify-center">
+              <DualHeadAnimator 
+                phonemeSequence={[currentLetter.letter.toLowerCase()]} 
+                isPlaying={isPlaying} 
+                playbackRate={playbackSpeed} 
+                onAnimationComplete={() => setIsPlaying(false)} 
+                size="large" 
+              />
+            </div>
           </div>
         </div>
       </div>
