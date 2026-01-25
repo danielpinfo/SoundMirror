@@ -770,14 +770,17 @@ function DualHeadAnimator({ phonemeSequence = [], isPlaying = false, playbackRat
               style={{ 
                 width: spriteSize, 
                 height: spriteSize,
-                backgroundImage: `url(/assets/sprites/${view}/frame_${frameNumber}.png)`,
-                backgroundSize: 'contain',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat',
                 boxShadow: isApexFrame ? '0 0 40px rgba(56, 189, 248, 0.3)' : '0 4px 20px rgba(0,0,0,0.3)'
               }}
               data-testid={`animator-${view}`}
             >
+              <img 
+                key={`${view}-${frameNumber}`}
+                src={`/assets/sprites/${view}/frame_${frameNumber}.png`}
+                alt={`${view} frame ${spriteFrame}`}
+                className="w-full h-full object-contain"
+                loading="eager"
+              />
               {isApexFrame && (
                 <div className="absolute top-2 right-2 px-2 py-1 bg-sky-500/90 rounded text-[10px] font-bold text-slate-900 uppercase shadow-lg">
                   APEX
