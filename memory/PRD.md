@@ -46,12 +46,16 @@ Convert existing Base44 web app into a fully native cross-platform mobile and de
 
 ### Phase 1: Web Preview MVP (Jan 25, 2026) ✓
 - Complete React frontend with 5 pages
-- DualHeadAnimator component with **REAL PNG SPRITES** (500 frames integrated!)
+- **Intelligent Phoneme Sprite Engine** with articulation mapping for all 24 phonemes
+  - Selects specific frames from anywhere in the 250-frame sprite library
+  - Each phoneme has a unique frame sequence path for realistic articulation
+  - Smooth transitions between phonemes
+  - Always starts/ends at frame 0 (neutral mouth)
+  - Variable duration per phoneme type (vowels longer, plosives quick)
 - Full i18n support for 10 languages
-- **Animation engine with movie-quality flow** - always starts/ends at frame 000
-- **Splash screen** with falling water drop and thick white ripples
-- **Word Practice** redesigned: large camera LEFT, model articulation RIGHT
-- **Letter Practice** with alphabet grid, vowels highlighted, speed controls
+- Splash screen with falling water drop and thick white ripples
+- Word Practice: large camera LEFT, model articulation RIGHT
+- Letter Practice: alphabet grid with vowels highlighted, dual head animators
 - Phoneme timeline with clickable badges
 - Playback controls with speed adjustment (0.25x-1x)
 - **10 Languages** (EN, ES, FR, DE, IT, PT, ZH, JA, AR, HI)
