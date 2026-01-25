@@ -691,8 +691,8 @@ const getPhonemeFrameData = (char) => {
 function DualHeadAnimator({ phonemeSequence = [], isPlaying = false, playbackRate = 1.0, onAnimationComplete, size = 'large' }) {
   const { t } = useLanguage();
   const [tick, setTick] = useState(0);
-  const [isAnimating, setIsAnimating] = useState(false);
   const timerRef = useRef(null);
+  const hasStartedRef = useRef(false);
   
   const sequence = Array.isArray(phonemeSequence) && phonemeSequence.length > 0 
     ? phonemeSequence.filter(Boolean) 
@@ -705,29 +705,47 @@ function DualHeadAnimator({ phonemeSequence = [], isPlaying = false, playbackRat
   
   // Animation - plays ONCE and stops
   useEffect(() => {
-    if (isPlaying && !isAnimating) {
-      setIsAnimating(true);
+    // Clear any existing timer
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    
+    if (isPlaying) {
+      hasStartedRef.current = true;
       setTick(0);
       
       const interval = Math.round(1000 / FPS / playbackRate); // ~33ms at 1x for 30fps
+      let currentTick = 0;
       
       timerRef.current = setInterval(() => {
-        setTick(prev => {
-          const next = prev + 1;
-          if (next >= totalFrames) {
-            clearInterval(timerRef.current);
-            setIsAnimating(false);
-            onAnimationComplete?.();
-            return 0; // Return to frame 0
-          }
-          return next;
-        });
+        currentTick += 1;
+        
+        if (currentTick >= totalFrames) {
+          clearInterval(timerRef.current);
+          timerRef.current = null;
+          setTick(0);
+          onAnimationComplete?.();
+          return;
+        }
+        
+        setTick(currentTick);
       }, interval);
+    } else {
+      // Not playing - reset to 0 only if we had started
+      if (hasStartedRef.current) {
+        setTick(0);
+        hasStartedRef.current = false;
+      }
     }
     
     return () => {
       if (timerRef.current) {
         clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, [isPlaying, playbackRate, totalFrames, onAnimationComplete]);
       }
     };
   }, [isPlaying, isAnimating, playbackRate, totalFrames, onAnimationComplete]);
