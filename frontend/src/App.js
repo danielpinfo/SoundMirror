@@ -638,60 +638,141 @@ function Layout({ children }) {
 }
 
 // ========== PHONEME SPRITE ENGINE ==========
-// The 250 frames represent a continuous movie of all 24 possible phoneme articulations.
-// This engine intelligently selects specific frames to create natural, movie-quality speech animation.
-// Each phoneme has a defined articulation path through the sprite sheet.
+// Based on the 250-frame sprite sheet with 24 phoneme articulations.
+// P001-P024 represent the 24 phoneme keyframes distributed across 250 frames.
+// Each phoneme has ~10 frames showing the articulation from neutral → peak → neutral.
+// Frame 0 = neutral/rest position, each phoneme section shows the articulation cycle.
 
-const PHONEME_ARTICULATION_MAP = {
-  // VOWELS - Open mouth positions, held longer
-  'a': { frames: [0, 5, 12, 18, 22, 25, 22, 18, 12, 5], apex: 5, duration: 1.2 },      // Open "ah" - wide jaw
-  'e': { frames: [0, 8, 15, 28, 35, 38, 35, 28, 15, 8], apex: 5, duration: 1.0 },      // "eh" - mid-open
-  'i': { frames: [0, 10, 22, 42, 48, 52, 48, 42, 22, 10], apex: 5, duration: 1.0 },    // "ee" - lips spread  
-  'o': { frames: [0, 12, 32, 58, 65, 70, 65, 58, 32, 12], apex: 5, duration: 1.2 },    // "oh" - rounded lips
-  'u': { frames: [0, 15, 45, 78, 88, 95, 88, 78, 45, 15], apex: 5, duration: 1.0 },    // "oo" - pursed lips
-
-  // BILABIALS - Both lips together
-  'p': { frames: [0, 25, 55, 85, 100, 85, 55, 25, 8, 0], apex: 4, duration: 0.6 },     // Lips pop open
-  'b': { frames: [0, 25, 55, 88, 102, 88, 55, 25, 8, 0], apex: 4, duration: 0.6 },     // Voiced lips pop
-  'm': { frames: [0, 30, 60, 90, 105, 105, 90, 60, 30, 0], apex: 4, duration: 0.8 },   // Lips closed, hum
-
-  // LABIODENTALS - Lower lip to upper teeth
-  'f': { frames: [0, 18, 38, 62, 75, 62, 38, 18, 5, 0], apex: 4, duration: 0.5 },      // Teeth on lip
-  'v': { frames: [0, 18, 38, 65, 78, 65, 38, 18, 5, 0], apex: 4, duration: 0.5 },      // Voiced teeth on lip
-
-  // DENTALS/ALVEOLARS - Tongue to teeth/ridge
-  't': { frames: [0, 22, 48, 72, 82, 72, 48, 22, 8, 0], apex: 4, duration: 0.4 },      // Quick tongue tap
-  'd': { frames: [0, 22, 48, 75, 85, 75, 48, 22, 8, 0], apex: 4, duration: 0.4 },      // Voiced tongue tap
-  'n': { frames: [0, 28, 55, 82, 95, 95, 82, 55, 28, 0], apex: 4, duration: 0.6 },     // Tongue up, nasal
-  'l': { frames: [0, 20, 45, 70, 85, 90, 85, 70, 45, 20], apex: 5, duration: 0.6 },    // Tongue lifted
-  's': { frames: [0, 15, 32, 52, 62, 52, 32, 15, 5, 0], apex: 4, duration: 0.5 },      // Teeth close, hiss
-  'z': { frames: [0, 15, 35, 55, 65, 55, 35, 15, 5, 0], apex: 4, duration: 0.5 },      // Voiced hiss
-
-  // PALATALS/VELARS - Back of tongue
-  'k': { frames: [0, 30, 65, 110, 125, 110, 65, 30, 10, 0], apex: 4, duration: 0.5 },  // Back tongue pop
-  'g': { frames: [0, 30, 65, 115, 130, 115, 65, 30, 10, 0], apex: 4, duration: 0.5 },  // Voiced back pop
-  'j': { frames: [0, 25, 55, 95, 115, 95, 55, 25, 8, 0], apex: 4, duration: 0.6 },     // "dj" sound
-  'y': { frames: [0, 12, 28, 48, 58, 48, 28, 12, 4, 0], apex: 4, duration: 0.4 },      // Glide "y"
-
-  // GLOTTALS/OTHERS
-  'h': { frames: [0, 8, 18, 28, 35, 28, 18, 8, 2, 0], apex: 4, duration: 0.4 },        // Open breath
-  'r': { frames: [0, 18, 42, 75, 92, 105, 92, 75, 42, 18], apex: 5, duration: 0.7 },   // Tongue curled
-  'w': { frames: [0, 20, 50, 85, 100, 85, 50, 20, 5, 0], apex: 4, duration: 0.5 },     // Rounded glide
-
-  // AFFRICATES/BLENDS  
-  'c': { frames: [0, 30, 65, 110, 125, 110, 65, 30, 10, 0], apex: 4, duration: 0.5 },  // Like 'k'
-  'q': { frames: [0, 30, 65, 110, 125, 110, 65, 30, 10, 0], apex: 4, duration: 0.5 },  // Like 'k'
-  'x': { frames: [0, 30, 65, 110, 125, 110, 52, 32, 15, 0], apex: 4, duration: 0.6 },  // "ks" blend
-
-  // SILENCE/PAUSE - Hold at neutral (frame 0)
-  '_': { frames: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], apex: 0, duration: 0.3 },
-  ' ': { frames: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], apex: 0, duration: 0.4 },             // Word pause
+// Phoneme keyframe positions (P001-P024 mapped to frame numbers)
+// Frames are distributed: ~10 frames per phoneme across the 250 total frames
+const PHONEME_KEYFRAMES = {
+  // VOWELS (P001-P006)
+  'a': 5,    // P001 - open "ah" as in 'father'
+  'i': 15,   // P002 - "ee" as in 'see'
+  'u': 26,   // P003 - "oo" as in 'boot'
+  'e': 36,   // P004 - "eh" as in 'bed'
+  'o': 47,   // P005 - "oh" as in 'go'
+  'y': 57,   // P006 - "ü" as in French 'tu'
+  
+  // STOPS/CLOSURES (P007-P012)
+  'p': 68,   // P007 - lip closure
+  't': 78,   // P008 - tongue to ridge
+  'd': 78,   // P009 - same mouth as /t/
+  'k': 89,   // P010 - back closure
+  'g': 89,   // P011 - same mouth as /k/
+  'q': 99,   // P012 - glottal stop (using for 'q' mapping)
+  
+  // NASALS (P013-P014)  
+  'n': 110,  // P013 - tongue to ridge, nasal
+  'ng': 120, // P014 - "ng" as in 'sing'
+  
+  // FRICATIVES/AFFRICATES (P015-P020)
+  's': 131,  // P015 - teeth close
+  'sh': 141, // P016 - "sh" as in 'ship'
+  'th': 152, // P017 - tongue between teeth
+  'f': 162,  // P018 - lip to teeth
+  'h': 173,  // P019 - open breath
+  'ch': 183, // P020 - "ch" as in 'chair'
+  
+  // LIQUIDS/LATERALS (P021-P023)
+  'r': 194,  // P021 - tongue curled
+  'l': 204,  // P022 - tongue tip up
+  'll': 215, // P023 - Welsh 'll' voiceless lateral
+  
+  // CLICKS (P024)
+  'click': 225, // P024 - dental click
 };
 
-// Get phoneme data with fallback
-const getPhonemeData = (phoneme) => {
-  const key = phoneme?.toLowerCase() || '_';
-  return PHONEME_ARTICULATION_MAP[key] || PHONEME_ARTICULATION_MAP['_'];
+// Build articulation path: creates smooth curve from neutral → peak → neutral
+const buildArticulationPath = (peakFrame, frameCount = 10) => {
+  const frames = [];
+  const half = Math.floor(frameCount / 2);
+  
+  // Ramp up to peak
+  for (let i = 0; i < half; i++) {
+    const progress = i / half;
+    // Ease-in curve for natural acceleration
+    const eased = progress * progress;
+    frames.push(Math.round(eased * peakFrame));
+  }
+  
+  // Peak frames (hold slightly)
+  frames.push(peakFrame);
+  frames.push(peakFrame);
+  
+  // Ramp down from peak
+  for (let i = half - 1; i >= 0; i--) {
+    const progress = i / half;
+    const eased = progress * progress;
+    frames.push(Math.round(eased * peakFrame));
+  }
+  
+  return frames;
+};
+
+// Map common letters to their phoneme sounds
+const LETTER_TO_PHONEME = {
+  'a': 'a', 'b': 'p', 'c': 'k', 'd': 'd', 'e': 'e', 'f': 'f', 'g': 'g',
+  'h': 'h', 'i': 'i', 'j': 'ch', 'k': 'k', 'l': 'l', 'm': 'p', 'n': 'n',
+  'o': 'o', 'p': 'p', 'q': 'k', 'r': 'r', 's': 's', 't': 't', 'u': 'u',
+  'v': 'f', 'w': 'u', 'x': 'k', 'y': 'i', 'z': 's',
+  ' ': '_', '_': '_'
+};
+
+const PHONEME_ARTICULATION_MAP = {
+  // VOWELS - Open mouth positions, held longer for clarity
+  'a': { frames: buildArticulationPath(PHONEME_KEYFRAMES['a'], 12), apex: 5, duration: 1.2 },
+  'e': { frames: buildArticulationPath(PHONEME_KEYFRAMES['e'], 10), apex: 5, duration: 1.0 },
+  'i': { frames: buildArticulationPath(PHONEME_KEYFRAMES['i'], 10), apex: 5, duration: 1.0 },
+  'o': { frames: buildArticulationPath(PHONEME_KEYFRAMES['o'], 12), apex: 5, duration: 1.2 },
+  'u': { frames: buildArticulationPath(PHONEME_KEYFRAMES['u'], 10), apex: 5, duration: 1.0 },
+  'y': { frames: buildArticulationPath(PHONEME_KEYFRAMES['y'], 8), apex: 4, duration: 0.6 },
+
+  // STOPS/CLOSURES - Quick, snappy articulations
+  'p': { frames: buildArticulationPath(PHONEME_KEYFRAMES['p'], 8), apex: 4, duration: 0.5 },
+  'b': { frames: buildArticulationPath(PHONEME_KEYFRAMES['p'], 8), apex: 4, duration: 0.5 },
+  'm': { frames: buildArticulationPath(PHONEME_KEYFRAMES['p'], 10), apex: 5, duration: 0.7 },
+  't': { frames: buildArticulationPath(PHONEME_KEYFRAMES['t'], 8), apex: 4, duration: 0.4 },
+  'd': { frames: buildArticulationPath(PHONEME_KEYFRAMES['d'], 8), apex: 4, duration: 0.4 },
+  'k': { frames: buildArticulationPath(PHONEME_KEYFRAMES['k'], 8), apex: 4, duration: 0.5 },
+  'g': { frames: buildArticulationPath(PHONEME_KEYFRAMES['g'], 8), apex: 4, duration: 0.5 },
+  'q': { frames: buildArticulationPath(PHONEME_KEYFRAMES['q'], 8), apex: 4, duration: 0.5 },
+
+  // NASALS
+  'n': { frames: buildArticulationPath(PHONEME_KEYFRAMES['n'], 10), apex: 5, duration: 0.6 },
+  'ng': { frames: buildArticulationPath(PHONEME_KEYFRAMES['ng'], 10), apex: 5, duration: 0.6 },
+
+  // FRICATIVES/AFFRICATES  
+  's': { frames: buildArticulationPath(PHONEME_KEYFRAMES['s'], 8), apex: 4, duration: 0.5 },
+  'z': { frames: buildArticulationPath(PHONEME_KEYFRAMES['s'], 8), apex: 4, duration: 0.5 },
+  'sh': { frames: buildArticulationPath(PHONEME_KEYFRAMES['sh'], 8), apex: 4, duration: 0.5 },
+  'th': { frames: buildArticulationPath(PHONEME_KEYFRAMES['th'], 8), apex: 4, duration: 0.5 },
+  'f': { frames: buildArticulationPath(PHONEME_KEYFRAMES['f'], 8), apex: 4, duration: 0.5 },
+  'v': { frames: buildArticulationPath(PHONEME_KEYFRAMES['f'], 8), apex: 4, duration: 0.5 },
+  'h': { frames: buildArticulationPath(PHONEME_KEYFRAMES['h'], 8), apex: 4, duration: 0.4 },
+  'ch': { frames: buildArticulationPath(PHONEME_KEYFRAMES['ch'], 8), apex: 4, duration: 0.6 },
+  'j': { frames: buildArticulationPath(PHONEME_KEYFRAMES['ch'], 8), apex: 4, duration: 0.6 },
+
+  // LIQUIDS/LATERALS
+  'r': { frames: buildArticulationPath(PHONEME_KEYFRAMES['r'], 10), apex: 5, duration: 0.7 },
+  'l': { frames: buildArticulationPath(PHONEME_KEYFRAMES['l'], 10), apex: 5, duration: 0.6 },
+  'w': { frames: buildArticulationPath(PHONEME_KEYFRAMES['u'], 8), apex: 4, duration: 0.5 },
+
+  // SILENCE/PAUSE - Hold at neutral (frame 0)
+  '_': { frames: [0, 0, 0, 0, 0, 0], apex: 0, duration: 0.3 },
+  ' ': { frames: [0, 0, 0, 0, 0, 0, 0, 0], apex: 0, duration: 0.4 },
+};
+
+// Get phoneme data with letter-to-phoneme mapping
+const getPhonemeData = (input) => {
+  const lower = input?.toLowerCase() || '_';
+  // First try direct phoneme lookup
+  if (PHONEME_ARTICULATION_MAP[lower]) {
+    return PHONEME_ARTICULATION_MAP[lower];
+  }
+  // Then try letter-to-phoneme mapping
+  const phoneme = LETTER_TO_PHONEME[lower] || '_';
+  return PHONEME_ARTICULATION_MAP[phoneme] || PHONEME_ARTICULATION_MAP['_'];
 };
 
 // ========== DUAL HEAD ANIMATOR (INTELLIGENT SPRITE ENGINE) ==========
