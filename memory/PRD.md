@@ -82,6 +82,8 @@ Convert existing Base44 web app into a fully native cross-platform mobile and de
 ### Asset Management
 - IPA Master phoneme table: `/app/soundmirror/assets/phoneme_tables/ipa_master.json`
 - 24 phonemes mapped to frame ranges (250 total frames)
+- **SPRITES INTEGRATED:** `/app/frontend/public/assets/sprites/front/` (250 PNG frames)
+- **SPRITES INTEGRATED:** `/app/frontend/public/assets/sprites/side/` (250 PNG frames)
 
 ## GitHub Repository Structure
 ```
