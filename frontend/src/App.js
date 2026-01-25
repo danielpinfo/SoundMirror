@@ -1270,6 +1270,7 @@ function LetterPracticePage() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(0.5);
   const alphabet = ALPHABETS[lang] || ALPHABETS.en;
+  const audioRef = useRef(null);
 
   // Default to letter 'A' so heads are always visible
   const currentLetter = selectedLetter || alphabet[0];
@@ -1278,13 +1279,23 @@ function LetterPracticePage() {
     if (!currentLetter) return;
     setIsPlaying(true);
     
-    if ('speechSynthesis' in window) { 
-      window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(currentLetter.letter); 
-      u.rate = playbackSpeed; 
-      u.lang = lang;
-      window.speechSynthesis.speak(u);
+    // Use pre-recorded phoneme audio instead of TTS
+    const audioPath = getPhonemeAudioPath(currentLetter.letter, lang);
+    if (audioRef.current) {
+      audioRef.current.pause();
     }
+    audioRef.current = new Audio(audioPath);
+    audioRef.current.playbackRate = playbackSpeed;
+    audioRef.current.play().catch(() => {
+      // Fallback to TTS if audio file not found
+      if ('speechSynthesis' in window) { 
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(currentLetter.letter); 
+        u.rate = playbackSpeed; 
+        u.lang = lang;
+        window.speechSynthesis.speak(u);
+      }
+    });
   };
 
   return (
