@@ -1,0 +1,206 @@
+/* SoundMirror - Medical Dark Theme */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 6%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 6%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 199 89% 58%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 45%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 187 94% 52%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 350 89% 60%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 199 89% 58%;
+    --radius: 0.75rem;
+    
+    /* Custom SoundMirror Colors */
+    --sm-bg-default: #020617;
+    --sm-bg-paper: #0F172A;
+    --sm-bg-subtle: #1E293B;
+    --sm-primary: #38BDF8;
+    --sm-accent: #22D3EE;
+    --sm-success: #4ADE80;
+    --sm-warning: #FBBF24;
+    --sm-error: #FB7185;
+    --sm-wave-active: #22D3EE;
+    --sm-wave-inactive: #334155;
+    --sm-lip-highlight: #F472B6;
+    --sm-tongue-highlight: #FB7185;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Manrope', sans-serif;
+  }
+
+  code, pre, .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+@layer components {
+  /* Glass morphism card */
+  .glass-card {
+    @apply bg-slate-900/60 backdrop-blur-xl border border-slate-700/50 rounded-2xl;
+  }
+
+  /* Primary glow button */
+  .btn-glow {
+    @apply bg-sky-500 text-slate-900 font-semibold px-6 py-3 rounded-xl;
+    @apply hover:bg-sky-400 transition-all duration-300;
+    box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+  }
+
+  .btn-glow:hover {
+    box-shadow: 0 0 30px rgba(56, 189, 248, 0.6);
+  }
+
+  /* Sprite container */
+  .sprite-container {
+    @apply relative bg-slate-950/80 rounded-2xl overflow-hidden border border-slate-700/50;
+    aspect-ratio: 1;
+  }
+
+  /* Phoneme badge */
+  .phoneme-badge {
+    @apply inline-flex items-center justify-center px-3 py-1.5 rounded-lg;
+    @apply bg-slate-800 border border-slate-600 text-slate-200;
+    @apply font-mono text-sm tracking-wider uppercase;
+    @apply transition-all duration-200;
+  }
+
+  .phoneme-badge.active {
+    @apply bg-sky-500/20 border-sky-400 text-sky-300;
+    box-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
+  }
+
+  .phoneme-badge.matched {
+    @apply bg-emerald-500/20 border-emerald-400 text-emerald-300;
+  }
+
+  .phoneme-badge.missed {
+    @apply bg-rose-500/20 border-rose-400 text-rose-300;
+  }
+
+  /* Timeline track */
+  .timeline-track {
+    @apply flex items-center gap-1 overflow-x-auto py-4 px-2;
+    @apply scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent;
+    mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+  }
+
+  /* Progress ring */
+  .progress-ring {
+    @apply relative w-24 h-24;
+  }
+
+  .progress-ring svg {
+    transform: rotate(-90deg);
+  }
+
+  /* Wave visualizer */
+  .wave-visualizer {
+    @apply w-full h-20 bg-slate-950/60 rounded-xl border border-slate-700/30;
+  }
+
+  /* Focus ring for accessibility */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 focus:ring-offset-slate-900;
+  }
+}
+
+@layer utilities {
+  /* Text gradients */
+  .text-gradient-primary {
+    @apply bg-gradient-to-r from-sky-400 to-cyan-300 bg-clip-text text-transparent;
+  }
+
+  /* Smooth fade animations */
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out forwards;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.4s ease-out forwards;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.2s ease-out forwards;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  /* Sprite animation keyframes */
+  @keyframes breathe {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+  }
+
+  .animate-breathe {
+    animation: breathe 3s ease-in-out infinite;
+  }
+
+  /* Glow pulse for active elements */
+  @keyframes glowPulse {
+    0%, 100% { box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); }
+    50% { box-shadow: 0 0 25px rgba(56, 189, 248, 0.5); }
+  }
+
+  .animate-glow-pulse {
+    animation: glowPulse 2s ease-in-out infinite;
+  }
+
+  /* Hide scrollbar but allow scrolling */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
