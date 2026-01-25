@@ -690,12 +690,8 @@ const getPhonemeFrameData = (char) => {
 // ========== DUAL HEAD ANIMATOR ==========
 function DualHeadAnimator({ phonemeSequence = [], isPlaying = false, playbackRate = 1.0, onAnimationComplete, size = 'large' }) {
   const { t } = useLanguage();
-  const [spriteFrame, setSpriteFrame] = useState(0);
-  const [phonemeIdx, setPhonemeIdx] = useState(0);
-  const [localFrame, setLocalFrame] = useState(0);
-  const animFrameRef = useRef(0);
-  const lastTimeRef = useRef(0);
-  const rafRef = useRef(null);
+  const [tick, setTick] = useState(0);
+  const timerRef = useRef(null);
   
   const sequence = Array.isArray(phonemeSequence) && phonemeSequence.length > 0 
     ? phonemeSequence.filter(Boolean) 
@@ -703,88 +699,60 @@ function DualHeadAnimator({ phonemeSequence = [], isPlaying = false, playbackRat
   
   const FRAMES_PER_PHONEME = 12;
   const totalFrames = sequence.length * FRAMES_PER_PHONEME + 6;
-  const frameTime = 100 / playbackRate; // ms per animation frame
   
-  // Animation loop using RAF with manual timing
+  // Simple timer-based animation
   useEffect(() => {
-    if (!isPlaying) {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-      return;
-    }
-    
-    animFrameRef.current = 0;
-    lastTimeRef.current = 0;
-    setSpriteFrame(0);
-    setPhonemeIdx(0);
-    setLocalFrame(0);
-    
-    const tick = (timestamp) => {
-      if (lastTimeRef.current === 0) lastTimeRef.current = timestamp;
+    if (isPlaying) {
+      setTick(0);
+      const interval = Math.round(100 / playbackRate);
       
-      const delta = timestamp - lastTimeRef.current;
-      
-      if (delta >= frameTime) {
-        lastTimeRef.current = timestamp;
-        animFrameRef.current += 1;
-        const f = animFrameRef.current;
-        
-        if (f >= totalFrames) {
-          setSpriteFrame(0);
-          setPhonemeIdx(0);
-          setLocalFrame(0);
-          onAnimationComplete?.();
-          return;
-        }
-        
-        // Calculate current position
-        const pIdx = Math.min(Math.floor(f / FRAMES_PER_PHONEME), sequence.length - 1);
-        const lFrame = f % FRAMES_PER_PHONEME;
-        
-        // Calculate sprite frame
-        let sprite = 0;
-        if (f >= sequence.length * FRAMES_PER_PHONEME) {
-          // Return to zero phase
-          const returnFrame = f - (sequence.length * FRAMES_PER_PHONEME);
-          const lastPeak = getPhonemeFrameData(sequence[sequence.length - 1]).peak;
-          sprite = Math.round(lastPeak * (1 - returnFrame / 6));
-        } else {
-          const peak = getPhonemeFrameData(sequence[pIdx]).peak;
-          const halfFrames = FRAMES_PER_PHONEME / 2;
-          
-          if (lFrame < halfFrames) {
-            sprite = Math.round(peak * (lFrame / halfFrames));
-          } else {
-            sprite = Math.round(peak * ((FRAMES_PER_PHONEME - lFrame) / halfFrames));
+      timerRef.current = setInterval(() => {
+        setTick(prev => {
+          const next = prev + 1;
+          if (next >= totalFrames) {
+            clearInterval(timerRef.current);
+            onAnimationComplete?.();
+            return 0;
           }
-        }
-        
-        sprite = Math.max(0, Math.min(249, sprite));
-        
-        setSpriteFrame(sprite);
-        setPhonemeIdx(pIdx);
-        setLocalFrame(lFrame);
-      }
+          return next;
+        });
+      }, interval);
       
-      rafRef.current = requestAnimationFrame(tick);
-    };
-    
-    rafRef.current = requestAnimationFrame(tick);
-    
-    return () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    };
-  }, [isPlaying, playbackRate, sequence, totalFrames, frameTime, onAnimationComplete]);
+      return () => clearInterval(timerRef.current);
+    } else {
+      clearInterval(timerRef.current);
+      setTick(0);
+    }
+  }, [isPlaying, playbackRate, totalFrames, onAnimationComplete]);
 
-  // Reset when sequence changes
+  // Reset on sequence change
   useEffect(() => {
-    setSpriteFrame(0);
-    setPhonemeIdx(0);
-    setLocalFrame(0);
-    animFrameRef.current = 0;
-    lastTimeRef.current = 0;
+    setTick(0);
   }, [sequence.join(',')]);
 
+  // Calculate display values from tick
+  const phonemeIdx = Math.min(Math.floor(tick / FRAMES_PER_PHONEME), sequence.length - 1);
+  const localFrame = tick % FRAMES_PER_PHONEME;
   const currentPhoneme = sequence[phonemeIdx] || '_';
+  
+  // Calculate sprite frame
+  let spriteFrame = 0;
+  if (tick < sequence.length * FRAMES_PER_PHONEME) {
+    const peak = getPhonemeFrameData(currentPhoneme).peak;
+    const halfFrames = FRAMES_PER_PHONEME / 2;
+    if (localFrame < halfFrames) {
+      spriteFrame = Math.round(peak * (localFrame / halfFrames));
+    } else {
+      spriteFrame = Math.round(peak * ((FRAMES_PER_PHONEME - localFrame) / halfFrames));
+    }
+  } else {
+    // Return to zero
+    const returnFrame = tick - (sequence.length * FRAMES_PER_PHONEME);
+    const lastPeak = getPhonemeFrameData(sequence[sequence.length - 1]).peak;
+    spriteFrame = Math.round(lastPeak * (1 - returnFrame / 6));
+  }
+  spriteFrame = Math.max(0, Math.min(249, spriteFrame));
+
   const isApexFrame = localFrame >= 5 && localFrame <= 7;
   const spriteSize = size === 'large' ? 320 : 240;
   const frameNumber = String(spriteFrame).padStart(3, '0');
@@ -798,7 +766,7 @@ function DualHeadAnimator({ phonemeSequence = [], isPlaying = false, playbackRat
               {view === 'front' ? t('frontView') : t('sideView')}
             </div>
             <div 
-              className={`relative overflow-hidden rounded-2xl bg-slate-900/50 border-2 transition-all duration-75 ${isApexFrame ? 'border-sky-400 ring-2 ring-sky-400/30' : 'border-slate-700/50'}`}
+              className={`relative overflow-hidden rounded-2xl bg-slate-900/50 border-2 ${isApexFrame ? 'border-sky-400 ring-2 ring-sky-400/30' : 'border-slate-700/50'}`}
               style={{ 
                 width: spriteSize, 
                 height: spriteSize,
