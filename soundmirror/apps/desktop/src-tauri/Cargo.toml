@@ -1,0 +1,32 @@
+[package]
+name = "soundmirror"
+version = "1.0.0"
+description = "SoundMirror - Articulation Visualization System"
+authors = ["SoundMirror Team"]
+edition = "2021"
+
+[lib]
+name = "soundmirror_lib"
+crate-type = ["lib", "cdylib", "staticlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["tray-icon"] }
+tauri-plugin-shell = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# TTS Support (platform-specific)
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.58", features = ["Media_SpeechSynthesis", "Foundation", "Storage_Streams"] }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2 = "0.5"
+objc2-foundation = "0.2"
+objc2-app-kit = "0.2"
+
+[features]
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]
