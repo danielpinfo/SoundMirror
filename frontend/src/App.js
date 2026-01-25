@@ -687,38 +687,108 @@ const getPhonemeFrameData = (char) => {
   return PHONEME_FRAMES[key] || PHONEME_FRAMES['_'];
 };
 
-// ========== DUAL HEAD ANIMATOR ==========
+// ========== PHONEME AUDIO MAPPING ==========
+// Pre-recorded phoneme sounds for Letter Practice (downloaded from S3)
+const getPhonemeAudioPath = (letter, lang) => {
+  const phonemeMap = {
+    'a': 'ah', 'b': 'ba', 'c': 'ca', 'd': 'da', 'e': 'eh', 'f': 'fa', 'g': 'ga',
+    'h': 'ha', 'i': 'ih', 'j': 'ja', 'k': 'ka', 'l': 'la', 'm': 'ma', 'n': 'na',
+    'o': 'oh', 'p': 'pa', 'q': 'kwa', 'r': 'ra', 's': 'sa', 't': 'ta', 'u': 'uh',
+    'v': 'va', 'w': 'wa', 'x': 'xa', 'y': 'ya', 'z': 'za'
+  };
+  const langCode = lang.split('-')[0]; // 'en-US' -> 'en'
+  const phoneme = phonemeMap[letter.toLowerCase()] || 'ah';
+  return `/assets/audio/phonemes/${langCode}-${phoneme}.mp3`;
+};
+
+// ========== DUAL HEAD ANIMATOR WITH PRE-CACHING ==========
 function DualHeadAnimator({ phonemeSequence = [], isPlaying = false, playbackRate = 1.0, onAnimationComplete, size = 'large' }) {
   const { t } = useLanguage();
   const [tick, setTick] = useState(0);
+  const [isReady, setIsReady] = useState(false);
+  const [cachedFrames, setCachedFrames] = useState({ front: [], side: [] });
   const timerRef = useRef(null);
+  const audioRef = useRef(null);
   
   const sequence = Array.isArray(phonemeSequence) && phonemeSequence.length > 0 
     ? phonemeSequence.filter(Boolean) 
     : ['a'];
   
-  // 8 key frames per phoneme - natural speech timing
-  // Each phoneme ~250ms at 1x speed = ~2 seconds for "hello"
   const FRAMES_PER_PHONEME = 8;
-  const totalFrames = sequence.length * FRAMES_PER_PHONEME + 4; // +4 to return to 0
-  const FRAME_DURATION = 30; // 30ms per frame = ~33fps base rate
-  
+  const totalFrames = sequence.length * FRAMES_PER_PHONEME + 4;
+  const FRAME_DURATION = 30;
+
+  // Calculate which sprite frames we need for this sequence
+  const getFramesForSequence = useCallback(() => {
+    const frames = new Set([0]); // Always include frame 0
+    
+    sequence.forEach(phoneme => {
+      const peak = getPhonemeFrameData(phoneme).peak;
+      // Add frames along the path to peak and back
+      for (let i = 0; i <= FRAMES_PER_PHONEME; i++) {
+        const half = FRAMES_PER_PHONEME / 2;
+        let frame;
+        if (i < half) {
+          frame = Math.round(peak * (i / half));
+        } else {
+          frame = Math.round(peak * ((FRAMES_PER_PHONEME - i) / half));
+        }
+        frames.add(Math.max(0, Math.min(249, frame)));
+      }
+    });
+    
+    return Array.from(frames).sort((a, b) => a - b);
+  }, [sequence]);
+
+  // Pre-cache frames when sequence changes
+  useEffect(() => {
+    setIsReady(false);
+    const neededFrames = getFramesForSequence();
+    
+    const preloadImages = async () => {
+      const frontImages = {};
+      const sideImages = {};
+      
+      const loadPromises = neededFrames.flatMap(frameNum => {
+        const frameStr = String(frameNum).padStart(3, '0');
+        return [
+          new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => { frontImages[frameNum] = img; resolve(); };
+            img.onerror = () => resolve();
+            img.src = `/assets/sprites/front_compressed/frame_${frameStr}.jpg`;
+          }),
+          new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => { sideImages[frameNum] = img; resolve(); };
+            img.onerror = () => resolve();
+            img.src = `/assets/sprites/side_compressed/frame_${frameStr}.jpg`;
+          })
+        ];
+      });
+      
+      await Promise.all(loadPromises);
+      setCachedFrames({ front: frontImages, side: sideImages });
+      setIsReady(true);
+    };
+    
+    preloadImages();
+  }, [sequence.join(','), getFramesForSequence]);
+
+  // Animation loop
   useEffect(() => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
     
-    if (isPlaying) {
+    if (isPlaying && isReady) {
       setTick(0);
       let currentTick = 0;
-      
-      // Adjust interval based on playback rate
       const interval = Math.round(FRAME_DURATION / playbackRate);
       
       timerRef.current = setInterval(() => {
         currentTick += 1;
-        
         if (currentTick >= totalFrames) {
           clearInterval(timerRef.current);
           timerRef.current = null;
@@ -726,7 +796,6 @@ function DualHeadAnimator({ phonemeSequence = [], isPlaying = false, playbackRat
           onAnimationComplete?.();
           return;
         }
-        
         setTick(currentTick);
       }, interval);
     } else {
@@ -739,52 +808,52 @@ function DualHeadAnimator({ phonemeSequence = [], isPlaying = false, playbackRat
         timerRef.current = null;
       }
     };
-  }, [isPlaying, playbackRate, totalFrames, onAnimationComplete]);
+  }, [isPlaying, isReady, playbackRate, totalFrames, onAnimationComplete]);
 
-  // Reset when sequence changes
-  useEffect(() => {
-    setTick(0);
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
-  }, [sequence.join(',')]);
-
-  // Calculate current position
+  // Calculate current sprite frame
   const phonemeIdx = Math.min(Math.floor(tick / FRAMES_PER_PHONEME), sequence.length - 1);
   const localFrame = tick % FRAMES_PER_PHONEME;
   const currentPhoneme = sequence[phonemeIdx] || '_';
   
-  // Calculate sprite frame - use key frames only (skip intermediate frames for faster loading)
   let spriteFrame = 0;
   const peak = getPhonemeFrameData(currentPhoneme).peak;
   
   if (tick < sequence.length * FRAMES_PER_PHONEME) {
     const half = FRAMES_PER_PHONEME / 2;
     if (localFrame < half) {
-      // Ramp up to peak
-      const progress = localFrame / half;
-      spriteFrame = Math.round(peak * progress);
+      spriteFrame = Math.round(peak * (localFrame / half));
     } else {
-      // Ramp down from peak  
-      const progress = (FRAMES_PER_PHONEME - localFrame) / half;
-      spriteFrame = Math.round(peak * progress);
+      spriteFrame = Math.round(peak * ((FRAMES_PER_PHONEME - localFrame) / half));
     }
   } else {
-    // Return to zero
     const returnFrame = tick - (sequence.length * FRAMES_PER_PHONEME);
     const lastPeak = getPhonemeFrameData(sequence[sequence.length - 1]).peak;
     spriteFrame = Math.round(lastPeak * (1 - returnFrame / 4));
   }
-  
   spriteFrame = Math.max(0, Math.min(249, spriteFrame));
 
   const isApexFrame = localFrame === 3 || localFrame === 4;
   const spriteSize = size === 'large' ? 300 : size === 'medium' ? 240 : 180;
   const frameNumber = String(spriteFrame).padStart(3, '0');
 
+  // Use cached images if available, otherwise fall back to URL
+  const getFrontSrc = () => {
+    if (cachedFrames.front[spriteFrame]) {
+      return cachedFrames.front[spriteFrame].src;
+    }
+    return `/assets/sprites/front_compressed/frame_${frameNumber}.jpg`;
+  };
+  
+  const getSideSrc = () => {
+    if (cachedFrames.side[spriteFrame]) {
+      return cachedFrames.side[spriteFrame].src;
+    }
+    return `/assets/sprites/side_compressed/frame_${frameNumber}.jpg`;
+  };
+
   return (
     <div className="flex flex-col items-center gap-3" data-testid="dual-head-animator">
+      {!isReady && <div className="text-xs text-slate-500">Loading frames...</div>}
       <div className="flex gap-4 justify-center">
         {['front', 'side'].map((view) => (
           <div key={view} className="flex flex-col items-center gap-1">
@@ -802,7 +871,7 @@ function DualHeadAnimator({ phonemeSequence = [], isPlaying = false, playbackRat
               data-testid={`animator-${view}`}
             >
               <img 
-                src={`/assets/sprites/${view}/frame_${frameNumber}.png`}
+                src={view === 'front' ? getFrontSrc() : getSideSrc()}
                 alt={`${view} frame ${spriteFrame}`}
                 className="w-full h-full object-contain"
               />
