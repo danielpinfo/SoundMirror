@@ -847,7 +847,7 @@ function PlaybackControls({ isPlaying, isMuted, playbackSpeed, onPlay, onPause, 
   const { t } = useLanguage();
   return (
     <div className="flex items-center gap-3 p-3 bg-slate-900/60 backdrop-blur-lg rounded-xl border border-slate-700/50">
-      <button onClick={isPlaying ? onPause : onPlay} className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${isPlaying ? 'bg-sky-500 text-slate-900' : 'bg-sky-500/20 text-sky-400 border border-sky-500/50'}`} style={isPlaying ? { boxShadow: '0 0 20px rgba(56,189,248,0.5)' } : {}}>
+      <button data-testid="playback-play-btn" onClick={isPlaying ? onPause : onPlay} className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${isPlaying ? 'bg-sky-500 text-slate-900' : 'bg-sky-500/20 text-sky-400 border border-sky-500/50'}`} style={isPlaying ? { boxShadow: '0 0 20px rgba(56,189,248,0.5)' } : {}}>
         {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-0.5" />}
       </button>
       <button onClick={onReset} className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-200 hover:bg-slate-800"><RotateCcw className="w-4 h-4" /></button>
