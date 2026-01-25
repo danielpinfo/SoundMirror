@@ -1303,13 +1303,33 @@ function LetterPracticePage() {
   const alphabet = ALPHABETS[lang] || ALPHABETS.en;
 
   const handlePlay = () => { 
-    setIsPlaying(true); 
     if ('speechSynthesis' in window && selectedLetter) { 
+      // Cancel any ongoing speech first
+      window.speechSynthesis.cancel();
+      
       const u = new SpeechSynthesisUtterance(selectedLetter.letter); 
       u.rate = playbackSpeed; 
-      u.lang = lang; 
-      window.speechSynthesis.speak(u); 
-    } 
+      u.lang = lang;
+      
+      // Start animation when speech starts
+      u.onstart = () => {
+        setIsPlaying(true);
+      };
+      
+      // Stop animation when speech ends
+      u.onend = () => {
+        setIsPlaying(false);
+      };
+      
+      u.onerror = () => {
+        setIsPlaying(false);
+      };
+      
+      window.speechSynthesis.speak(u);
+    } else {
+      // No TTS available, just play animation
+      setIsPlaying(true);
+    }
   };
   
   const handleRecordingComplete = (data) => {
