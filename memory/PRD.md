@@ -124,29 +124,12 @@ SoundMirror/ (GitHub: danielpinfo/SoundMirror)
 20. Community language contributions
 
 ## Next Tasks List
-1. **Import sprites** - Pull 500 PNGs from GitHub repo
-2. **Generate manifests** - Run auto-indexer on sprite folders
-3. **Wire up sprites** - Replace placeholder animations with real images
-4. **Test TTS** - Validate Web Speech API timing
-5. **Build Tauri** - Create first desktop executable
-
-## Technical Architecture
-
-```
-Frontend (React) → Phoneme Engine (TS) → Sprite Scheduler (TS)
-                         ↓                        ↓
-              TTS Timing Events         Frame-by-Frame Render
-                         ↓                        ↓
-              Native TTS Bridge ←→ Dual Head Animator
-              (Rust via Tauri)        (Front + Side)
-```
-
-## Success Metrics
-- App loads and runs 100% offline
-- Animation frame rate: 30fps smooth
-- TTS sync accuracy: <50ms drift
-- Sprite preload: <2s for 250 frames
-- Cross-platform: Windows, macOS, Android, iOS
+1. ✅ **Import sprites** - Pulled 500 PNGs from GitHub repo - **DONE**
+2. ✅ **Wire up sprites** - DualHeadAnimator now uses real PNG sprites - **DONE**
+3. **Real Recording** - Implement camera/microphone capture with Web APIs
+4. **Animation Timing** - Implement "frame #5 sweet spot" pause logic
+5. **Test TTS** - Validate Web Speech API timing sync with sprites
+6. **Build Tauri** - Create first desktop executable
 
 ---
-*Last Updated: January 25, 2026*
+*Last Updated: January 25, 2026 - Sprites fully integrated*
