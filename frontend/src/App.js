@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { BrowserRouter, Routes, Route, NavLink, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { Activity, Home as HomeIcon, Mic2, BookA, BarChart3, Bug, Play, Pause, RotateCcw, Volume2, VolumeX, ArrowLeft, Search, ArrowRight, ChevronDown, Check, Send, Wifi, WifiOff, Trash2, Clock, TrendingUp, Target, Award, Calendar, CheckCircle, Square, Sparkles, Video, Camera, Download, Eye, Ear, Circle, PlayCircle } from 'lucide-react';
 import { Toaster, toast } from 'sonner';
