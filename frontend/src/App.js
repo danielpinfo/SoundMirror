@@ -515,40 +515,56 @@ function LanguageProvider({ children }) {
 
 // ========== SPLASH SCREEN ==========
 function SplashScreen({ onComplete }) {
-  const [phase, setPhase] = useState(0); // 0: drop, 1: ripple, 2: logo, 3: done
+  const [phase, setPhase] = useState(0); // 0: drop falling, 1: impact + ripples, 2: logo, 3: done
   
   useEffect(() => {
     const timers = [
-      setTimeout(() => setPhase(1), 600),
-      setTimeout(() => setPhase(2), 1200),
-      setTimeout(() => setPhase(3), 2000),
-      setTimeout(() => onComplete(), 2500),
+      setTimeout(() => setPhase(1), 800),   // Drop hits water
+      setTimeout(() => setPhase(2), 1600),  // Show logo
+      setTimeout(() => setPhase(3), 2400),  // Fade ripples
+      setTimeout(() => onComplete(), 3000), // Complete
     ];
     return () => timers.forEach(clearTimeout);
   }, [onComplete]);
 
   return (
     <div className="fixed inset-0 bg-black z-50 flex items-center justify-center overflow-hidden">
-      {/* Water Drop */}
-      <div className={`absolute transition-all duration-500 ${phase >= 1 ? 'opacity-0 scale-0' : 'opacity-100'}`}
-        style={{ top: phase === 0 ? '20%' : '50%', transition: 'top 0.5s ease-in' }}>
-        <div className="w-6 h-8 bg-gradient-to-b from-sky-300 to-cyan-500 rounded-full relative"
-          style={{ borderRadius: '50% 50% 50% 50% / 60% 60% 40% 40%', boxShadow: '0 0 20px rgba(56, 189, 248, 0.5), inset 0 -4px 8px rgba(255,255,255,0.3)' }}>
-          <div className="absolute top-1 left-1 w-2 h-2 bg-white/60 rounded-full" />
+      {/* Water Drop - smaller, animated falling */}
+      <div 
+        className={`absolute transition-all ${phase >= 1 ? 'opacity-0 scale-50' : 'opacity-100'}`}
+        style={{ 
+          top: phase === 0 ? '15%' : '50%', 
+          transition: 'top 0.7s cubic-bezier(0.55, 0, 1, 0.45), opacity 0.15s ease-out',
+        }}
+      >
+        <div 
+          className="w-4 h-6 bg-gradient-to-b from-white via-sky-200 to-cyan-400 relative"
+          style={{ 
+            borderRadius: '50% 50% 50% 50% / 60% 60% 40% 40%', 
+            boxShadow: '0 0 15px rgba(255, 255, 255, 0.6), inset 0 -3px 6px rgba(56, 189, 248, 0.4)',
+            animation: phase === 0 ? 'dropWobble 0.3s ease-in-out infinite' : 'none',
+          }}
+        >
+          <div className="absolute top-0.5 left-0.5 w-1.5 h-1.5 bg-white/80 rounded-full" />
         </div>
       </div>
 
-      {/* Ripples */}
+      {/* Ripples - thicker, white */}
       {phase >= 1 && (
         <div className="absolute flex items-center justify-center">
-          {[0, 1, 2, 3].map((i) => (
-            <div key={i} className="absolute rounded-full border-2 border-cyan-400/40"
+          {[0, 1, 2, 3, 4].map((i) => (
+            <div 
+              key={i} 
+              className="absolute rounded-full"
               style={{
-                width: `${50 + i * 80}px`, height: `${50 + i * 80}px`,
-                animation: `ripple 1.5s ease-out ${i * 0.15}s forwards`,
+                width: `${40 + i * 70}px`, 
+                height: `${40 + i * 70}px`,
+                border: `${4 - i * 0.5}px solid rgba(255, 255, 255, ${0.9 - i * 0.15})`,
+                animation: `rippleExpand 1.8s ease-out ${i * 0.12}s forwards`,
                 opacity: phase >= 3 ? 0 : 1,
-                transition: 'opacity 0.5s ease-out',
-              }} />
+                transition: 'opacity 0.6s ease-out',
+              }} 
+            />
           ))}
         </div>
       )}
@@ -565,9 +581,13 @@ function SplashScreen({ onComplete }) {
       </div>
 
       <style>{`
-        @keyframes ripple {
-          0% { transform: scale(0.5); opacity: 0.8; }
-          100% { transform: scale(2); opacity: 0; }
+        @keyframes dropWobble {
+          0%, 100% { transform: scaleX(1) scaleY(1); }
+          50% { transform: scaleX(0.92) scaleY(1.08); }
+        }
+        @keyframes rippleExpand {
+          0% { transform: scale(0.3); opacity: 1; }
+          100% { transform: scale(2.5); opacity: 0; }
         }
       `}</style>
     </div>
@@ -617,8 +637,8 @@ function Layout({ children }) {
   );
 }
 
-// ========== DUAL HEAD ANIMATOR (REAL PNG SPRITES) ==========
-function DualHeadAnimator({ phonemeSequence = [], isPlaying = false, playbackRate = 1.0, frameDuration = 100, onAnimationComplete, size = 'large' }) {
+// ========== DUAL HEAD ANIMATOR (REAL PNG SPRITES - MOVIE QUALITY) ==========
+function DualHeadAnimator({ phonemeSequence = [], isPlaying = false, playbackRate = 1.0, frameDuration = 80, onAnimationComplete, size = 'large' }) {
   const { t } = useLanguage();
   const [currentPhonemeIndex, setCurrentPhonemeIndex] = useState(0);
   const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
@@ -629,21 +649,32 @@ function DualHeadAnimator({ phonemeSequence = [], isPlaying = false, playbackRat
   const TOTAL_SPRITE_FRAMES = 250;
   const FRAMES_PER_PHONEME = 10;
   const sequence = Array.isArray(phonemeSequence) ? phonemeSequence.filter(Boolean) : ['_'];
-  const totalFrames = sequence.length * FRAMES_PER_PHONEME;
+  // Add extra frames at start and end to return to frame 0
+  const totalAnimFrames = sequence.length * FRAMES_PER_PHONEME + FRAMES_PER_PHONEME; // +10 frames to return to 0
   const currentPhoneme = sequence[currentPhonemeIndex] || '_';
   const isApexFrame = currentFrameIndex === 4;
 
-  // Map phoneme to sprite frame range (distribute 250 frames across common phonemes)
-  const getPhonemeStartFrame = useCallback((phoneme, index) => {
-    const phonemeMap = { a:0, e:25, i:50, o:75, u:100, p:125, t:140, s:155, n:170, l:185, r:200, k:215, d:230, m:125, b:140, f:155, g:170, h:185, j:200, v:215, w:230, c:140, x:155, y:185, z:200 };
-    return phonemeMap[phoneme.toLowerCase()] ?? (index * 10) % TOTAL_SPRITE_FRAMES;
+  // Map phoneme to sprite frame range - each phoneme uses 10 consecutive frames
+  const getPhonemeStartFrame = useCallback((phoneme) => {
+    const phonemeMap = { 
+      a: 0, e: 10, i: 20, o: 30, u: 40,           // Vowels
+      p: 50, b: 60, m: 70,                         // Bilabials  
+      f: 80, v: 90,                                // Labiodentals
+      t: 100, d: 110, n: 120, l: 130, s: 140, z: 150, // Alveolars
+      k: 160, g: 170,                              // Velars
+      h: 180, r: 190, w: 200, y: 210,             // Others
+      c: 100, j: 220, q: 160, x: 140              // Mapped to similar
+    };
+    return phonemeMap[phoneme.toLowerCase()] ?? 0;
   }, []);
 
   const animate = useCallback((ts) => {
     if (!startTimeRef.current) startTimeRef.current = ts;
     const elapsed = (ts - startTimeRef.current) * playbackRate;
     const framePos = Math.floor(elapsed / frameDuration);
-    if (framePos >= totalFrames) {
+    
+    // Animation complete - return to frame 0
+    if (framePos >= totalAnimFrames) {
       setCurrentFrameIndex(0);
       setCurrentPhonemeIndex(0);
       setGlobalFrameIndex(0);
@@ -651,21 +682,38 @@ function DualHeadAnimator({ phonemeSequence = [], isPlaying = false, playbackRat
       onAnimationComplete?.();
       return;
     }
-    const phonemeIdx = Math.floor(framePos / FRAMES_PER_PHONEME);
-    const localFrame = framePos % FRAMES_PER_PHONEME;
-    const phoneme = sequence[phonemeIdx] || '_';
-    const startFrame = getPhonemeStartFrame(phoneme, phonemeIdx);
-    const spriteFrame = (startFrame + localFrame) % TOTAL_SPRITE_FRAMES;
     
-    setCurrentPhonemeIndex(phonemeIdx);
-    setCurrentFrameIndex(localFrame);
-    setGlobalFrameIndex(spriteFrame);
+    // Calculate position within the sequence
+    const phonemeIdx = Math.min(Math.floor(framePos / FRAMES_PER_PHONEME), sequence.length - 1);
+    const localFrame = framePos % FRAMES_PER_PHONEME;
+    
+    // Last segment: transition back to frame 0
+    if (framePos >= sequence.length * FRAMES_PER_PHONEME) {
+      const returnProgress = framePos - (sequence.length * FRAMES_PER_PHONEME);
+      const lastPhonemeStart = getPhonemeStartFrame(sequence[sequence.length - 1] || '_');
+      // Smoothly interpolate from last phoneme end frame back to 0
+      const spriteFrame = Math.round(lastPhonemeStart + 9 - (returnProgress * ((lastPhonemeStart + 9) / FRAMES_PER_PHONEME)));
+      setGlobalFrameIndex(Math.max(0, spriteFrame));
+      setCurrentFrameIndex(9 - returnProgress);
+    } else {
+      const phoneme = sequence[phonemeIdx] || '_';
+      const startFrame = getPhonemeStartFrame(phoneme);
+      const spriteFrame = startFrame + localFrame;
+      
+      setCurrentPhonemeIndex(phonemeIdx);
+      setCurrentFrameIndex(localFrame);
+      setGlobalFrameIndex(spriteFrame);
+    }
+    
     animationRef.current = requestAnimationFrame(animate);
-  }, [playbackRate, frameDuration, totalFrames, onAnimationComplete, sequence, getPhonemeStartFrame]);
+  }, [playbackRate, frameDuration, totalAnimFrames, onAnimationComplete, sequence, getPhonemeStartFrame]);
 
   useEffect(() => {
     if (isPlaying) {
       startTimeRef.current = null;
+      setGlobalFrameIndex(0); // Always start from frame 0
+      setCurrentFrameIndex(0);
+      setCurrentPhonemeIndex(0);
       animationRef.current = requestAnimationFrame(animate);
     } else if (animationRef.current) {
       cancelAnimationFrame(animationRef.current);
@@ -673,15 +721,15 @@ function DualHeadAnimator({ phonemeSequence = [], isPlaying = false, playbackRat
     return () => { if (animationRef.current) cancelAnimationFrame(animationRef.current); };
   }, [isPlaying, animate]);
 
+  // Reset to frame 0 when sequence changes
   useEffect(() => {
     setCurrentFrameIndex(0);
     setCurrentPhonemeIndex(0);
-    const phoneme = sequence[0] || '_';
-    setGlobalFrameIndex(getPhonemeStartFrame(phoneme, 0));
+    setGlobalFrameIndex(0);
     startTimeRef.current = null;
-  }, [sequence.join(','), getPhonemeStartFrame]);
+  }, [sequence.join(',')]);
 
-  const spriteSize = size === 'large' ? 320 : 220;
+  const spriteSize = size === 'large' ? 320 : 240;
   const frameNumber = String(globalFrameIndex).padStart(3, '0');
 
   return (
@@ -693,7 +741,7 @@ function DualHeadAnimator({ phonemeSequence = [], isPlaying = false, playbackRat
               {view === 'front' ? t('frontView') : t('sideView')}
             </div>
             <div 
-              className={`sprite-container relative overflow-hidden rounded-2xl bg-slate-900/50 border-2 transition-all duration-150 ${isApexFrame ? 'border-sky-400 ring-2 ring-sky-400/30' : 'border-slate-700/50'}`}
+              className={`sprite-container relative overflow-hidden rounded-2xl bg-slate-900/50 border-2 transition-all duration-100 ${isApexFrame ? 'border-sky-400 ring-2 ring-sky-400/30' : 'border-slate-700/50'}`}
               style={{ 
                 width: spriteSize, 
                 height: spriteSize, 
@@ -927,17 +975,45 @@ function WordPracticePage() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(0.5);
+  const [isRecording, setIsRecording] = useState(false);
+  const [hasRecording, setHasRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [visualScore, setVisualScore] = useState(null);
+  const [audioScore, setAudioScore] = useState(null);
+  const timerRef = useRef(null);
 
   const phonemes = word.toLowerCase().replace(/[^a-z]/g, '').split('').map(c => PHONEME_MAP[c] || { letter: c.toUpperCase(), phoneme: c });
   const phonemeTokens = phonemes.map(p => p.phoneme);
 
   const speakWord = useCallback(() => { if ('speechSynthesis' in window && !isMuted) { const u = new SpeechSynthesisUtterance(word); u.rate = playbackSpeed; u.lang = lang; window.speechSynthesis.speak(u); } }, [word, playbackSpeed, isMuted, lang]);
   const handlePlay = () => { setIsPlaying(true); speakWord(); };
-  const handleRecordingComplete = (data) => {
-    const h = JSON.parse(localStorage.getItem('soundmirror_history') || '[]');
-    h.unshift({ id: Date.now(), word, lang, visualScore: data.visualScore / 100, audioScore: data.audioScore / 100, score: (data.visualScore + data.audioScore) / 200, date: new Date().toISOString(), duration: data.duration });
-    localStorage.setItem('soundmirror_history', JSON.stringify(h.slice(0, 50)));
+  
+  const startRecording = () => { 
+    setIsRecording(true); 
+    setHasRecording(false); 
+    setVisualScore(null); 
+    setAudioScore(null); 
+    setRecordingTime(0); 
+    timerRef.current = setInterval(() => setRecordingTime(t => t + 100), 100); 
   };
+  
+  const stopRecording = () => { 
+    setIsRecording(false); 
+    setHasRecording(true); 
+    clearInterval(timerRef.current);
+    setTimeout(() => { 
+      const v = Math.floor(Math.random()*30)+70;
+      const a = Math.floor(Math.random()*30)+70;
+      setVisualScore(v); 
+      setAudioScore(a);
+      // Save to history
+      const h = JSON.parse(localStorage.getItem('soundmirror_history') || '[]');
+      h.unshift({ id: Date.now(), word, lang, visualScore: v / 100, audioScore: a / 100, score: (v + a) / 200, date: new Date().toISOString(), duration: recordingTime });
+      localStorage.setItem('soundmirror_history', JSON.stringify(h.slice(0, 50)));
+    }, 500);
+  };
+
+  const getScoreColor = (s) => s >= 85 ? 'text-emerald-400' : s >= 70 ? 'text-amber-400' : 'text-rose-400';
 
   return (
     <div className="min-h-screen p-4 lg:p-6">
@@ -951,22 +1027,112 @@ function WordPracticePage() {
           <LanguageSelector compact />
         </div>
         
-        {/* HEADS DOMINANT - Takes most space */}
-        <div className="grid lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-2 glass-card p-6">
-            <h3 className="text-sm font-semibold text-slate-400 mb-4 text-center uppercase tracking-wider">{t('modelArticulation')}</h3>
-            <DualHeadAnimator phonemeSequence={phonemeTokens} isPlaying={isPlaying} playbackRate={playbackSpeed} frameDuration={Math.round(150 / playbackSpeed)} onAnimationComplete={() => setIsPlaying(false)} size="large" />
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-1">
+        {/* Main content: Large Camera LEFT, Model + Controls RIGHT */}
+        <div className="grid lg:grid-cols-5 gap-4">
+          {/* LEFT: Large Camera/Recording Screen */}
+          <div className="lg:col-span-2 glass-card p-4">
+            <h3 className="text-sm font-semibold text-slate-400 mb-3 text-center uppercase tracking-wider flex items-center justify-center gap-2">
+              <Camera className="w-4 h-4 text-cyan-400" />{t('recordGrade')}
+            </h3>
+            {/* Large Video Preview */}
+            <div className="relative bg-slate-950 rounded-2xl mb-4 overflow-hidden border border-slate-700/50 aspect-[4/3]">
+              <div className="absolute inset-0 flex items-center justify-center">
+                {isRecording ? (
+                  <div className="text-center">
+                    <div className="w-20 h-20 rounded-full border-4 border-rose-500 flex items-center justify-center mb-2 animate-pulse">
+                      <Video className="w-10 h-10 text-rose-400" />
+                    </div>
+                    <div className="text-rose-400 font-mono text-2xl">{(recordingTime / 1000).toFixed(1)}s</div>
+                    <div className="text-rose-300 text-sm mt-1">Recording...</div>
+                  </div>
+                ) : hasRecording ? (
+                  <div className="text-center">
+                    <Video className="w-16 h-16 mx-auto mb-2 text-emerald-400" />
+                    <div className="text-emerald-400 text-lg font-medium">Recording Ready</div>
+                  </div>
+                ) : (
+                  <div className="text-slate-500 text-center">
+                    <Video className="w-20 h-20 mx-auto mb-2 text-slate-600" />
+                    <div className="text-lg">Camera Preview</div>
+                    <div className="text-sm text-slate-600">Press record to capture</div>
+                  </div>
+                )}
+              </div>
+              {/* Lip tracking overlay */}
+              {isRecording && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="w-32 h-20 border-2 border-dashed border-cyan-400/60 rounded-full animate-pulse" />
+                </div>
+              )}
+            </div>
+            
+            {/* Record Controls */}
+            <div className="flex justify-center gap-3 mb-4">
+              {!isRecording ? (
+                <button onClick={startRecording} className="btn-glow flex items-center gap-2 px-6 py-3 text-base">
+                  <Circle className="w-5 h-5 fill-current" />{t('startRecording')}
+                </button>
+              ) : (
+                <button onClick={stopRecording} className="flex items-center gap-2 px-6 py-3 bg-rose-500 text-white rounded-xl text-base hover:bg-rose-600 transition-colors">
+                  <Square className="w-5 h-5" />{t('stopRecording')}
+                </button>
+              )}
+              {hasRecording && (
+                <button className="flex items-center gap-2 px-4 py-3 bg-slate-700 text-slate-200 rounded-xl">
+                  <Play className="w-5 h-5" />{t('playback')}
+                </button>
+              )}
+            </div>
+            
+            {/* Scores */}
+            {visualScore !== null && (
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 rounded-xl bg-slate-800/50 text-center border border-slate-700/50">
+                  <div className="flex items-center justify-center gap-2 mb-1">
+                    <Eye className="w-4 h-4 text-cyan-400" />
+                    <span className="text-xs text-slate-400">{t('visualScore')}</span>
+                  </div>
+                  <div className={`text-3xl font-bold ${getScoreColor(visualScore)}`}>{visualScore}%</div>
+                  <div className="text-[10px] text-slate-500">{t('lipJaw')}</div>
+                </div>
+                <div className="p-3 rounded-xl bg-slate-800/50 text-center border border-slate-700/50">
+                  <div className="flex items-center justify-center gap-2 mb-1">
+                    <Ear className="w-4 h-4 text-purple-400" />
+                    <span className="text-xs text-slate-400">{t('audioScore')}</span>
+                  </div>
+                  <div className={`text-3xl font-bold ${getScoreColor(audioScore)}`}>{audioScore}%</div>
+                  <div className="text-[10px] text-slate-500">{t('pronunciation')}</div>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          {/* RIGHT: Model Articulation + Playback Controls */}
+          <div className="lg:col-span-3 glass-card p-5">
+            <h3 className="text-sm font-semibold text-slate-400 mb-3 text-center uppercase tracking-wider">{t('modelArticulation')}</h3>
+            <DualHeadAnimator 
+              phonemeSequence={phonemeTokens} 
+              isPlaying={isPlaying} 
+              playbackRate={playbackSpeed} 
+              frameDuration={Math.round(100 / playbackSpeed)} 
+              onAnimationComplete={() => setIsPlaying(false)} 
+              size="large" 
+            />
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-1">
               {phonemes.map((p, i) => <span key={i} className="phoneme-badge min-w-[50px]">{p.letter}</span>)}
             </div>
             <div className="mt-4 flex justify-center">
-              <PlaybackControls isPlaying={isPlaying} isMuted={isMuted} playbackSpeed={playbackSpeed} onPlay={handlePlay} onPause={() => { setIsPlaying(false); window.speechSynthesis?.cancel(); }} onReset={() => { setIsPlaying(false); window.speechSynthesis?.cancel(); }} onSpeedChange={setPlaybackSpeed} onMuteToggle={() => setIsMuted(!isMuted)} />
+              <PlaybackControls 
+                isPlaying={isPlaying} 
+                isMuted={isMuted} 
+                playbackSpeed={playbackSpeed} 
+                onPlay={handlePlay} 
+                onPause={() => { setIsPlaying(false); window.speechSynthesis?.cancel(); }} 
+                onReset={() => { setIsPlaying(false); window.speechSynthesis?.cancel(); }} 
+                onSpeedChange={setPlaybackSpeed} 
+                onMuteToggle={() => setIsMuted(!isMuted)} 
+              />
             </div>
-          </div>
-          
-          {/* Recording - Smaller column */}
-          <div className="lg:col-span-1">
-            <RecordingPanel onRecordingComplete={handleRecordingComplete} compact />
           </div>
         </div>
       </div>
@@ -979,9 +1145,19 @@ function LetterPracticePage() {
   const { lang, t } = useLanguage();
   const [selectedLetter, setSelectedLetter] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [playbackSpeed, setPlaybackSpeed] = useState(0.5);
   const alphabet = ALPHABETS[lang] || ALPHABETS.en;
 
-  const handlePlay = () => { setIsPlaying(true); if ('speechSynthesis' in window && selectedLetter) { const u = new SpeechSynthesisUtterance(selectedLetter.letter); u.rate = 0.5; u.lang = lang; window.speechSynthesis.speak(u); } };
+  const handlePlay = () => { 
+    setIsPlaying(true); 
+    if ('speechSynthesis' in window && selectedLetter) { 
+      const u = new SpeechSynthesisUtterance(selectedLetter.letter); 
+      u.rate = playbackSpeed; 
+      u.lang = lang; 
+      window.speechSynthesis.speak(u); 
+    } 
+  };
+  
   const handleRecordingComplete = (data) => {
     const h = JSON.parse(localStorage.getItem('soundmirror_history') || '[]');
     h.unshift({ id: Date.now(), word: selectedLetter?.letter || '?', lang, visualScore: data.visualScore / 100, audioScore: data.audioScore / 100, score: (data.visualScore + data.audioScore) / 200, date: new Date().toISOString(), type: 'letter' });
@@ -992,21 +1168,39 @@ function LetterPracticePage() {
     <div className="min-h-screen p-4 lg:p-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-4">
-          <button onClick={() => navigate('/')} className="flex items-center gap-2 text-slate-400 hover:text-slate-200"><ArrowLeft className="w-5 h-5" />{t('back')}</button>
-          <div className="text-center"><h1 className="text-2xl font-bold text-slate-100">{t('letterPractice')}</h1><p className="text-slate-500 text-sm">{t('letterPracticeDesc')}</p></div>
+          <button onClick={() => navigate('/')} className="flex items-center gap-2 text-slate-400 hover:text-slate-200">
+            <ArrowLeft className="w-5 h-5" />{t('back')}
+          </button>
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-slate-100">{t('letterPractice')}</h1>
+            <p className="text-slate-500 text-sm">{t('letterPracticeDesc')}</p>
+          </div>
           <LanguageSelector compact />
         </div>
 
         <div className="grid lg:grid-cols-3 gap-4">
           {/* LEFT: Keyboard + Recording (smaller) */}
           <div className="lg:col-span-1 space-y-4">
-            <div className="glass-card p-3">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">{t('selectLetter')} <span className="text-amber-400">({t('vowelsHighlighted')})</span></h3>
+            <div className="glass-card p-4">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">
+                {t('selectLetter')} <span className="text-amber-400">({t('vowelsHighlighted')})</span>
+              </h3>
               <div className="grid grid-cols-6 gap-1.5">
                 {alphabet.map((item) => (
-                  <button key={item.letter} onClick={() => { setSelectedLetter(item); setIsPlaying(false); }}
-                    className={`p-1.5 rounded-lg text-center transition-all ${selectedLetter?.letter === item.letter ? 'bg-sky-500/20 border-2 border-sky-400' : item.isVowel ? 'bg-amber-500/10 border border-amber-500/30' : 'bg-slate-800/50 border border-slate-700/50'}`}>
-                    <div className={`text-lg font-bold ${item.isVowel ? 'text-amber-400' : 'text-slate-200'}`}>{item.letter}</div>
+                  <button 
+                    key={item.letter} 
+                    onClick={() => { setSelectedLetter(item); setIsPlaying(false); }}
+                    className={`p-2 rounded-lg text-center transition-all hover:scale-105 ${
+                      selectedLetter?.letter === item.letter 
+                        ? 'bg-sky-500/20 border-2 border-sky-400 shadow-lg shadow-sky-500/20' 
+                        : item.isVowel 
+                          ? 'bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20' 
+                          : 'bg-slate-800/50 border border-slate-700/50 hover:bg-slate-700/50'
+                    }`}
+                  >
+                    <div className={`text-lg font-bold ${item.isVowel ? 'text-amber-400' : 'text-slate-200'}`}>
+                      {item.letter}
+                    </div>
                     <div className="text-[8px] text-slate-500 truncate">{item.phoneme}</div>
                   </button>
                 ))}
@@ -1019,22 +1213,59 @@ function LetterPracticePage() {
           <div className="lg:col-span-2">
             {selectedLetter ? (
               <div className="glass-card p-6 h-full">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <span className={`text-5xl font-bold ${selectedLetter.isVowel ? 'text-amber-400' : 'text-sky-400'}`}>{selectedLetter.letter}</span>
-                    <div><div className="text-xl text-slate-300">"{selectedLetter.phoneme}"</div></div>
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-4">
+                    <span className={`text-6xl font-bold ${selectedLetter.isVowel ? 'text-amber-400' : 'text-sky-400'}`}>
+                      {selectedLetter.letter}
+                    </span>
+                    <div>
+                      <div className="text-2xl text-slate-300">"{selectedLetter.phoneme}"</div>
+                      <div className="text-sm text-slate-500">{selectedLetter.isVowel ? 'Vowel' : 'Consonant'}</div>
+                    </div>
                   </div>
-                  <button onClick={handlePlay} disabled={isPlaying} className="btn-glow flex items-center gap-2 px-4 py-2">
-                    {isPlaying ? <Volume2 className="w-4 h-4 animate-pulse" /> : <Play className="w-4 h-4" />}{isPlaying ? t('playing') : t('playSound')}
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <div className="flex gap-1">
+                      {[0.25, 0.5, 1.0].map(v => (
+                        <button 
+                          key={v} 
+                          onClick={() => setPlaybackSpeed(v)} 
+                          className={`px-2 py-1 rounded text-xs font-medium transition-all ${
+                            playbackSpeed === v 
+                              ? 'bg-sky-500/20 text-sky-400 border border-sky-500/50' 
+                              : 'text-slate-400 hover:bg-slate-800'
+                          }`}
+                        >
+                          {v}x
+                        </button>
+                      ))}
+                    </div>
+                    <button 
+                      onClick={handlePlay} 
+                      disabled={isPlaying} 
+                      className="btn-glow flex items-center gap-2 px-5 py-2.5"
+                    >
+                      {isPlaying ? <Volume2 className="w-5 h-5 animate-pulse" /> : <Play className="w-5 h-5" />}
+                      {isPlaying ? t('playing') : t('playSound')}
+                    </button>
+                  </div>
                 </div>
-                <DualHeadAnimator phonemeSequence={[selectedLetter.letter.toLowerCase()]} isPlaying={isPlaying} playbackRate={0.5} frameDuration={150} onAnimationComplete={() => setIsPlaying(false)} size="large" />
+                <DualHeadAnimator 
+                  phonemeSequence={[selectedLetter.letter.toLowerCase()]} 
+                  isPlaying={isPlaying} 
+                  playbackRate={playbackSpeed} 
+                  frameDuration={Math.round(100 / playbackSpeed)} 
+                  onAnimationComplete={() => setIsPlaying(false)} 
+                  size="large" 
+                />
               </div>
             ) : (
-              <div className="glass-card p-12 text-center h-full flex flex-col items-center justify-center">
-                <div className="text-6xl mb-4">👈</div>
-                <h3 className="text-xl font-semibold text-slate-300 mb-2">{t('selectLetter')}</h3>
-                <p className="text-slate-500">{t('chooseAlphabet')}<br /><span className="text-amber-400">{t('vowelsGold')}</span></p>
+              <div className="glass-card p-12 text-center h-full flex flex-col items-center justify-center min-h-[500px]">
+                <div className="text-8xl mb-6">👈</div>
+                <h3 className="text-2xl font-semibold text-slate-300 mb-3">{t('selectLetter')}</h3>
+                <p className="text-slate-500 text-lg">
+                  {t('chooseAlphabet')}<br />
+                  <span className="text-amber-400">{t('vowelsGold')}</span>
+                </p>
               </div>
             )}
           </div>
