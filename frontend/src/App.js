@@ -637,100 +637,173 @@ function Layout({ children }) {
   );
 }
 
-// ========== DUAL HEAD ANIMATOR (REAL PNG SPRITES - MOVIE QUALITY) ==========
-function DualHeadAnimator({ phonemeSequence = [], isPlaying = false, playbackRate = 1.0, frameDuration = 80, onAnimationComplete, size = 'large' }) {
+// ========== PHONEME SPRITE ENGINE ==========
+// The 250 frames represent a continuous movie of all 24 possible phoneme articulations.
+// This engine intelligently selects specific frames to create natural, movie-quality speech animation.
+// Each phoneme has a defined articulation path through the sprite sheet.
+
+const PHONEME_ARTICULATION_MAP = {
+  // VOWELS - Open mouth positions, held longer
+  'a': { frames: [0, 5, 12, 18, 22, 25, 22, 18, 12, 5], apex: 5, duration: 1.2 },      // Open "ah" - wide jaw
+  'e': { frames: [0, 8, 15, 28, 35, 38, 35, 28, 15, 8], apex: 5, duration: 1.0 },      // "eh" - mid-open
+  'i': { frames: [0, 10, 22, 42, 48, 52, 48, 42, 22, 10], apex: 5, duration: 1.0 },    // "ee" - lips spread  
+  'o': { frames: [0, 12, 32, 58, 65, 70, 65, 58, 32, 12], apex: 5, duration: 1.2 },    // "oh" - rounded lips
+  'u': { frames: [0, 15, 45, 78, 88, 95, 88, 78, 45, 15], apex: 5, duration: 1.0 },    // "oo" - pursed lips
+
+  // BILABIALS - Both lips together
+  'p': { frames: [0, 25, 55, 85, 100, 85, 55, 25, 8, 0], apex: 4, duration: 0.6 },     // Lips pop open
+  'b': { frames: [0, 25, 55, 88, 102, 88, 55, 25, 8, 0], apex: 4, duration: 0.6 },     // Voiced lips pop
+  'm': { frames: [0, 30, 60, 90, 105, 105, 90, 60, 30, 0], apex: 4, duration: 0.8 },   // Lips closed, hum
+
+  // LABIODENTALS - Lower lip to upper teeth
+  'f': { frames: [0, 18, 38, 62, 75, 62, 38, 18, 5, 0], apex: 4, duration: 0.5 },      // Teeth on lip
+  'v': { frames: [0, 18, 38, 65, 78, 65, 38, 18, 5, 0], apex: 4, duration: 0.5 },      // Voiced teeth on lip
+
+  // DENTALS/ALVEOLARS - Tongue to teeth/ridge
+  't': { frames: [0, 22, 48, 72, 82, 72, 48, 22, 8, 0], apex: 4, duration: 0.4 },      // Quick tongue tap
+  'd': { frames: [0, 22, 48, 75, 85, 75, 48, 22, 8, 0], apex: 4, duration: 0.4 },      // Voiced tongue tap
+  'n': { frames: [0, 28, 55, 82, 95, 95, 82, 55, 28, 0], apex: 4, duration: 0.6 },     // Tongue up, nasal
+  'l': { frames: [0, 20, 45, 70, 85, 90, 85, 70, 45, 20], apex: 5, duration: 0.6 },    // Tongue lifted
+  's': { frames: [0, 15, 32, 52, 62, 52, 32, 15, 5, 0], apex: 4, duration: 0.5 },      // Teeth close, hiss
+  'z': { frames: [0, 15, 35, 55, 65, 55, 35, 15, 5, 0], apex: 4, duration: 0.5 },      // Voiced hiss
+
+  // PALATALS/VELARS - Back of tongue
+  'k': { frames: [0, 30, 65, 110, 125, 110, 65, 30, 10, 0], apex: 4, duration: 0.5 },  // Back tongue pop
+  'g': { frames: [0, 30, 65, 115, 130, 115, 65, 30, 10, 0], apex: 4, duration: 0.5 },  // Voiced back pop
+  'j': { frames: [0, 25, 55, 95, 115, 95, 55, 25, 8, 0], apex: 4, duration: 0.6 },     // "dj" sound
+  'y': { frames: [0, 12, 28, 48, 58, 48, 28, 12, 4, 0], apex: 4, duration: 0.4 },      // Glide "y"
+
+  // GLOTTALS/OTHERS
+  'h': { frames: [0, 8, 18, 28, 35, 28, 18, 8, 2, 0], apex: 4, duration: 0.4 },        // Open breath
+  'r': { frames: [0, 18, 42, 75, 92, 105, 92, 75, 42, 18], apex: 5, duration: 0.7 },   // Tongue curled
+  'w': { frames: [0, 20, 50, 85, 100, 85, 50, 20, 5, 0], apex: 4, duration: 0.5 },     // Rounded glide
+
+  // AFFRICATES/BLENDS  
+  'c': { frames: [0, 30, 65, 110, 125, 110, 65, 30, 10, 0], apex: 4, duration: 0.5 },  // Like 'k'
+  'q': { frames: [0, 30, 65, 110, 125, 110, 65, 30, 10, 0], apex: 4, duration: 0.5 },  // Like 'k'
+  'x': { frames: [0, 30, 65, 110, 125, 110, 52, 32, 15, 0], apex: 4, duration: 0.6 },  // "ks" blend
+
+  // SILENCE/PAUSE - Hold at neutral (frame 0)
+  '_': { frames: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], apex: 0, duration: 0.3 },
+  ' ': { frames: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], apex: 0, duration: 0.4 },             // Word pause
+};
+
+// Get phoneme data with fallback
+const getPhonemeData = (phoneme) => {
+  const key = phoneme?.toLowerCase() || '_';
+  return PHONEME_ARTICULATION_MAP[key] || PHONEME_ARTICULATION_MAP['_'];
+};
+
+// ========== DUAL HEAD ANIMATOR (INTELLIGENT SPRITE ENGINE) ==========
+function DualHeadAnimator({ phonemeSequence = [], isPlaying = false, playbackRate = 1.0, onAnimationComplete, size = 'large' }) {
   const { t } = useLanguage();
   const [currentPhonemeIndex, setCurrentPhonemeIndex] = useState(0);
-  const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
-  const [globalFrameIndex, setGlobalFrameIndex] = useState(0);
+  const [currentLocalFrame, setCurrentLocalFrame] = useState(0);
+  const [displayFrame, setDisplayFrame] = useState(0);
   const animationRef = useRef(null);
   const startTimeRef = useRef(null);
 
-  const TOTAL_SPRITE_FRAMES = 250;
-  const FRAMES_PER_PHONEME = 10;
-  const sequence = Array.isArray(phonemeSequence) ? phonemeSequence.filter(Boolean) : ['_'];
-  // Add extra frames at start and end to return to frame 0
-  const totalAnimFrames = sequence.length * FRAMES_PER_PHONEME + FRAMES_PER_PHONEME; // +10 frames to return to 0
-  const currentPhoneme = sequence[currentPhonemeIndex] || '_';
-  const isApexFrame = currentFrameIndex === 4;
+  // Build timeline: array of { phoneme, frameIndex, spriteFrame, isApex }
+  const timeline = useMemo(() => {
+    const sequence = Array.isArray(phonemeSequence) && phonemeSequence.length > 0 
+      ? phonemeSequence.filter(Boolean) 
+      : ['_'];
+    
+    const frames = [];
+    let phonemeIdx = 0;
+    
+    for (const phoneme of sequence) {
+      const data = getPhonemeData(phoneme);
+      for (let i = 0; i < data.frames.length; i++) {
+        frames.push({
+          phoneme,
+          phonemeIndex: phonemeIdx,
+          localFrame: i,
+          spriteFrame: data.frames[i],
+          isApex: i === data.apex,
+          duration: data.duration / data.frames.length
+        });
+      }
+      phonemeIdx++;
+    }
+    
+    // Add return-to-neutral frames at the end
+    const lastFrame = frames.length > 0 ? frames[frames.length - 1].spriteFrame : 0;
+    const returnSteps = 6;
+    for (let i = 1; i <= returnSteps; i++) {
+      const progress = i / returnSteps;
+      frames.push({
+        phoneme: '_',
+        phonemeIndex: phonemeIdx,
+        localFrame: i - 1,
+        spriteFrame: Math.round(lastFrame * (1 - progress)),
+        isApex: false,
+        duration: 0.05
+      });
+    }
+    
+    return frames;
+  }, [phonemeSequence]);
 
-  // Map phoneme to sprite frame range - each phoneme uses 10 consecutive frames
-  const getPhonemeStartFrame = useCallback((phoneme) => {
-    const phonemeMap = { 
-      a: 0, e: 10, i: 20, o: 30, u: 40,           // Vowels
-      p: 50, b: 60, m: 70,                         // Bilabials  
-      f: 80, v: 90,                                // Labiodentals
-      t: 100, d: 110, n: 120, l: 130, s: 140, z: 150, // Alveolars
-      k: 160, g: 170,                              // Velars
-      h: 180, r: 190, w: 200, y: 210,             // Others
-      c: 100, j: 220, q: 160, x: 140              // Mapped to similar
-    };
-    return phonemeMap[phoneme.toLowerCase()] ?? 0;
-  }, []);
+  const baseDuration = 80; // ms per frame at 1x speed
 
   const animate = useCallback((ts) => {
     if (!startTimeRef.current) startTimeRef.current = ts;
     const elapsed = (ts - startTimeRef.current) * playbackRate;
-    const framePos = Math.floor(elapsed / frameDuration);
+    const frameIdx = Math.floor(elapsed / baseDuration);
     
-    // Animation complete - return to frame 0
-    if (framePos >= totalAnimFrames) {
-      setCurrentFrameIndex(0);
+    if (frameIdx >= timeline.length) {
+      // Animation complete - ensure we end at frame 0
+      setDisplayFrame(0);
       setCurrentPhonemeIndex(0);
-      setGlobalFrameIndex(0);
+      setCurrentLocalFrame(0);
       startTimeRef.current = null;
       onAnimationComplete?.();
       return;
     }
     
-    // Calculate position within the sequence
-    const phonemeIdx = Math.min(Math.floor(framePos / FRAMES_PER_PHONEME), sequence.length - 1);
-    const localFrame = framePos % FRAMES_PER_PHONEME;
-    
-    // Last segment: transition back to frame 0
-    if (framePos >= sequence.length * FRAMES_PER_PHONEME) {
-      const returnProgress = framePos - (sequence.length * FRAMES_PER_PHONEME);
-      const lastPhonemeStart = getPhonemeStartFrame(sequence[sequence.length - 1] || '_');
-      // Smoothly interpolate from last phoneme end frame back to 0
-      const spriteFrame = Math.round(lastPhonemeStart + 9 - (returnProgress * ((lastPhonemeStart + 9) / FRAMES_PER_PHONEME)));
-      setGlobalFrameIndex(Math.max(0, spriteFrame));
-      setCurrentFrameIndex(9 - returnProgress);
-    } else {
-      const phoneme = sequence[phonemeIdx] || '_';
-      const startFrame = getPhonemeStartFrame(phoneme);
-      const spriteFrame = startFrame + localFrame;
-      
-      setCurrentPhonemeIndex(phonemeIdx);
-      setCurrentFrameIndex(localFrame);
-      setGlobalFrameIndex(spriteFrame);
-    }
+    const current = timeline[frameIdx];
+    setDisplayFrame(current.spriteFrame);
+    setCurrentPhonemeIndex(current.phonemeIndex);
+    setCurrentLocalFrame(current.localFrame);
     
     animationRef.current = requestAnimationFrame(animate);
-  }, [playbackRate, frameDuration, totalAnimFrames, onAnimationComplete, sequence, getPhonemeStartFrame]);
+  }, [playbackRate, timeline, onAnimationComplete, baseDuration]);
 
   useEffect(() => {
     if (isPlaying) {
       startTimeRef.current = null;
-      setGlobalFrameIndex(0); // Always start from frame 0
-      setCurrentFrameIndex(0);
+      setDisplayFrame(0);
       setCurrentPhonemeIndex(0);
+      setCurrentLocalFrame(0);
       animationRef.current = requestAnimationFrame(animate);
-    } else if (animationRef.current) {
-      cancelAnimationFrame(animationRef.current);
+    } else {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
     }
-    return () => { if (animationRef.current) cancelAnimationFrame(animationRef.current); };
+    return () => { 
+      if (animationRef.current) cancelAnimationFrame(animationRef.current); 
+    };
   }, [isPlaying, animate]);
 
-  // Reset to frame 0 when sequence changes
+  // Reset when sequence changes
   useEffect(() => {
-    setCurrentFrameIndex(0);
+    setDisplayFrame(0);
     setCurrentPhonemeIndex(0);
-    setGlobalFrameIndex(0);
+    setCurrentLocalFrame(0);
     startTimeRef.current = null;
-  }, [sequence.join(',')]);
+  }, [phonemeSequence.join?.(',') || '']);
 
+  const sequence = Array.isArray(phonemeSequence) && phonemeSequence.length > 0 
+    ? phonemeSequence.filter(Boolean) 
+    : ['_'];
+  const currentPhoneme = sequence[currentPhonemeIndex] || '_';
+  const currentData = getPhonemeData(currentPhoneme);
+  const isApexFrame = currentLocalFrame === currentData.apex;
+  
   const spriteSize = size === 'large' ? 320 : 240;
-  const frameNumber = String(globalFrameIndex).padStart(3, '0');
+  const frameNumber = String(displayFrame).padStart(3, '0');
 
   return (
     <div className="flex flex-col items-center gap-4" data-testid="dual-head-animator">
@@ -741,7 +814,7 @@ function DualHeadAnimator({ phonemeSequence = [], isPlaying = false, playbackRat
               {view === 'front' ? t('frontView') : t('sideView')}
             </div>
             <div 
-              className={`sprite-container relative overflow-hidden rounded-2xl bg-slate-900/50 border-2 transition-all duration-100 ${isApexFrame ? 'border-sky-400 ring-2 ring-sky-400/30' : 'border-slate-700/50'}`}
+              className={`sprite-container relative overflow-hidden rounded-2xl bg-slate-900/50 border-2 transition-all duration-75 ${isApexFrame ? 'border-sky-400 ring-2 ring-sky-400/30' : 'border-slate-700/50'}`}
               style={{ 
                 width: spriteSize, 
                 height: spriteSize, 
@@ -751,7 +824,7 @@ function DualHeadAnimator({ phonemeSequence = [], isPlaying = false, playbackRat
             >
               <img
                 src={`/assets/sprites/${view}/frame_${frameNumber}.png`}
-                alt={`${view} view - frame ${globalFrameIndex}`}
+                alt={`${view} view - frame ${displayFrame}`}
                 className="w-full h-full object-contain"
                 style={{ imageRendering: 'auto' }}
               />
@@ -769,10 +842,10 @@ function DualHeadAnimator({ phonemeSequence = [], isPlaying = false, playbackRat
           {t('phoneme')}: <span className="font-mono text-sky-400 text-base">/{currentPhoneme}/</span>
         </span>
         <span className="text-sm text-slate-400">
-          {t('frame')}: <span className="font-mono text-cyan-400">{currentFrameIndex + 1}/10</span>
+          {t('frame')}: <span className="font-mono text-cyan-400">{currentLocalFrame + 1}/{currentData.frames.length}</span>
         </span>
         <span className="text-xs text-slate-600">
-          Sprite: {globalFrameIndex}
+          Sprite: {displayFrame}
         </span>
         {isApexFrame && (
           <span className="px-2 py-0.5 bg-sky-500/20 border border-sky-400/50 rounded text-xs text-sky-300 font-medium animate-pulse">
