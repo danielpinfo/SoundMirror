@@ -691,43 +691,54 @@ const getPhonemeFrameData = (char) => {
 function DualHeadAnimator({ phonemeSequence = [], isPlaying = false, playbackRate = 1.0, onAnimationComplete, size = 'large' }) {
   const { t } = useLanguage();
   const [tick, setTick] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
   const timerRef = useRef(null);
   
   const sequence = Array.isArray(phonemeSequence) && phonemeSequence.length > 0 
     ? phonemeSequence.filter(Boolean) 
     : ['a'];
   
-  const FRAMES_PER_PHONEME = 12;
-  const totalFrames = sequence.length * FRAMES_PER_PHONEME + 6;
+  // More frames for smoother animation - 30 frames per phoneme for movie quality
+  const FRAMES_PER_PHONEME = 30;
+  const totalFrames = sequence.length * FRAMES_PER_PHONEME + 15; // +15 frames to smoothly return to 0
+  const FPS = 30; // Target 30fps for smooth playback
   
-  // Simple timer-based animation
+  // Animation - plays ONCE and stops
   useEffect(() => {
-    if (isPlaying) {
+    if (isPlaying && !isAnimating) {
+      setIsAnimating(true);
       setTick(0);
-      const interval = Math.round(100 / playbackRate);
+      
+      const interval = Math.round(1000 / FPS / playbackRate); // ~33ms at 1x for 30fps
       
       timerRef.current = setInterval(() => {
         setTick(prev => {
           const next = prev + 1;
           if (next >= totalFrames) {
             clearInterval(timerRef.current);
+            setIsAnimating(false);
             onAnimationComplete?.();
-            return 0;
+            return 0; // Return to frame 0
           }
           return next;
         });
       }, interval);
-      
-      return () => clearInterval(timerRef.current);
-    } else {
-      clearInterval(timerRef.current);
-      setTick(0);
     }
-  }, [isPlaying, playbackRate, totalFrames, onAnimationComplete]);
+    
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, [isPlaying, isAnimating, playbackRate, totalFrames, onAnimationComplete]);
 
-  // Reset on sequence change
+  // Reset when sequence changes
   useEffect(() => {
     setTick(0);
+    setIsAnimating(false);
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+    }
   }, [sequence.join(',')]);
 
   // Calculate display values from tick
@@ -735,42 +746,54 @@ function DualHeadAnimator({ phonemeSequence = [], isPlaying = false, playbackRat
   const localFrame = tick % FRAMES_PER_PHONEME;
   const currentPhoneme = sequence[phonemeIdx] || '_';
   
-  // Calculate sprite frame
+  // Calculate sprite frame with smooth interpolation
   let spriteFrame = 0;
   if (tick < sequence.length * FRAMES_PER_PHONEME) {
     const peak = getPhonemeFrameData(currentPhoneme).peak;
     const halfFrames = FRAMES_PER_PHONEME / 2;
+    
+    // Smooth ease-in-out curve for natural movement
+    let progress;
     if (localFrame < halfFrames) {
-      spriteFrame = Math.round(peak * (localFrame / halfFrames));
+      // Ease in - accelerate towards peak
+      progress = localFrame / halfFrames;
+      progress = progress * progress * (3 - 2 * progress); // Smoothstep
+      spriteFrame = Math.round(peak * progress);
     } else {
-      spriteFrame = Math.round(peak * ((FRAMES_PER_PHONEME - localFrame) / halfFrames));
+      // Ease out - decelerate from peak
+      progress = (FRAMES_PER_PHONEME - localFrame) / halfFrames;
+      progress = progress * progress * (3 - 2 * progress); // Smoothstep
+      spriteFrame = Math.round(peak * progress);
     }
   } else {
-    // Return to zero
+    // Smooth return to zero
     const returnFrame = tick - (sequence.length * FRAMES_PER_PHONEME);
     const lastPeak = getPhonemeFrameData(sequence[sequence.length - 1]).peak;
-    spriteFrame = Math.round(lastPeak * (1 - returnFrame / 6));
+    const progress = 1 - (returnFrame / 15);
+    const smoothProgress = progress * progress * (3 - 2 * progress);
+    spriteFrame = Math.round(lastPeak * smoothProgress);
   }
   spriteFrame = Math.max(0, Math.min(249, spriteFrame));
 
-  const isApexFrame = localFrame >= 5 && localFrame <= 7;
-  const spriteSize = size === 'large' ? 320 : 240;
+  const isApexFrame = localFrame >= (FRAMES_PER_PHONEME / 2 - 2) && localFrame <= (FRAMES_PER_PHONEME / 2 + 2);
+  const spriteSize = size === 'large' ? 320 : size === 'medium' ? 260 : 200;
   const frameNumber = String(spriteFrame).padStart(3, '0');
 
   return (
-    <div className="flex flex-col items-center gap-4" data-testid="dual-head-animator">
-      <div className="flex gap-6 justify-center">
+    <div className="flex flex-col items-center gap-3" data-testid="dual-head-animator">
+      <div className="flex gap-4 justify-center">
         {['front', 'side'].map((view) => (
-          <div key={view} className="flex flex-col items-center gap-2">
-            <div className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+          <div key={view} className="flex flex-col items-center gap-1">
+            <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
               {view === 'front' ? t('frontView') : t('sideView')}
             </div>
             <div 
-              className={`relative overflow-hidden rounded-2xl bg-slate-900/50 border-2 ${isApexFrame ? 'border-sky-400 ring-2 ring-sky-400/30' : 'border-slate-700/50'}`}
+              className={`relative overflow-hidden rounded-xl border-2 ${isApexFrame ? 'border-sky-400 ring-2 ring-sky-400/30' : 'border-slate-600'}`}
               style={{ 
                 width: spriteSize, 
                 height: spriteSize,
-                boxShadow: isApexFrame ? '0 0 40px rgba(56, 189, 248, 0.3)' : '0 4px 20px rgba(0,0,0,0.3)'
+                backgroundColor: '#ffffff',
+                boxShadow: isApexFrame ? '0 0 30px rgba(56, 189, 248, 0.4)' : '0 4px 15px rgba(0,0,0,0.3)'
               }}
               data-testid={`animator-${view}`}
             >
@@ -782,7 +805,7 @@ function DualHeadAnimator({ phonemeSequence = [], isPlaying = false, playbackRat
                 loading="eager"
               />
               {isApexFrame && (
-                <div className="absolute top-2 right-2 px-2 py-1 bg-sky-500/90 rounded text-[10px] font-bold text-slate-900 uppercase shadow-lg">
+                <div className="absolute top-1 right-1 px-1.5 py-0.5 bg-sky-500/90 rounded text-[9px] font-bold text-slate-900 uppercase">
                   APEX
                 </div>
               )}
@@ -790,15 +813,9 @@ function DualHeadAnimator({ phonemeSequence = [], isPlaying = false, playbackRat
           </div>
         ))}
       </div>
-      <div className="flex items-center gap-4 mt-2">
-        <span className="text-sm text-slate-400">
-          Phoneme: <span className="font-mono text-sky-400 text-base">/{currentPhoneme}/</span>
-        </span>
-        <span className="text-sm text-slate-400">
-          Frame: <span className="font-mono text-cyan-400">{localFrame + 1}/{FRAMES_PER_PHONEME}</span>
-        </span>
-        <span className="text-xs text-slate-500">
-          Sprite: <span className="font-mono text-emerald-400 text-sm">{spriteFrame}</span>
+      <div className="flex items-center gap-3">
+        <span className="text-xs text-slate-400">
+          /{currentPhoneme}/ <span className="text-slate-600">F:{localFrame + 1}</span> <span className="text-emerald-400">S:{spriteFrame}</span>
         </span>
       </div>
     </div>
