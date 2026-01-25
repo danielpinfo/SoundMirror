@@ -1140,6 +1140,9 @@ function WordPracticePage() {
   const phonemeTokens = phonemes.map(p => p.phoneme);
 
   const handlePlay = () => { 
+    // Start animation immediately
+    setIsPlaying(true);
+    
     if ('speechSynthesis' in window && !isMuted) { 
       // Cancel any ongoing speech first
       window.speechSynthesis.cancel();
@@ -1148,24 +1151,8 @@ function WordPracticePage() {
       u.rate = playbackSpeed; 
       u.lang = lang;
       
-      // Start animation when speech starts
-      u.onstart = () => {
-        setIsPlaying(true);
-      };
-      
-      // Stop animation when speech ends
-      u.onend = () => {
-        setIsPlaying(false);
-      };
-      
-      u.onerror = () => {
-        setIsPlaying(false);
-      };
-      
+      // Animation handles its own completion via onAnimationComplete
       window.speechSynthesis.speak(u);
-    } else {
-      // No TTS or muted, just play animation
-      setIsPlaying(true);
     }
   };
   
