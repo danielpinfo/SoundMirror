@@ -94,11 +94,11 @@ SoundMirror/ (GitHub: danielpinfo/SoundMirror)
 ## Prioritized Backlog
 
 ### P0 (Critical - Next Sprint)
-1. Import 500 PNG sprites from GitHub into assets folder
-2. Run sprite manifest generator to create frame index
-3. Replace placeholder shapes with actual sprite images
-4. Implement native TTS bridge (Windows SAPI / macOS NSSpeech)
-5. Build Tauri desktop executable
+1. ✅ Import 500 PNG sprites from GitHub into assets folder - **COMPLETED**
+2. ✅ Replace placeholder shapes with actual sprite images - **COMPLETED**
+3. Implement native TTS bridge (Windows SAPI / macOS NSSpeech)
+4. Build Tauri desktop executable
+5. Real camera/microphone recording with browser APIs
 
 ### P1 (High Priority)
 6. SQLite integration for offline storage
