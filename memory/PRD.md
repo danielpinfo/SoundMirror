@@ -48,11 +48,24 @@ Convert existing Base44 web app into a fully native cross-platform mobile and de
 - Complete React frontend with 5 pages
 - DualHeadAnimator component with placeholder animations
 - Phoneme timeline with clickable badges
-- Playback controls with speed adjustment
-- Language selector (5 languages)
-- Letter Practice with 12 phonemes
-- Progress tracking page with mock data
-- Bug Reporter with category dropdowns
+- Playback controls with speed adjustment (0.25x-1x)
+- **10 Languages** (EN, ES, FR, DE, IT, PT, ZH, JA, AR, HI)
+- **10 Suggested words per language** (including compounds like "thank you")
+- **Word Practice** (renamed from Practice) with:
+  - Side-by-side Model Articulation + Recording panel
+  - Dual grading: Visual Score (lip/jaw) + Audio Score (pronunciation)
+  - Video recorder placeholder with lip outline overlay
+  - Playback functionality
+- **Letter Practice** with:
+  - Full alphabet grid (26+ letters per language)
+  - Vowels highlighted in gold/amber
+  - Phoneme pronunciation under each letter (e.g., "ah", "buh")
+  - Dual head animator + recording panel per letter
+- **Progress page** with:
+  - 5 stat cards (Total, Average, Visual, Audio, Streak)
+  - Download button for institutional storage
+  - Visual + Audio score breakdown per session
+- Bug Reporter with 6 categories including Recording issues
 - Offline indicator
 - Medical dark theme UI (sky/cyan accent on slate-900)
 
