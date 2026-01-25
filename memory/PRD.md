@@ -46,8 +46,17 @@ Convert existing Base44 web app into a fully native cross-platform mobile and de
 
 ### Phase 1: Web Preview MVP (Jan 25, 2026) ✓
 - Complete React frontend with 5 pages
-- **Intelligent Phoneme Sprite Engine** with articulation mapping for all 24 phonemes
-  - Selects specific frames from anywhere in the 250-frame sprite library
+- **Sprite Sheet Animation Engine** (CSS sprite technique for instant frame switching)
+  - 10 sprite sheets (5 front + 5 side views, 50 frames each)
+  - Pre-loaded on mount for zero-latency animation
+  - 10 frames per phoneme at 35ms intervals (~28fps)
+- **Compressed Assets:**
+  - 500 JPEGs at 15KB each (vs 619KB original PNGs)
+  - Sprite sheets: ~750KB front, ~4.8MB side per sheet
+- **Pre-recorded Phoneme Audio (from S3):**
+  - 240 MP3 files for all 10 languages
+  - Stored at `/assets/audio/phonemes/{lang}-{phoneme}.mp3`
+  - Used for Letter Practice instead of robotic TTS
   - Each phoneme has a unique frame sequence path for realistic articulation
   - Smooth transitions between phonemes
   - Always starts/ends at frame 0 (neutral mouth)

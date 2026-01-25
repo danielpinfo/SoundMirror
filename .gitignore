@@ -91,3 +91,4 @@ android-sdk/ -e
 *.env.*
 SoundMirror/.git/objects/pack/pack-2d7fdc203c4ed6ffca3f1463dfe3ae4a445c64db.pack
 frontend/public/assets/sprites/front_spritesheet.png
+frontend/build/assets/sprites/front_spritesheet.png
