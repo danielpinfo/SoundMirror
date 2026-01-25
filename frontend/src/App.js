@@ -638,253 +638,161 @@ function Layout({ children }) {
 }
 
 // ========== PHONEME SPRITE ENGINE ==========
-// Based on the 250-frame sprite sheet with 24 phoneme articulations.
-// P001-P024 represent the 24 phoneme keyframes distributed across 250 frames.
-// Each phoneme has ~10 frames showing the articulation from neutral → peak → neutral.
-// Frame 0 = neutral/rest position, each phoneme section shows the articulation cycle.
+// 250 frames representing all 24 phoneme articulations
+// Each phoneme maps to a specific frame range in the sprite sheet
 
-// Phoneme keyframe positions (P001-P024 mapped to frame numbers)
-// Frames are distributed: ~10 frames per phoneme across the 250 total frames
-const PHONEME_KEYFRAMES = {
-  // VOWELS (P001-P006)
-  'a': 5,    // P001 - open "ah" as in 'father'
-  'i': 15,   // P002 - "ee" as in 'see'
-  'u': 26,   // P003 - "oo" as in 'boot'
-  'e': 36,   // P004 - "eh" as in 'bed'
-  'o': 47,   // P005 - "oh" as in 'go'
-  'y': 57,   // P006 - "ü" as in French 'tu'
+// Direct frame mapping for each phoneme (peak articulation frame)
+const PHONEME_FRAMES = {
+  // Vowels - wide open mouth positions
+  'a': { start: 0, peak: 25, end: 0 },      // Open "ah"
+  'e': { start: 0, peak: 45, end: 0 },      // "eh" 
+  'i': { start: 0, peak: 65, end: 0 },      // "ee" spread lips
+  'o': { start: 0, peak: 85, end: 0 },      // "oh" rounded
+  'u': { start: 0, peak: 105, end: 0 },     // "oo" pursed
   
-  // STOPS/CLOSURES (P007-P012)
-  'p': 68,   // P007 - lip closure
-  't': 78,   // P008 - tongue to ridge
-  'd': 78,   // P009 - same mouth as /t/
-  'k': 89,   // P010 - back closure
-  'g': 89,   // P011 - same mouth as /k/
-  'q': 99,   // P012 - glottal stop (using for 'q' mapping)
+  // Stops - lip closure
+  'p': { start: 0, peak: 120, end: 0 },     // Lip closure
+  'b': { start: 0, peak: 120, end: 0 },     // Same as p
+  'm': { start: 0, peak: 125, end: 0 },     // Lips closed
+  't': { start: 0, peak: 135, end: 0 },     // Tongue to ridge
+  'd': { start: 0, peak: 135, end: 0 },     // Same as t
+  'k': { start: 0, peak: 150, end: 0 },     // Back closure
+  'g': { start: 0, peak: 150, end: 0 },     // Same as k
   
-  // NASALS (P013-P014)  
-  'n': 110,  // P013 - tongue to ridge, nasal
-  'ng': 120, // P014 - "ng" as in 'sing'
+  // Fricatives
+  'f': { start: 0, peak: 165, end: 0 },     // Lip to teeth
+  'v': { start: 0, peak: 165, end: 0 },     // Same as f
+  's': { start: 0, peak: 180, end: 0 },     // Teeth close
+  'z': { start: 0, peak: 180, end: 0 },     // Same as s
+  'h': { start: 0, peak: 195, end: 0 },     // Open breath
   
-  // FRICATIVES/AFFRICATES (P015-P020)
-  's': 131,  // P015 - teeth close
-  'sh': 141, // P016 - "sh" as in 'ship'
-  'th': 152, // P017 - tongue between teeth
-  'f': 162,  // P018 - lip to teeth
-  'h': 173,  // P019 - open breath
-  'ch': 183, // P020 - "ch" as in 'chair'
+  // Liquids
+  'l': { start: 0, peak: 210, end: 0 },     // Tongue up
+  'r': { start: 0, peak: 225, end: 0 },     // Tongue curled
+  'n': { start: 0, peak: 140, end: 0 },     // Nasal
+  'w': { start: 0, peak: 105, end: 0 },     // Like u
+  'y': { start: 0, peak: 65, end: 0 },      // Like i
+  'j': { start: 0, peak: 200, end: 0 },     // Jaw forward
+  'c': { start: 0, peak: 150, end: 0 },     // Like k
+  'q': { start: 0, peak: 150, end: 0 },     // Like k
+  'x': { start: 0, peak: 180, end: 0 },     // Like ks
   
-  // LIQUIDS/LATERALS (P021-P023)
-  'r': 194,  // P021 - tongue curled
-  'l': 204,  // P022 - tongue tip up
-  'll': 215, // P023 - Welsh 'll' voiceless lateral
-  
-  // CLICKS (P024)
-  'click': 225, // P024 - dental click
+  // Silence
+  '_': { start: 0, peak: 0, end: 0 },
+  ' ': { start: 0, peak: 0, end: 0 },
 };
 
-// Build articulation path: creates smooth curve from neutral → peak → neutral
-const buildArticulationPath = (peakFrame, frameCount = 10) => {
-  const frames = [];
-  const half = Math.floor(frameCount / 2);
-  
-  // Ramp up to peak
-  for (let i = 0; i < half; i++) {
-    const progress = i / half;
-    // Ease-in curve for natural acceleration
-    const eased = progress * progress;
-    frames.push(Math.round(eased * peakFrame));
-  }
-  
-  // Peak frames (hold slightly)
-  frames.push(peakFrame);
-  frames.push(peakFrame);
-  
-  // Ramp down from peak
-  for (let i = half - 1; i >= 0; i--) {
-    const progress = i / half;
-    const eased = progress * progress;
-    frames.push(Math.round(eased * peakFrame));
-  }
-  
-  return frames;
+const getPhonemeFrameData = (char) => {
+  const key = char?.toLowerCase() || '_';
+  return PHONEME_FRAMES[key] || PHONEME_FRAMES['_'];
 };
 
-// Map common letters to their phoneme sounds
-const LETTER_TO_PHONEME = {
-  'a': 'a', 'b': 'p', 'c': 'k', 'd': 'd', 'e': 'e', 'f': 'f', 'g': 'g',
-  'h': 'h', 'i': 'i', 'j': 'ch', 'k': 'k', 'l': 'l', 'm': 'p', 'n': 'n',
-  'o': 'o', 'p': 'p', 'q': 'k', 'r': 'r', 's': 's', 't': 't', 'u': 'u',
-  'v': 'f', 'w': 'u', 'x': 'k', 'y': 'i', 'z': 's',
-  ' ': '_', '_': '_'
-};
-
-const PHONEME_ARTICULATION_MAP = {
-  // VOWELS - Open mouth positions, held longer for clarity
-  'a': { frames: buildArticulationPath(PHONEME_KEYFRAMES['a'], 12), apex: 5, duration: 1.2 },
-  'e': { frames: buildArticulationPath(PHONEME_KEYFRAMES['e'], 10), apex: 5, duration: 1.0 },
-  'i': { frames: buildArticulationPath(PHONEME_KEYFRAMES['i'], 10), apex: 5, duration: 1.0 },
-  'o': { frames: buildArticulationPath(PHONEME_KEYFRAMES['o'], 12), apex: 5, duration: 1.2 },
-  'u': { frames: buildArticulationPath(PHONEME_KEYFRAMES['u'], 10), apex: 5, duration: 1.0 },
-  'y': { frames: buildArticulationPath(PHONEME_KEYFRAMES['y'], 8), apex: 4, duration: 0.6 },
-
-  // STOPS/CLOSURES - Quick, snappy articulations
-  'p': { frames: buildArticulationPath(PHONEME_KEYFRAMES['p'], 8), apex: 4, duration: 0.5 },
-  'b': { frames: buildArticulationPath(PHONEME_KEYFRAMES['p'], 8), apex: 4, duration: 0.5 },
-  'm': { frames: buildArticulationPath(PHONEME_KEYFRAMES['p'], 10), apex: 5, duration: 0.7 },
-  't': { frames: buildArticulationPath(PHONEME_KEYFRAMES['t'], 8), apex: 4, duration: 0.4 },
-  'd': { frames: buildArticulationPath(PHONEME_KEYFRAMES['d'], 8), apex: 4, duration: 0.4 },
-  'k': { frames: buildArticulationPath(PHONEME_KEYFRAMES['k'], 8), apex: 4, duration: 0.5 },
-  'g': { frames: buildArticulationPath(PHONEME_KEYFRAMES['g'], 8), apex: 4, duration: 0.5 },
-  'q': { frames: buildArticulationPath(PHONEME_KEYFRAMES['q'], 8), apex: 4, duration: 0.5 },
-
-  // NASALS
-  'n': { frames: buildArticulationPath(PHONEME_KEYFRAMES['n'], 10), apex: 5, duration: 0.6 },
-  'ng': { frames: buildArticulationPath(PHONEME_KEYFRAMES['ng'], 10), apex: 5, duration: 0.6 },
-
-  // FRICATIVES/AFFRICATES  
-  's': { frames: buildArticulationPath(PHONEME_KEYFRAMES['s'], 8), apex: 4, duration: 0.5 },
-  'z': { frames: buildArticulationPath(PHONEME_KEYFRAMES['s'], 8), apex: 4, duration: 0.5 },
-  'sh': { frames: buildArticulationPath(PHONEME_KEYFRAMES['sh'], 8), apex: 4, duration: 0.5 },
-  'th': { frames: buildArticulationPath(PHONEME_KEYFRAMES['th'], 8), apex: 4, duration: 0.5 },
-  'f': { frames: buildArticulationPath(PHONEME_KEYFRAMES['f'], 8), apex: 4, duration: 0.5 },
-  'v': { frames: buildArticulationPath(PHONEME_KEYFRAMES['f'], 8), apex: 4, duration: 0.5 },
-  'h': { frames: buildArticulationPath(PHONEME_KEYFRAMES['h'], 8), apex: 4, duration: 0.4 },
-  'ch': { frames: buildArticulationPath(PHONEME_KEYFRAMES['ch'], 8), apex: 4, duration: 0.6 },
-  'j': { frames: buildArticulationPath(PHONEME_KEYFRAMES['ch'], 8), apex: 4, duration: 0.6 },
-
-  // LIQUIDS/LATERALS
-  'r': { frames: buildArticulationPath(PHONEME_KEYFRAMES['r'], 10), apex: 5, duration: 0.7 },
-  'l': { frames: buildArticulationPath(PHONEME_KEYFRAMES['l'], 10), apex: 5, duration: 0.6 },
-  'w': { frames: buildArticulationPath(PHONEME_KEYFRAMES['u'], 8), apex: 4, duration: 0.5 },
-
-  // SILENCE/PAUSE - Hold at neutral (frame 0)
-  '_': { frames: [0, 0, 0, 0, 0, 0], apex: 0, duration: 0.3 },
-  ' ': { frames: [0, 0, 0, 0, 0, 0, 0, 0], apex: 0, duration: 0.4 },
-};
-
-// Get phoneme data with letter-to-phoneme mapping
-const getPhonemeData = (input) => {
-  const lower = input?.toLowerCase() || '_';
-  // First try direct phoneme lookup
-  if (PHONEME_ARTICULATION_MAP[lower]) {
-    return PHONEME_ARTICULATION_MAP[lower];
-  }
-  // Then try letter-to-phoneme mapping
-  const phoneme = LETTER_TO_PHONEME[lower] || '_';
-  return PHONEME_ARTICULATION_MAP[phoneme] || PHONEME_ARTICULATION_MAP['_'];
-};
-
-// ========== DUAL HEAD ANIMATOR (INTELLIGENT SPRITE ENGINE) ==========
+// ========== DUAL HEAD ANIMATOR ==========
 function DualHeadAnimator({ phonemeSequence = [], isPlaying = false, playbackRate = 1.0, onAnimationComplete, size = 'large' }) {
   const { t } = useLanguage();
-  const [currentPhonemeIndex, setCurrentPhonemeIndex] = useState(0);
-  const [currentLocalFrame, setCurrentLocalFrame] = useState(0);
-  const [displayFrame, setDisplayFrame] = useState(0);
-  const animationRef = useRef(null);
-  const startTimeRef = useRef(null);
-
-  // Build timeline: array of { phoneme, frameIndex, spriteFrame, isApex }
-  const timeline = useMemo(() => {
-    const sequence = Array.isArray(phonemeSequence) && phonemeSequence.length > 0 
-      ? phonemeSequence.filter(Boolean) 
-      : ['_'];
+  const [frameIndex, setFrameIndex] = useState(0);
+  const [phonemeIdx, setPhonemeIdx] = useState(0);
+  const [localFrame, setLocalFrame] = useState(0);
+  const intervalRef = useRef(null);
+  const frameCountRef = useRef(0);
+  
+  const sequence = Array.isArray(phonemeSequence) && phonemeSequence.length > 0 
+    ? phonemeSequence.filter(Boolean) 
+    : ['a'];
+  
+  const FRAMES_PER_PHONEME = 12;
+  const totalFrames = sequence.length * FRAMES_PER_PHONEME + 6; // +6 to return to 0
+  
+  // Calculate sprite frame for current animation position
+  const calculateSpriteFrame = useCallback((animFrame) => {
+    const phonemeIndex = Math.min(Math.floor(animFrame / FRAMES_PER_PHONEME), sequence.length - 1);
+    const frameInPhoneme = animFrame % FRAMES_PER_PHONEME;
     
-    const frames = [];
-    let phonemeIdx = 0;
-    
-    for (const phoneme of sequence) {
-      const data = getPhonemeData(phoneme);
-      for (let i = 0; i < data.frames.length; i++) {
-        frames.push({
-          phoneme,
-          phonemeIndex: phonemeIdx,
-          localFrame: i,
-          spriteFrame: data.frames[i],
-          isApex: i === data.apex,
-          duration: data.duration / data.frames.length
-        });
-      }
-      phonemeIdx++;
+    // Return to zero phase
+    if (animFrame >= sequence.length * FRAMES_PER_PHONEME) {
+      const returnFrame = animFrame - (sequence.length * FRAMES_PER_PHONEME);
+      const lastPeak = getPhonemeFrameData(sequence[sequence.length - 1]).peak;
+      return Math.round(lastPeak * (1 - returnFrame / 6));
     }
     
-    // Add return-to-neutral frames at the end
-    const lastFrame = frames.length > 0 ? frames[frames.length - 1].spriteFrame : 0;
-    const returnSteps = 6;
-    for (let i = 1; i <= returnSteps; i++) {
-      const progress = i / returnSteps;
-      frames.push({
-        phoneme: '_',
-        phonemeIndex: phonemeIdx,
-        localFrame: i - 1,
-        spriteFrame: Math.round(lastFrame * (1 - progress)),
-        isApex: false,
-        duration: 0.05
-      });
+    const phoneme = sequence[phonemeIndex];
+    const data = getPhonemeFrameData(phoneme);
+    const peak = data.peak;
+    
+    // Create smooth curve: 0 -> peak -> 0
+    const halfFrames = FRAMES_PER_PHONEME / 2;
+    let spriteFrame;
+    
+    if (frameInPhoneme < halfFrames) {
+      // Ramp up to peak
+      const progress = frameInPhoneme / halfFrames;
+      spriteFrame = Math.round(peak * progress);
+    } else {
+      // Ramp down from peak
+      const progress = (FRAMES_PER_PHONEME - frameInPhoneme) / halfFrames;
+      spriteFrame = Math.round(peak * progress);
     }
     
-    return frames;
-  }, [phonemeSequence]);
+    return Math.max(0, Math.min(249, spriteFrame));
+  }, [sequence]);
 
-  const baseDuration = 80; // ms per frame at 1x speed
-
-  const animate = useCallback((ts) => {
-    if (!startTimeRef.current) startTimeRef.current = ts;
-    const elapsed = (ts - startTimeRef.current) * playbackRate;
-    const frameIdx = Math.floor(elapsed / baseDuration);
-    
-    if (frameIdx >= timeline.length) {
-      // Animation complete - ensure we end at frame 0
-      setDisplayFrame(0);
-      setCurrentPhonemeIndex(0);
-      setCurrentLocalFrame(0);
-      startTimeRef.current = null;
-      onAnimationComplete?.();
-      return;
-    }
-    
-    const current = timeline[frameIdx];
-    setDisplayFrame(current.spriteFrame);
-    setCurrentPhonemeIndex(current.phonemeIndex);
-    setCurrentLocalFrame(current.localFrame);
-    
-    animationRef.current = requestAnimationFrame(animate);
-  }, [playbackRate, timeline, onAnimationComplete, baseDuration]);
-
+  // Animation using setInterval for reliable timing
   useEffect(() => {
     if (isPlaying) {
-      startTimeRef.current = null;
-      setDisplayFrame(0);
-      setCurrentPhonemeIndex(0);
-      setCurrentLocalFrame(0);
-      animationRef.current = requestAnimationFrame(animate);
+      frameCountRef.current = 0;
+      setFrameIndex(0);
+      setPhonemeIdx(0);
+      setLocalFrame(0);
+      
+      const frameTime = Math.round(80 / playbackRate); // ms per frame
+      
+      intervalRef.current = setInterval(() => {
+        frameCountRef.current += 1;
+        const f = frameCountRef.current;
+        
+        if (f >= totalFrames) {
+          // Done - reset to 0
+          clearInterval(intervalRef.current);
+          setFrameIndex(0);
+          setPhonemeIdx(0);
+          setLocalFrame(0);
+          onAnimationComplete?.();
+          return;
+        }
+        
+        const sprite = calculateSpriteFrame(f);
+        const pIdx = Math.min(Math.floor(f / FRAMES_PER_PHONEME), sequence.length - 1);
+        const lFrame = f % FRAMES_PER_PHONEME;
+        
+        setFrameIndex(sprite);
+        setPhonemeIdx(pIdx);
+        setLocalFrame(lFrame);
+      }, frameTime);
     } else {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
       }
     }
-    return () => { 
-      if (animationRef.current) cancelAnimationFrame(animationRef.current); 
+    
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
     };
-  }, [isPlaying, animate]);
+  }, [isPlaying, playbackRate, totalFrames, calculateSpriteFrame, onAnimationComplete, sequence]);
 
   // Reset when sequence changes
   useEffect(() => {
-    setDisplayFrame(0);
-    setCurrentPhonemeIndex(0);
-    setCurrentLocalFrame(0);
-    startTimeRef.current = null;
-  }, [phonemeSequence.join?.(',') || '']);
+    setFrameIndex(0);
+    setPhonemeIdx(0);
+    setLocalFrame(0);
+    frameCountRef.current = 0;
+  }, [sequence.join(',')]);
 
-  const sequence = Array.isArray(phonemeSequence) && phonemeSequence.length > 0 
-    ? phonemeSequence.filter(Boolean) 
-    : ['_'];
-  const currentPhoneme = sequence[currentPhonemeIndex] || '_';
-  const currentData = getPhonemeData(currentPhoneme);
-  const isApexFrame = currentLocalFrame === currentData.apex;
-  
+  const currentPhoneme = sequence[phonemeIdx] || '_';
+  const isApexFrame = localFrame >= 5 && localFrame <= 7;
   const spriteSize = size === 'large' ? 320 : 240;
-  const frameNumber = String(displayFrame).padStart(3, '0');
+  const frameNumber = String(frameIndex).padStart(3, '0');
 
   return (
     <div className="flex flex-col items-center gap-4" data-testid="dual-head-animator">
@@ -905,13 +813,12 @@ function DualHeadAnimator({ phonemeSequence = [], isPlaying = false, playbackRat
             >
               <img
                 src={`/assets/sprites/${view}/frame_${frameNumber}.png`}
-                alt={`${view} view - frame ${displayFrame}`}
+                alt={`${view} view - frame ${frameIndex}`}
                 className="w-full h-full object-contain"
-                style={{ imageRendering: 'auto' }}
               />
               {isApexFrame && (
                 <div className="absolute top-2 right-2 px-2 py-1 bg-sky-500/90 rounded text-[10px] font-bold text-slate-900 uppercase shadow-lg">
-                  {t('apex')}
+                  APEX
                 </div>
               )}
             </div>
@@ -920,19 +827,14 @@ function DualHeadAnimator({ phonemeSequence = [], isPlaying = false, playbackRat
       </div>
       <div className="flex items-center gap-4 mt-2">
         <span className="text-sm text-slate-400">
-          {t('phoneme')}: <span className="font-mono text-sky-400 text-base">/{currentPhoneme}/</span>
+          Phoneme: <span className="font-mono text-sky-400 text-base">/{currentPhoneme}/</span>
         </span>
         <span className="text-sm text-slate-400">
-          {t('frame')}: <span className="font-mono text-cyan-400">{currentLocalFrame + 1}/{currentData.frames.length}</span>
+          Frame: <span className="font-mono text-cyan-400">{localFrame + 1}/{FRAMES_PER_PHONEME}</span>
         </span>
-        <span className="text-xs text-slate-600">
-          Sprite: {displayFrame}
+        <span className="text-xs text-slate-500">
+          Sprite: <span className="font-mono text-emerald-400 text-sm">{frameIndex}</span>
         </span>
-        {isApexFrame && (
-          <span className="px-2 py-0.5 bg-sky-500/20 border border-sky-400/50 rounded text-xs text-sky-300 font-medium animate-pulse">
-            {t('teachingPoint')}
-          </span>
-        )}
       </div>
     </div>
   );
