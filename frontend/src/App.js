@@ -701,79 +701,45 @@ const getPhonemeAudioPath = (letter, lang) => {
   return `/assets/audio/phonemes/${langCode}-${phoneme}.mp3`;
 };
 
-// ========== DUAL HEAD ANIMATOR WITH PRE-CACHING ==========
+// ========== DUAL HEAD ANIMATOR WITH SPRITE SHEETS ==========
+// Uses CSS sprite technique for instant frame switching - no image loading during animation
+const FRAME_SIZE = 512; // Each frame is 512x512 in the sprite sheet
+const FRAMES_PER_SHEET = 50; // 50 frames per sheet, 5 sheets total
+
 function DualHeadAnimator({ phonemeSequence = [], isPlaying = false, playbackRate = 1.0, onAnimationComplete, size = 'large' }) {
   const { t } = useLanguage();
   const [tick, setTick] = useState(0);
-  const [isReady, setIsReady] = useState(false);
-  const [cachedFrames, setCachedFrames] = useState({ front: [], side: [] });
+  const [sheetsLoaded, setSheetsLoaded] = useState(false);
   const timerRef = useRef(null);
-  const audioRef = useRef(null);
   
   const sequence = Array.isArray(phonemeSequence) && phonemeSequence.length > 0 
     ? phonemeSequence.filter(Boolean) 
     : ['a'];
   
-  const FRAMES_PER_PHONEME = 8;
-  const totalFrames = sequence.length * FRAMES_PER_PHONEME + 4;
-  const FRAME_DURATION = 30;
+  const FRAMES_PER_PHONEME = 10;
+  const totalFrames = sequence.length * FRAMES_PER_PHONEME + 5;
+  const FRAME_DURATION = 35; // ~28fps, smooth animation
 
-  // Calculate which sprite frames we need for this sequence
-  const getFramesForSequence = useCallback(() => {
-    const frames = new Set([0]); // Always include frame 0
-    
-    sequence.forEach(phoneme => {
-      const peak = getPhonemeFrameData(phoneme).peak;
-      // Add frames along the path to peak and back
-      for (let i = 0; i <= FRAMES_PER_PHONEME; i++) {
-        const half = FRAMES_PER_PHONEME / 2;
-        let frame;
-        if (i < half) {
-          frame = Math.round(peak * (i / half));
-        } else {
-          frame = Math.round(peak * ((FRAMES_PER_PHONEME - i) / half));
-        }
-        frames.add(Math.max(0, Math.min(249, frame)));
-      }
-    });
-    
-    return Array.from(frames).sort((a, b) => a - b);
-  }, [sequence]);
-
-  // Pre-cache frames when sequence changes
+  // Preload all sprite sheets on mount
   useEffect(() => {
-    setIsReady(false);
-    const neededFrames = getFramesForSequence();
+    const sheets = [];
+    let loadedCount = 0;
+    const totalSheets = 10; // 5 front + 5 side
     
-    const preloadImages = async () => {
-      const frontImages = {};
-      const sideImages = {};
-      
-      const loadPromises = neededFrames.flatMap(frameNum => {
-        const frameStr = String(frameNum).padStart(3, '0');
-        return [
-          new Promise((resolve) => {
-            const img = new Image();
-            img.onload = () => { frontImages[frameNum] = img; resolve(); };
-            img.onerror = () => resolve();
-            img.src = `/assets/sprites/front_compressed/frame_${frameStr}.jpg`;
-          }),
-          new Promise((resolve) => {
-            const img = new Image();
-            img.onload = () => { sideImages[frameNum] = img; resolve(); };
-            img.onerror = () => resolve();
-            img.src = `/assets/sprites/side_compressed/frame_${frameStr}.jpg`;
-          })
-        ];
+    for (let i = 0; i < 5; i++) {
+      ['front', 'side'].forEach(view => {
+        const img = new Image();
+        img.onload = () => {
+          loadedCount++;
+          if (loadedCount === totalSheets) {
+            setSheetsLoaded(true);
+          }
+        };
+        img.src = `/assets/sprites/${view}_sheet_${i}.jpg`;
+        sheets.push(img);
       });
-      
-      await Promise.all(loadPromises);
-      setCachedFrames({ front: frontImages, side: sideImages });
-      setIsReady(true);
-    };
-    
-    preloadImages();
-  }, [sequence.join(','), getFramesForSequence]);
+    }
+  }, []);
 
   // Animation loop
   useEffect(() => {
@@ -782,7 +748,7 @@ function DualHeadAnimator({ phonemeSequence = [], isPlaying = false, playbackRat
       timerRef.current = null;
     }
     
-    if (isPlaying && isReady) {
+    if (isPlaying && sheetsLoaded) {
       setTick(0);
       let currentTick = 0;
       const interval = Math.round(FRAME_DURATION / playbackRate);
@@ -798,6 +764,94 @@ function DualHeadAnimator({ phonemeSequence = [], isPlaying = false, playbackRat
         }
         setTick(currentTick);
       }, interval);
+    } else if (!isPlaying) {
+      setTick(0);
+    }
+    
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, [isPlaying, sheetsLoaded, playbackRate, totalFrames, onAnimationComplete]);
+
+  // Calculate current sprite frame
+  const phonemeIdx = Math.min(Math.floor(tick / FRAMES_PER_PHONEME), sequence.length - 1);
+  const localFrame = tick % FRAMES_PER_PHONEME;
+  const currentPhoneme = sequence[phonemeIdx] || '_';
+  
+  let spriteFrame = 0;
+  const peak = getPhonemeFrameData(currentPhoneme).peak;
+  
+  if (tick < sequence.length * FRAMES_PER_PHONEME) {
+    const half = FRAMES_PER_PHONEME / 2;
+    if (localFrame < half) {
+      spriteFrame = Math.round(peak * (localFrame / half));
+    } else {
+      spriteFrame = Math.round(peak * ((FRAMES_PER_PHONEME - localFrame) / half));
+    }
+  } else {
+    const returnFrame = tick - (sequence.length * FRAMES_PER_PHONEME);
+    const lastPeak = getPhonemeFrameData(sequence[sequence.length - 1]).peak;
+    spriteFrame = Math.round(lastPeak * (1 - returnFrame / 5));
+  }
+  spriteFrame = Math.max(0, Math.min(249, spriteFrame));
+
+  // Calculate which sheet and position within sheet
+  const sheetIndex = Math.floor(spriteFrame / FRAMES_PER_SHEET);
+  const frameInSheet = spriteFrame % FRAMES_PER_SHEET;
+  const yOffset = frameInSheet * FRAME_SIZE;
+
+  const isApexFrame = localFrame >= 4 && localFrame <= 6;
+  const spriteSize = size === 'large' ? 300 : size === 'medium' ? 240 : 180;
+
+  return (
+    <div className="flex flex-col items-center gap-3" data-testid="dual-head-animator">
+      {!sheetsLoaded && <div className="text-xs text-sky-400 animate-pulse">Loading sprites...</div>}
+      <div className="flex gap-4 justify-center">
+        {['front', 'side'].map((view) => (
+          <div key={view} className="flex flex-col items-center gap-1">
+            <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+              {view === 'front' ? t('frontView') : t('sideView')}
+            </div>
+            <div 
+              className={`relative overflow-hidden rounded-xl border-2 ${isApexFrame ? 'border-sky-400 ring-2 ring-sky-400/30' : 'border-slate-600'}`}
+              style={{ 
+                width: spriteSize, 
+                height: spriteSize,
+                backgroundColor: '#ffffff',
+                boxShadow: isApexFrame ? '0 0 30px rgba(56, 189, 248, 0.4)' : '0 4px 15px rgba(0,0,0,0.3)'
+              }}
+              data-testid={`animator-${view}`}
+            >
+              <div
+                style={{
+                  width: spriteSize,
+                  height: spriteSize,
+                  backgroundImage: `url(/assets/sprites/${view}_sheet_${sheetIndex}.jpg)`,
+                  backgroundPosition: `0 -${(yOffset / FRAME_SIZE) * spriteSize}px`,
+                  backgroundSize: `${spriteSize}px ${FRAMES_PER_SHEET * spriteSize}px`,
+                  backgroundRepeat: 'no-repeat'
+                }}
+              />
+              {isApexFrame && (
+                <div className="absolute top-1 right-1 px-1.5 py-0.5 bg-sky-500/90 rounded text-[9px] font-bold text-slate-900 uppercase">
+                  APEX
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="flex items-center gap-3">
+        <span className="text-xs text-slate-400">
+          /{currentPhoneme}/ <span className="text-slate-600">F:{localFrame + 1}/{FRAMES_PER_PHONEME}</span> <span className="text-emerald-400">S:{spriteFrame}</span>
+        </span>
+      </div>
+    </div>
+  );
+}
     } else {
       setTick(0);
     }
