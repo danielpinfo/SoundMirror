@@ -746,16 +746,13 @@ function DualHeadAnimator({ phonemeSequence = [], isPlaying = false, playbackRat
       }
     };
   }, [isPlaying, playbackRate, totalFrames, onAnimationComplete]);
-      }
-    };
-  }, [isPlaying, isAnimating, playbackRate, totalFrames, onAnimationComplete]);
 
   // Reset when sequence changes
   useEffect(() => {
     setTick(0);
-    setIsAnimating(false);
     if (timerRef.current) {
       clearInterval(timerRef.current);
+      timerRef.current = null;
     }
   }, [sequence.join(',')]);
 
