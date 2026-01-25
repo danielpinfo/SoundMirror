@@ -617,71 +617,120 @@ function Layout({ children }) {
   );
 }
 
-// ========== DUAL HEAD ANIMATOR (LARGER) ==========
+// ========== DUAL HEAD ANIMATOR (REAL PNG SPRITES) ==========
 function DualHeadAnimator({ phonemeSequence = [], isPlaying = false, playbackRate = 1.0, frameDuration = 100, onAnimationComplete, size = 'large' }) {
   const { t } = useLanguage();
   const [currentPhonemeIndex, setCurrentPhonemeIndex] = useState(0);
   const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
+  const [globalFrameIndex, setGlobalFrameIndex] = useState(0);
   const animationRef = useRef(null);
   const startTimeRef = useRef(null);
 
+  const TOTAL_SPRITE_FRAMES = 250;
   const FRAMES_PER_PHONEME = 10;
   const sequence = Array.isArray(phonemeSequence) ? phonemeSequence.filter(Boolean) : ['_'];
   const totalFrames = sequence.length * FRAMES_PER_PHONEME;
   const currentPhoneme = sequence[currentPhonemeIndex] || '_';
   const isApexFrame = currentFrameIndex === 4;
 
-  const getPhonemeColor = (p) => ({ a:'#ef4444', e:'#f97316', i:'#eab308', o:'#22c55e', u:'#3b82f6', p:'#8b5cf6', t:'#ec4899', s:'#14b8a6', n:'#f43f5e', l:'#06b6d4', r:'#84cc16', k:'#a855f7', d:'#f59e0b' }[p] || '#64748b');
+  // Map phoneme to sprite frame range (distribute 250 frames across common phonemes)
+  const getPhonemeStartFrame = useCallback((phoneme, index) => {
+    const phonemeMap = { a:0, e:25, i:50, o:75, u:100, p:125, t:140, s:155, n:170, l:185, r:200, k:215, d:230, m:125, b:140, f:155, g:170, h:185, j:200, v:215, w:230, c:140, x:155, y:185, z:200 };
+    return phonemeMap[phoneme.toLowerCase()] ?? (index * 10) % TOTAL_SPRITE_FRAMES;
+  }, []);
 
   const animate = useCallback((ts) => {
     if (!startTimeRef.current) startTimeRef.current = ts;
     const elapsed = (ts - startTimeRef.current) * playbackRate;
     const framePos = Math.floor(elapsed / frameDuration);
-    if (framePos >= totalFrames) { setCurrentFrameIndex(0); setCurrentPhonemeIndex(0); startTimeRef.current = null; onAnimationComplete?.(); return; }
-    setCurrentPhonemeIndex(Math.floor(framePos / FRAMES_PER_PHONEME));
-    setCurrentFrameIndex(framePos % FRAMES_PER_PHONEME);
+    if (framePos >= totalFrames) {
+      setCurrentFrameIndex(0);
+      setCurrentPhonemeIndex(0);
+      setGlobalFrameIndex(0);
+      startTimeRef.current = null;
+      onAnimationComplete?.();
+      return;
+    }
+    const phonemeIdx = Math.floor(framePos / FRAMES_PER_PHONEME);
+    const localFrame = framePos % FRAMES_PER_PHONEME;
+    const phoneme = sequence[phonemeIdx] || '_';
+    const startFrame = getPhonemeStartFrame(phoneme, phonemeIdx);
+    const spriteFrame = (startFrame + localFrame) % TOTAL_SPRITE_FRAMES;
+    
+    setCurrentPhonemeIndex(phonemeIdx);
+    setCurrentFrameIndex(localFrame);
+    setGlobalFrameIndex(spriteFrame);
     animationRef.current = requestAnimationFrame(animate);
-  }, [playbackRate, frameDuration, totalFrames, onAnimationComplete]);
+  }, [playbackRate, frameDuration, totalFrames, onAnimationComplete, sequence, getPhonemeStartFrame]);
 
   useEffect(() => {
-    if (isPlaying) { startTimeRef.current = null; animationRef.current = requestAnimationFrame(animate); }
-    else if (animationRef.current) cancelAnimationFrame(animationRef.current);
+    if (isPlaying) {
+      startTimeRef.current = null;
+      animationRef.current = requestAnimationFrame(animate);
+    } else if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+    }
     return () => { if (animationRef.current) cancelAnimationFrame(animationRef.current); };
   }, [isPlaying, animate]);
 
-  useEffect(() => { setCurrentFrameIndex(0); setCurrentPhonemeIndex(0); startTimeRef.current = null; }, [sequence.join(',')]);
+  useEffect(() => {
+    setCurrentFrameIndex(0);
+    setCurrentPhonemeIndex(0);
+    const phoneme = sequence[0] || '_';
+    setGlobalFrameIndex(getPhonemeStartFrame(phoneme, 0));
+    startTimeRef.current = null;
+  }, [sequence.join(','), getPhonemeStartFrame]);
 
-  const spriteSize = size === 'large' ? 280 : 200;
-  const phonemeColor = getPhonemeColor(currentPhoneme);
+  const spriteSize = size === 'large' ? 320 : 220;
+  const frameNumber = String(globalFrameIndex).padStart(3, '0');
 
   return (
-    <div className="flex flex-col items-center gap-4">
+    <div className="flex flex-col items-center gap-4" data-testid="dual-head-animator">
       <div className="flex gap-6 justify-center">
         {['front', 'side'].map((view) => (
           <div key={view} className="flex flex-col items-center gap-2">
-            <div className="text-xs font-semibold uppercase tracking-wider text-slate-500">{view === 'front' ? t('frontView') : t('sideView')}</div>
-            <div className={`sprite-container flex items-center justify-center transition-all duration-150 ${isApexFrame ? 'ring-2 ring-sky-400 ring-offset-2 ring-offset-slate-900' : ''}`}
-              style={{ width: spriteSize, height: spriteSize, boxShadow: isApexFrame ? '0 0 30px rgba(56, 189, 248, 0.4)' : 'none' }}>
-              {view === 'front' ? (
-                <div className="rounded-full flex items-center justify-center text-5xl font-bold transition-all duration-150"
-                  style={{ width: spriteSize * 0.6, height: spriteSize * 0.6, backgroundColor: `${phonemeColor}20`, border: `4px solid ${phonemeColor}`, color: phonemeColor, transform: `scale(${0.8 + (currentFrameIndex / 10) * 0.4})` }}>
-                  {currentPhoneme.toUpperCase()}
-                </div>
-              ) : (
-                <div className="rounded-lg flex items-center justify-center transition-all"
-                  style={{ width: spriteSize * 0.6, height: spriteSize * 0.4, backgroundColor: `${phonemeColor}30`, border: `3px solid ${phonemeColor}`, transform: `scaleX(${0.7 + (currentFrameIndex / 10) * 0.5})` }}>
-                  <div className="rounded-full" style={{ width: spriteSize * 0.25, height: spriteSize * 0.15, backgroundColor: phonemeColor, transform: `translateX(${(currentFrameIndex - 5) * 4}px)` }} />
+            <div className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+              {view === 'front' ? t('frontView') : t('sideView')}
+            </div>
+            <div 
+              className={`sprite-container relative overflow-hidden rounded-2xl bg-slate-900/50 border-2 transition-all duration-150 ${isApexFrame ? 'border-sky-400 ring-2 ring-sky-400/30' : 'border-slate-700/50'}`}
+              style={{ 
+                width: spriteSize, 
+                height: spriteSize, 
+                boxShadow: isApexFrame ? '0 0 40px rgba(56, 189, 248, 0.3)' : '0 4px 20px rgba(0,0,0,0.3)'
+              }}
+              data-testid={`animator-${view}`}
+            >
+              <img
+                src={`/assets/sprites/${view}/frame_${frameNumber}.png`}
+                alt={`${view} view - frame ${globalFrameIndex}`}
+                className="w-full h-full object-contain"
+                style={{ imageRendering: 'auto' }}
+              />
+              {isApexFrame && (
+                <div className="absolute top-2 right-2 px-2 py-1 bg-sky-500/90 rounded text-[10px] font-bold text-slate-900 uppercase shadow-lg">
+                  {t('apex')}
                 </div>
               )}
-              {isApexFrame && view === 'front' && <div className="absolute top-2 right-2 px-2 py-1 bg-sky-500/90 rounded text-[10px] font-bold text-slate-900 uppercase">{t('apex')}</div>}
             </div>
           </div>
         ))}
       </div>
-      <div className="flex items-center gap-3 mt-2">
-        <span className="text-sm text-slate-400">{t('phoneme')}: <span className="font-mono text-sky-400">/{currentPhoneme}/</span></span>
-        <span className="text-sm text-slate-400">{t('frame')}: <span className="font-mono text-cyan-400">{currentFrameIndex + 1}/10</span></span>
-        {isApexFrame && <span className="px-2 py-0.5 bg-sky-500/20 border border-sky-400/50 rounded text-xs text-sky-300 font-medium">{t('teachingPoint')}</span>}
+      <div className="flex items-center gap-4 mt-2">
+        <span className="text-sm text-slate-400">
+          {t('phoneme')}: <span className="font-mono text-sky-400 text-base">/{currentPhoneme}/</span>
+        </span>
+        <span className="text-sm text-slate-400">
+          {t('frame')}: <span className="font-mono text-cyan-400">{currentFrameIndex + 1}/10</span>
+        </span>
+        <span className="text-xs text-slate-600">
+          Sprite: {globalFrameIndex}
+        </span>
+        {isApexFrame && (
+          <span className="px-2 py-0.5 bg-sky-500/20 border border-sky-400/50 rounded text-xs text-sky-300 font-medium animate-pulse">
+            {t('teachingPoint')}
+          </span>
+        )}
       </div>
     </div>
   );
