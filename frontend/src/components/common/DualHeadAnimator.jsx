@@ -4,6 +4,7 @@ import {
   FRAME_HEIGHT, 
   TOTAL_FRAMES,
   FRAME_DURATION_MS,
+  LETTER_PRACTICE_DELAY_MS,
   buildLetterTimeline,
   buildWordTimeline,
   getFrameInfo
@@ -37,12 +38,13 @@ const preloadSheets = () => {
 preloadSheets();
 
 /**
- * DualHeadAnimator - Movie-quality 30fps sprite animation with frame blending
+ * DualHeadAnimator - Movie-quality sprite animation
  * 
- * Uses dual-layer rendering for smooth transitions:
- * - Current frame layer (solid)
- * - Previous frame layer (fading out)
- * This creates visual interpolation between frames
+ * Features:
+ * - 1 second delay before Letter Practice animation starts
+ * - Doubled frame durations for slower, clearer animation
+ * - Dual-layer blending for smooth transitions
+ * - No flashing borders
  */
 function DualHeadAnimator({ 
   phonemeSequence = [], 
@@ -59,8 +61,10 @@ function DualHeadAnimator({
   const [currentPhoneme, setCurrentPhoneme] = useState('_');
   const [currentType, setCurrentType] = useState('neutral');
   const [sheetsReady, setSheetsReady] = useState(preloadedSheets.loaded);
+  const [isDelaying, setIsDelaying] = useState(false);
   
   const animationRef = useRef(null);
+  const delayTimeoutRef = useRef(null);
   const timelineRef = useRef([]);
   const totalFramesRef = useRef(0);
 
@@ -83,13 +87,20 @@ function DualHeadAnimator({
     }
   }, [sheetsReady]);
 
-  // Animation loop with frame blending
+  // Animation loop
   useEffect(() => {
+    // Cleanup
+    if (delayTimeoutRef.current) {
+      clearTimeout(delayTimeoutRef.current);
+      delayTimeoutRef.current = null;
+    }
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+      animationRef.current = null;
+    }
+    
     if (!isPlaying || !sheetsReady) {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-        animationRef.current = null;
-      }
+      setIsDelaying(false);
       setCurrentFrame(0);
       setPrevFrame(0);
       setBlendOpacity(0);
@@ -98,76 +109,87 @@ function DualHeadAnimator({
       return;
     }
 
-    let frameIndex = 0;
-    let lastFrameTime = performance.now();
-    let subFrameProgress = 0;
-    const timeline = timelineRef.current;
-    const totalFrameCount = totalFramesRef.current;
-    let lastDisplayFrame = 0;
-    
-    const animate = (timestamp) => {
-      const elapsed = timestamp - lastFrameTime;
-      const frameInterval = FRAME_DURATION_MS / playbackRate;
+    // For Letter Practice, add 1 second delay
+    if (letter) {
+      setIsDelaying(true);
+      delayTimeoutRef.current = setTimeout(() => {
+        setIsDelaying(false);
+        startAnimation();
+      }, LETTER_PRACTICE_DELAY_MS);
+    } else {
+      // Word Practice starts immediately
+      startAnimation();
+    }
+
+    function startAnimation() {
+      let frameIndex = 0;
+      let lastFrameTime = performance.now();
+      let lastDisplayFrame = 0;
+      const timeline = timelineRef.current;
+      const totalFrameCount = totalFramesRef.current;
       
-      // Accumulate sub-frame progress for smoother blending
-      subFrameProgress += elapsed / frameInterval;
-      
-      if (subFrameProgress >= 1) {
-        subFrameProgress -= 1;
-        lastFrameTime = timestamp;
-        frameIndex++;
+      const animate = (timestamp) => {
+        const elapsed = timestamp - lastFrameTime;
+        const frameInterval = FRAME_DURATION_MS / playbackRate;
         
-        // Find current timeline position
-        let accumulatedFrames = 0;
-        let currentTimelineItem = timeline[0];
-        
-        for (const item of timeline) {
-          if (frameIndex <= accumulatedFrames + item.duration) {
-            currentTimelineItem = item;
-            break;
+        if (elapsed >= frameInterval) {
+          lastFrameTime = timestamp - (elapsed % frameInterval);
+          frameIndex++;
+          
+          // Find current timeline position
+          let accumulatedFrames = 0;
+          let currentTimelineItem = timeline[0];
+          
+          for (const item of timeline) {
+            if (frameIndex <= accumulatedFrames + item.duration) {
+              currentTimelineItem = item;
+              break;
+            }
+            accumulatedFrames += item.duration;
           }
-          accumulatedFrames += item.duration;
+          
+          // Frame blending
+          if (currentTimelineItem.frame !== lastDisplayFrame) {
+            setPrevFrame(lastDisplayFrame);
+            setBlendOpacity(0.7);
+            lastDisplayFrame = currentTimelineItem.frame;
+          }
+          
+          setCurrentFrame(currentTimelineItem.frame);
+          setCurrentPhoneme(currentTimelineItem.phoneme);
+          setCurrentType(currentTimelineItem.type);
+          
+          // Check completion
+          if (frameIndex >= totalFrameCount) {
+            animationRef.current = null;
+            setCurrentFrame(0);
+            setPrevFrame(0);
+            setBlendOpacity(0);
+            setCurrentPhoneme('_');
+            setCurrentType('neutral');
+            onAnimationComplete?.();
+            return;
+          }
         }
         
-        // Handle frame change with blending
-        if (currentTimelineItem.frame !== lastDisplayFrame) {
-          setPrevFrame(lastDisplayFrame);
-          setBlendOpacity(1); // Start fade
-          lastDisplayFrame = currentTimelineItem.frame;
-        }
+        // Fade blend
+        setBlendOpacity(prev => Math.max(0, prev - 0.1));
         
-        setCurrentFrame(currentTimelineItem.frame);
-        setCurrentPhoneme(currentTimelineItem.phoneme);
-        setCurrentType(currentTimelineItem.type);
-        
-        // Check completion
-        if (frameIndex >= totalFrameCount) {
-          animationRef.current = null;
-          setCurrentFrame(0);
-          setPrevFrame(0);
-          setBlendOpacity(0);
-          setCurrentPhoneme('_');
-          setCurrentType('neutral');
-          onAnimationComplete?.();
-          return;
-        }
-      }
-      
-      // Fade out previous frame for smooth blending
-      setBlendOpacity(prev => Math.max(0, prev - 0.15));
+        animationRef.current = requestAnimationFrame(animate);
+      };
       
       animationRef.current = requestAnimationFrame(animate);
-    };
-    
-    animationRef.current = requestAnimationFrame(animate);
+    }
     
     return () => {
+      if (delayTimeoutRef.current) {
+        clearTimeout(delayTimeoutRef.current);
+      }
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
-        animationRef.current = null;
       }
     };
-  }, [isPlaying, sheetsReady, playbackRate, onAnimationComplete]);
+  }, [isPlaying, sheetsReady, letter, playbackRate, onAnimationComplete]);
 
   // Size mappings
   const sizeMultipliers = { large: 0.38, medium: 0.30, small: 0.22 };
@@ -176,7 +198,6 @@ function DualHeadAnimator({
   const displayHeight = Math.round(FRAME_HEIGHT * multiplier);
   
   const frameInfo = getFrameInfo(currentFrame);
-  const isApex = currentType === 'apex';
   const isPause = currentType === 'pause';
 
   if (!sheetsReady) {
@@ -187,11 +208,12 @@ function DualHeadAnimator({
     );
   }
 
-  // Render a sprite layer
+  // Render sprite layer
   const renderSpriteLayer = (view, frame, opacity = 1, zIndex = 1) => {
     const yOffset = frame * FRAME_HEIGHT * multiplier;
     return (
       <div
+        key={`${view}-${frame}-${zIndex}`}
         style={{
           position: 'absolute',
           top: 0,
@@ -205,7 +227,7 @@ function DualHeadAnimator({
           imageRendering: 'auto',
           opacity,
           zIndex,
-          transition: 'opacity 0.05s ease-out',
+          transition: 'opacity 0.08s ease-out',
         }}
       />
     );
@@ -220,38 +242,26 @@ function DualHeadAnimator({
               {view === 'front' ? 'Front View' : 'Side View'}
             </div>
             <div 
-              className={`relative overflow-hidden rounded-xl border-2 transition-all duration-100 ${
-                isApex 
-                  ? 'border-amber-400 ring-2 ring-amber-400/40' 
-                  : isPause
-                    ? 'border-slate-500'
-                    : 'border-slate-600'
-              }`}
+              className="relative overflow-hidden rounded-xl border-2 border-slate-600"
               style={{ 
                 width: displayWidth, 
                 height: displayHeight,
                 backgroundColor: '#ffffff',
-                boxShadow: isApex 
-                  ? '0 0 25px rgba(251, 191, 36, 0.5)' 
-                  : '0 4px 15px rgba(0,0,0,0.3)'
+                boxShadow: '0 4px 15px rgba(0,0,0,0.3)'
               }}
               data-testid={`animator-${view}`}
             >
-              {/* Previous frame (fading out for smooth blend) */}
+              {/* Previous frame for blending */}
               {blendOpacity > 0 && prevFrame !== currentFrame && (
                 renderSpriteLayer(view, prevFrame, blendOpacity, 1)
               )}
               {/* Current frame */}
               {renderSpriteLayer(view, currentFrame, 1, 2)}
               
-              {isApex && (
-                <div className="absolute top-1 right-1 px-1.5 py-0.5 bg-amber-500 rounded text-[9px] font-bold text-slate-900 uppercase shadow z-10">
-                  ★
-                </div>
-              )}
-              {isPause && (
-                <div className="absolute top-1 right-1 px-1.5 py-0.5 bg-slate-600 rounded text-[9px] font-bold text-slate-300 z-10">
-                  ⏸
+              {/* Delay indicator */}
+              {isDelaying && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/20 z-10">
+                  <div className="text-white text-sm font-semibold animate-pulse">Ready...</div>
                 </div>
               )}
             </div>
@@ -270,10 +280,7 @@ function DualHeadAnimator({
           <span className="text-slate-600">
             {frameInfo.name}
           </span>
-          <span className={`text-[10px] ${isPause ? 'text-slate-500' : 'text-slate-500'}`}>
-            {currentType}
-          </span>
-          {isApex && <span className="text-amber-400">★</span>}
+          {isPause && <span className="text-slate-500">⏸</span>}
         </div>
       )}
     </div>
