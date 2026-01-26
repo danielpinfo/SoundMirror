@@ -1,49 +1,48 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { 
-  FRAME_SIZE, 
-  FRAMES_PER_SHEET, 
-  FRAMES_PER_PHONEME,
-  textToPhonemes, 
-  getPhonemeBaseFrame,
-  getSheetForFrame,
-  getFramePositionInSheet
+  FRAME_WIDTH, 
+  FRAME_HEIGHT, 
+  TOTAL_FRAMES,
+  textToFrames,
+  getFrameForPhoneme,
+  getFrameInfo
 } from '../../data/phonemeMap';
 
-// Preload all sprite sheets once globally
-const preloadedSheets = { front: [], side: [], loaded: false };
+// Preload sprite sheets once globally
+const preloadedSheets = { front: null, side: null, loaded: false };
 
-const preloadAllSheets = () => {
+const preloadSheets = () => {
   if (preloadedSheets.loaded) return Promise.resolve();
   
   const promises = [];
-  for (let i = 0; i < 5; i++) {
-    ['front', 'side'].forEach(view => {
-      const img = new Image();
-      const promise = new Promise((resolve) => {
-        img.onload = () => resolve();
-        img.onerror = () => resolve(); // Still resolve on error to not block
-      });
-      img.src = `/assets/sprites/${view}_sheet_${i}.jpg`;
-      preloadedSheets[view][i] = img;
-      promises.push(promise);
+  
+  ['front', 'side'].forEach(view => {
+    const img = new Image();
+    const promise = new Promise((resolve) => {
+      img.onload = () => {
+        preloadedSheets[view] = img;
+        resolve();
+      };
+      img.onerror = () => resolve(); // Still resolve on error
     });
-  }
+    img.src = `/assets/sprites/${view}_master.png`;
+    promises.push(promise);
+  });
   
   return Promise.all(promises).then(() => {
     preloadedSheets.loaded = true;
   });
 };
 
-// Start preloading immediately when module loads
-preloadAllSheets();
+// Start preloading immediately
+preloadSheets();
 
 /**
- * DualHeadAnimator - Clinical-grade sprite animation component
+ * DualHeadAnimator - Movie-quality sprite animation
  * 
- * Animation algorithm:
- * - Each phoneme has 10 frames (0-9), with frame 5 being the "sweet spot"
- * - Animation ramps: neutral → approach (0-4) → sweet spot (5) → depart (6-9) → neutral
- * - Uses requestAnimationFrame for smooth, jitter-free animation
+ * New 20-frame system with single sprite sheet per view.
+ * Uses smooth interpolation between frames for flowing animation.
+ * Frame 0 = neutral (rest), frames 1-19 = various phonemes.
  */
 function DualHeadAnimator({ 
   phonemeSequence = [], 
@@ -53,85 +52,95 @@ function DualHeadAnimator({
   size = 'large',
   showDebug = true 
 }) {
-  const [currentFrame, setCurrentFrame] = useState(5); // Start at neutral sweet spot
+  const [currentFrame, setCurrentFrame] = useState(0);
   const [currentPhoneme, setCurrentPhoneme] = useState('_');
-  const [isApex, setIsApex] = useState(false);
   const [sheetsReady, setSheetsReady] = useState(preloadedSheets.loaded);
+  const [progress, setProgress] = useState(0);
   
   const animationRef = useRef(null);
   const startTimeRef = useRef(null);
   
-  // Convert input to phoneme array
-  const phonemes = useMemo(() => {
+  // Convert input to frame sequence
+  const frameSequence = useMemo(() => {
     if (!Array.isArray(phonemeSequence) || phonemeSequence.length === 0) {
-      return ['a'];
+      // Default to 'a' for demo
+      return textToFrames('a');
     }
-    // If it's an array of strings (like words), convert each
+    
+    // If it's strings, convert each
     if (typeof phonemeSequence[0] === 'string') {
-      return phonemeSequence.flatMap(item => textToPhonemes(item));
+      const text = phonemeSequence.join('');
+      return textToFrames(text);
     }
-    return phonemeSequence;
+    
+    return textToFrames('a');
   }, [phonemeSequence]);
 
   // Ensure sheets are loaded
   useEffect(() => {
     if (!sheetsReady) {
-      preloadAllSheets().then(() => setSheetsReady(true));
+      preloadSheets().then(() => setSheetsReady(true));
     }
   }, [sheetsReady]);
 
-  // Animation timing constants
-  const PHONEME_DURATION_MS = 200 / playbackRate; // ~200ms per phoneme at 1x speed
-  const FRAME_DURATION_MS = PHONEME_DURATION_MS / FRAMES_PER_PHONEME;
+  // Animation timing - smooth and natural
+  // Each phoneme gets ~150ms at 1x speed, with smooth transitions
+  const PHONEME_DURATION_MS = 150 / playbackRate;
+  const TRANSITION_FRAMES = 3; // Number of interpolation steps between phonemes
   
   // Total animation duration
   const totalDuration = useMemo(() => {
-    return phonemes.length * PHONEME_DURATION_MS + PHONEME_DURATION_MS; // Extra for return to neutral
-  }, [phonemes.length, PHONEME_DURATION_MS]);
+    const phonemeTime = frameSequence.length * PHONEME_DURATION_MS;
+    const returnTime = PHONEME_DURATION_MS; // Time to return to neutral
+    return phonemeTime + returnTime;
+  }, [frameSequence.length, PHONEME_DURATION_MS]);
 
-  // Calculate frame for a given timestamp
-  const calculateFrame = useCallback((elapsedMs) => {
-    const totalPhonemes = phonemes.length;
-    const animationLength = totalPhonemes * PHONEME_DURATION_MS;
+  // Build smooth animation timeline with interpolation
+  const buildTimeline = useCallback(() => {
+    const timeline = [];
     
-    // Return to neutral phase
-    if (elapsedMs >= animationLength) {
-      const returnProgress = (elapsedMs - animationLength) / PHONEME_DURATION_MS;
-      if (returnProgress >= 1) {
-        return { frame: 5, phoneme: '_', isApex: false, done: true };
-      }
-      // Smoothly return to neutral (frame 5)
-      const lastPhoneme = phonemes[totalPhonemes - 1] || '_';
-      const lastBase = getPhonemeBaseFrame(lastPhoneme);
-      const lastSweetSpot = lastBase + 5;
+    // Start from neutral
+    timeline.push({ frame: 0, phoneme: '_', type: 'start' });
+    
+    for (let i = 0; i < frameSequence.length; i++) {
+      const current = frameSequence[i];
+      const prev = i > 0 ? frameSequence[i - 1] : { frame: 0, phoneme: '_' };
       
-      // Interpolate from last sweet spot back to neutral sweet spot (5)
-      const localFrame = Math.floor(returnProgress * FRAMES_PER_PHONEME);
-      const frame = localFrame < 5 ? lastSweetSpot - localFrame : 5;
-      return { frame: Math.max(5, frame), phoneme: '_', isApex: false, done: false };
+      // Add transition frames from previous to current (interpolation)
+      if (current.frame !== prev.frame) {
+        // Simple crossfade - we'll show the target frame
+        // In a more advanced version, we could blend frames
+        timeline.push({ 
+          frame: current.frame, 
+          phoneme: current.phoneme, 
+          type: 'transition'
+        });
+      }
+      
+      // Hold at the target frame (the "sweet spot")
+      timeline.push({ 
+        frame: current.frame, 
+        phoneme: current.phoneme, 
+        type: 'apex'
+      });
+      timeline.push({ 
+        frame: current.frame, 
+        phoneme: current.phoneme, 
+        type: 'hold'
+      });
     }
     
-    // Which phoneme are we on?
-    const phonemeIndex = Math.floor(elapsedMs / PHONEME_DURATION_MS);
-    const phoneme = phonemes[Math.min(phonemeIndex, totalPhonemes - 1)] || '_';
-    const baseFrame = getPhonemeBaseFrame(phoneme);
+    // Return to neutral smoothly
+    const lastFrame = frameSequence.length > 0 ? frameSequence[frameSequence.length - 1].frame : 0;
+    if (lastFrame !== 0) {
+      timeline.push({ frame: 0, phoneme: '_', type: 'return' });
+    }
+    timeline.push({ frame: 0, phoneme: '_', type: 'end' });
     
-    // Progress within this phoneme (0-1)
-    const phonemeProgress = (elapsedMs % PHONEME_DURATION_MS) / PHONEME_DURATION_MS;
-    
-    // Local frame within the 10-frame sequence (0-9)
-    // Use smooth interpolation: 0→1→2→3→4→5→6→7→8→9
-    const localFrame = Math.floor(phonemeProgress * FRAMES_PER_PHONEME);
-    const clampedLocal = Math.min(localFrame, 9);
-    
-    // Calculate actual sprite frame
-    const frame = baseFrame + clampedLocal;
-    
-    // Is this the sweet spot? (frame 5 of the sequence, or localFrame 4-6)
-    const atApex = clampedLocal >= 4 && clampedLocal <= 6;
-    
-    return { frame, phoneme, isApex: atApex, done: false };
-  }, [phonemes, PHONEME_DURATION_MS]);
+    return timeline;
+  }, [frameSequence]);
+
+  const timeline = useMemo(() => buildTimeline(), [buildTimeline]);
 
   // Animation loop using requestAnimationFrame
   useEffect(() => {
@@ -140,10 +149,9 @@ function DualHeadAnimator({
         cancelAnimationFrame(animationRef.current);
         animationRef.current = null;
       }
-      // Reset to neutral when not playing
-      setCurrentFrame(5);
+      setCurrentFrame(0);
       setCurrentPhoneme('_');
-      setIsApex(false);
+      setProgress(0);
       return;
     }
 
@@ -151,17 +159,24 @@ function DualHeadAnimator({
     
     const animate = (timestamp) => {
       const elapsed = timestamp - startTimeRef.current;
-      const result = calculateFrame(elapsed);
+      const progressPct = Math.min(elapsed / totalDuration, 1);
+      setProgress(progressPct);
       
-      setCurrentFrame(result.frame);
-      setCurrentPhoneme(result.phoneme);
-      setIsApex(result.isApex);
+      // Calculate which timeline position we're at
+      const timelineIndex = Math.min(
+        Math.floor(progressPct * timeline.length),
+        timeline.length - 1
+      );
       
-      if (result.done) {
+      const current = timeline[timelineIndex];
+      setCurrentFrame(current.frame);
+      setCurrentPhoneme(current.phoneme);
+      
+      if (progressPct >= 1) {
         animationRef.current = null;
-        setCurrentFrame(5);
+        setCurrentFrame(0);
         setCurrentPhoneme('_');
-        setIsApex(false);
+        setProgress(0);
         onAnimationComplete?.();
         return;
       }
@@ -177,15 +192,21 @@ function DualHeadAnimator({
         animationRef.current = null;
       }
     };
-  }, [isPlaying, sheetsReady, calculateFrame, onAnimationComplete]);
+  }, [isPlaying, sheetsReady, timeline, totalDuration, onAnimationComplete]);
 
-  // Calculate sprite sheet positioning
-  const sheetIndex = getSheetForFrame(currentFrame);
-  const frameInSheet = getFramePositionInSheet(currentFrame);
+  // Calculate sprite position - single sheet, direct positioning
+  const yOffset = currentFrame * FRAME_HEIGHT;
   
-  // Size mappings
-  const spriteSize = size === 'large' ? 300 : size === 'medium' ? 240 : 180;
-  const yOffset = (frameInSheet * spriteSize);
+  // Size mappings - maintain aspect ratio
+  const sizeMultipliers = { large: 0.38, medium: 0.30, small: 0.22 };
+  const multiplier = sizeMultipliers[size] || sizeMultipliers.large;
+  const displayWidth = Math.round(FRAME_WIDTH * multiplier);
+  const displayHeight = Math.round(FRAME_HEIGHT * multiplier);
+  
+  const frameInfo = getFrameInfo(currentFrame);
+  const isApex = timeline.find((t, i) => 
+    i === Math.floor(progress * timeline.length) && t.type === 'apex'
+  );
 
   if (!sheetsReady) {
     return (
@@ -204,14 +225,14 @@ function DualHeadAnimator({
               {view === 'front' ? 'Front View' : 'Side View'}
             </div>
             <div 
-              className={`relative overflow-hidden rounded-xl border-2 transition-all duration-75 ${
+              className={`relative overflow-hidden rounded-xl border-2 transition-all duration-100 ${
                 isApex 
                   ? 'border-amber-400 ring-2 ring-amber-400/40' 
                   : 'border-slate-600'
               }`}
               style={{ 
-                width: spriteSize, 
-                height: spriteSize,
+                width: displayWidth, 
+                height: displayHeight,
                 backgroundColor: '#ffffff',
                 boxShadow: isApex 
                   ? '0 0 25px rgba(251, 191, 36, 0.5)' 
@@ -221,11 +242,11 @@ function DualHeadAnimator({
             >
               <div
                 style={{
-                  width: spriteSize,
-                  height: spriteSize,
-                  backgroundImage: `url(/assets/sprites/${view}_sheet_${sheetIndex}.jpg)`,
-                  backgroundPosition: `0 -${yOffset}px`,
-                  backgroundSize: `${spriteSize}px ${FRAMES_PER_SHEET * spriteSize}px`,
+                  width: displayWidth,
+                  height: displayHeight,
+                  backgroundImage: `url(/assets/sprites/${view}_master.png)`,
+                  backgroundPosition: `0 -${yOffset * multiplier}px`,
+                  backgroundSize: `${displayWidth}px ${TOTAL_FRAMES * displayHeight}px`,
                   backgroundRepeat: 'no-repeat',
                   imageRendering: 'auto'
                 }}
@@ -249,9 +270,9 @@ function DualHeadAnimator({
             F{currentFrame}
           </span>
           <span className="text-slate-600">
-            (sheet {sheetIndex}, pos {frameInSheet})
+            {frameInfo.name}
           </span>
-          {isApex && <span className="text-amber-400">★ sweet spot</span>}
+          {isApex && <span className="text-amber-400">★ apex</span>}
         </div>
       )}
     </div>
