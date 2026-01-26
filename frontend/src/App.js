@@ -487,12 +487,12 @@ const SUGGESTIONS = {
 };
 
 const ALPHABETS = {
-  en: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(l => ({ letter: l, phoneme: l.toLowerCase() + 'ah', isVowel: 'AEIOU'.includes(l) })),
-  es: 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ'.split('').map(l => ({ letter: l, phoneme: l.toLowerCase() + 'eh', isVowel: 'AEIOU'.includes(l) })),
-  fr: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(l => ({ letter: l, phoneme: l.toLowerCase() + 'eh', isVowel: 'AEIOUY'.includes(l) })),
-  de: 'ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÜß'.split('').map(l => ({ letter: l, phoneme: l.toLowerCase() + 'eh', isVowel: 'AEIOUÄÖÜaeiouäöü'.includes(l) })),
-  it: 'ABCDEFGHILMNOPQRSTUVZ'.split('').map(l => ({ letter: l, phoneme: l.toLowerCase() + 'eh', isVowel: 'AEIOU'.includes(l) })),
-  pt: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(l => ({ letter: l, phoneme: l.toLowerCase() + 'eh', isVowel: 'AEIOU'.includes(l) })),
+  en: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(l => ({ letter: l, phoneme: getLetterDisplay(l), isVowel: 'AEIOU'.includes(l) })),
+  es: 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ'.split('').map(l => ({ letter: l, phoneme: getLetterDisplay(l), isVowel: 'AEIOU'.includes(l) })),
+  fr: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(l => ({ letter: l, phoneme: getLetterDisplay(l), isVowel: 'AEIOUY'.includes(l) })),
+  de: 'ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÜß'.split('').map(l => ({ letter: l, phoneme: getLetterDisplay(l), isVowel: 'AEIOUÄÖÜaeiouäöü'.includes(l) })),
+  it: 'ABCDEFGHILMNOPQRSTUVZ'.split('').map(l => ({ letter: l, phoneme: getLetterDisplay(l), isVowel: 'AEIOU'.includes(l) })),
+  pt: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(l => ({ letter: l, phoneme: getLetterDisplay(l), isVowel: 'AEIOU'.includes(l) })),
   zh: ['啊','波','次','得','鹅','佛','哥','喝','衣','鸡','科','勒','摸','呢','哦','坡','期','日','思','特','乌','微','西','呀','资'].map((l,i) => ({ letter: l, phoneme: l, isVowel: i < 5 || [8,14,20].includes(i) })),
   ja: ['あ','い','う','え','お','か','き','く','け','こ','さ','し','す','せ','そ','た','ち','つ','て','と','な','に','ぬ','ね','の'].map((l,i) => ({ letter: l, phoneme: l, isVowel: i < 5 })),
   ar: ['ا','ب','ت','ث','ج','ح','خ','د','ذ','ر','ز','س','ش','ص','ض','ط','ظ','ع','غ','ف','ق','ك','ل','م','ن','ه','و','ي'].map((l,i) => ({ letter: l, phoneme: l, isVowel: [0,26,27].includes(i) })),
