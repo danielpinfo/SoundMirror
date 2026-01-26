@@ -1,7 +1,6 @@
-// ========== PROFESSIONAL PHONEME-TO-VISEME ENGINE ==========
-// Uses CMU Pronouncing Dictionary for accurate IPA-like pronunciation
-// Maps ARPABET phonemes to 20-frame viseme system
-// Supports 10 languages with special phoneme rules
+// ========== SIMPLIFIED PHONEME-TO-VISEME ENGINE ==========
+// Maps IPA phonemes to 20-frame viseme system
+// Simpler word breakdown: "beautiful" → "b-ee-y-oo-t-i-f-ul"
 
 import { dictionary as cmudict } from 'cmu-pronouncing-dictionary';
 
@@ -11,190 +10,197 @@ export const TOTAL_FRAMES = 20;
 export const TARGET_FPS = 30;
 export const FRAME_DURATION_MS = 1000 / TARGET_FPS;
 
-// Frame to viseme mapping
-export const FRAME_PHONEMES = {
-  0:  { name: 'neutral', phonemes: ['_', ' ', 'SIL'], description: 'Neutral/rest/silence' },
-  1:  { name: 'a_u', phonemes: ['AA', 'AH', 'AX', 'a', 'u', 'ʌ', 'ɑ'], description: 'Open vowels (ah, uh)' },
-  2:  { name: 'b_p_m', phonemes: ['B', 'P', 'M', 'b', 'p', 'm'], description: 'Bilabial stops' },
-  3:  { name: 'ee_i', phonemes: ['IY', 'IH', 'EY', 'i', 'ɪ', 'ee'], description: 'Front high vowels (ee)' },
-  4:  { name: 'oo_o_w', phonemes: ['OW', 'UW', 'UH', 'W', 'AW', 'o', 'u', 'w', 'ʊ', 'oʊ', 'oo'], description: 'Rounded vowels (oo, oh)' },
-  5:  { name: 'e', phonemes: ['EH', 'AE', 'e', 'ɛ', 'æ'], description: 'Mid front vowel (eh)' },
-  6:  { name: 'ü', phonemes: ['Y', 'ü', 'y'], description: 'German ü / French u' },
-  7:  { name: 'k_g', phonemes: ['K', 'G', 'NG', 'k', 'g', 'ŋ'], description: 'Velar stops' },
-  8:  { name: 't_d', phonemes: ['T', 'D', 'N', 't', 'd', 'n', 'ɾ'], description: 'Alveolar stops' },
-  9:  { name: 'n', phonemes: ['N', 'n'], description: 'Alveolar nasal' },
-  10: { name: 'ng', phonemes: ['NG', 'ng', 'ŋ'], description: 'Velar nasal' },
-  11: { name: 's_z', phonemes: ['S', 'Z', 's', 'z'], description: 'Alveolar fricatives' },
-  12: { name: 'sh_zh', phonemes: ['SH', 'ZH', 'sh', 'zh', 'ʃ', 'ʒ'], description: 'Postalveolar fricatives' },
-  13: { name: 'th', phonemes: ['TH', 'DH', 'th', 'ð', 'θ'], description: 'Dental fricatives' },
-  14: { name: 'f_v', phonemes: ['F', 'V', 'f', 'v'], description: 'Labiodental fricatives' },
-  15: { name: 'h', phonemes: ['HH', 'h'], description: 'Glottal fricative' },
-  16: { name: 'ch_j', phonemes: ['CH', 'JH', 'ch', 'j', 'dʒ', 'tʃ'], description: 'Affricates' },
-  17: { name: 'r', phonemes: ['R', 'ER', 'r', 'ɹ', 'ɝ'], description: 'Rhotic' },
-  18: { name: 'l', phonemes: ['L', 'l'], description: 'Lateral approximant' },
-  19: { name: 'll_y', phonemes: ['Y', 'll', 'y', 'j'], description: 'Palatal / Welsh ll' },
-};
+// Animation timing
+export const LETTER_PRACTICE_DELAY_MS = 1000; // 1 second delay before animation starts
+export const FRAMES_PER_PHONEME = 8; // Doubled from 4 for slower animation
 
-// ARPABET to Frame mapping (CMU Dictionary uses ARPABET)
-const ARPABET_TO_FRAME = {
-  // Vowels
-  'AA': 1, 'AA0': 1, 'AA1': 1, 'AA2': 1,  // odd, father
-  'AE': 5, 'AE0': 5, 'AE1': 5, 'AE2': 5,  // at, bat
-  'AH': 1, 'AH0': 1, 'AH1': 1, 'AH2': 1,  // hut, but
-  'AO': 4, 'AO0': 4, 'AO1': 4, 'AO2': 4,  // ought, caught
-  'AW': 4, 'AW0': 4, 'AW1': 4, 'AW2': 4,  // cow, how
-  'AX': 1,                                  // schwa
-  'AY': 1, 'AY0': 1, 'AY1': 1, 'AY2': 1,  // hide, my
-  'EH': 5, 'EH0': 5, 'EH1': 5, 'EH2': 5,  // ed, red
-  'ER': 17, 'ER0': 17, 'ER1': 17, 'ER2': 17,  // hurt, bird
-  'EY': 3, 'EY0': 3, 'EY1': 3, 'EY2': 3,  // ate, say
-  'IH': 3, 'IH0': 3, 'IH1': 3, 'IH2': 3,  // it, bit
-  'IY': 3, 'IY0': 3, 'IY1': 3, 'IY2': 3,  // eat, see
-  'OW': 4, 'OW0': 4, 'OW1': 4, 'OW2': 4,  // oat, show
-  'OY': 4, 'OY0': 4, 'OY1': 4, 'OY2': 4,  // toy, boy
-  'UH': 4, 'UH0': 4, 'UH1': 4, 'UH2': 4,  // hood, could
-  'UW': 4, 'UW0': 4, 'UW1': 4, 'UW2': 4,  // two, you
+// IPA/Phoneme to Frame mapping (based on your P000-P024 system mapped to 20 frames)
+// Frame 0 = neutral, Frames 1-19 = phonemes
+const PHONEME_TO_FRAME = {
+  // NEUTRAL (P000)
+  '_': 0, ' ': 0, 'SIL': 0,
   
-  // Consonants
-  'B': 2,   // be, rib
-  'CH': 16, // cheese, church
-  'D': 8,   // dee, odd
-  'DH': 13, // thee, this
-  'F': 14,  // fee, off
-  'G': 7,   // green, bag
-  'HH': 15, // he, ahead
-  'JH': 16, // gee, judge
-  'K': 7,   // key, ache
-  'L': 18,  // lee, all
-  'M': 2,   // me, him
-  'N': 9,   // knee, on
-  'NG': 10, // ping, sing
-  'P': 2,   // pee, up
-  'R': 17,  // read, car
-  'S': 11,  // sea, miss
-  'SH': 12, // she, ash
-  'T': 8,   // tea, at
-  'TH': 13, // theta, math
-  'V': 14,  // vee, love
-  'W': 4,   // we, away
-  'Y': 19,  // yield, yes
-  'Z': 11,  // zee, zoo
-  'ZH': 12, // seizure, measure
+  // VOWELS
+  // /a/ - father, spa (Frame 1)
+  'a': 1, 'ah': 1, 'ɑ': 1, 'AA': 1, 'AH': 1, 'AX': 1,
+  
+  // /i/ - see, machine (Frame 3 - ee position)
+  'i': 3, 'ee': 3, 'ɪ': 3, 'iː': 3, 'IY': 3, 'IH': 3, 'EY': 3,
+  
+  // /u/ - food, blue (Frame 4 - oo position)
+  'u': 4, 'oo': 4, 'ʊ': 4, 'uː': 4, 'UW': 4, 'UH': 4,
+  
+  // /e/ - bed, met (Frame 5)
+  'e': 5, 'eh': 5, 'ɛ': 5, 'eː': 5, 'EH': 5, 'AE': 5,
+  
+  // /o/ - go, schwa (Frame 4 - rounded)
+  'o': 4, 'oh': 4, 'ɔ': 4, 'oː': 4, 'ə': 4, 'OW': 4, 'AO': 4,
+  
+  // /y/ - French tu, German über (Frame 6)
+  'y': 6, 'ü': 6, 'yː': 6, 'Y': 6,
+  
+  // STOPS/CLOSURES
+  // /p/ - pat (Frame 2 - lips closed)
+  'p': 2, 'P': 2,
+  
+  // /b/ - bat (Frame 2 - lips closed)
+  'b': 2, 'B': 2,
+  
+  // /m/ - mom (Frame 2 - lips closed)
+  'm': 2, 'M': 2,
+  
+  // /t/ - top (Frame 8)
+  't': 8, 'T': 8,
+  
+  // /d/ - dog (Frame 8 - same as t)
+  'd': 8, 'D': 8,
+  
+  // /k/ - cat (Frame 7)
+  'k': 7, 'K': 7, 'c': 7,
+  
+  // /g/ - go (Frame 7 - same as k)
+  'g': 7, 'G': 7,
+  
+  // /q/ - (Frame 7)
+  'q': 7,
+  
+  // NASALS
+  // /n/ - no (Frame 9)
+  'n': 9, 'N': 9,
+  
+  // /ng/ - sing (Frame 10)
+  'ng': 10, 'ŋ': 10, 'NG': 10,
+  
+  // FRICATIVES
+  // /s/ - see (Frame 11)
+  's': 11, 'S': 11,
+  
+  // /z/ - zoo (Frame 11 - same as s)
+  'z': 11, 'Z': 11,
+  
+  // /sh/ - ship (Frame 12)
+  'sh': 12, 'ʃ': 12, 'SH': 12,
+  
+  // /zh/ - vision (Frame 12 - same as sh)
+  'zh': 12, 'ʒ': 12, 'ZH': 12,
+  
+  // /th/ - think (Frame 13)
+  'th': 13, 'θ': 13, 'ð': 13, 'TH': 13, 'DH': 13,
+  
+  // /f/ - fan (Frame 14)
+  'f': 14, 'F': 14,
+  
+  // /v/ - van (Frame 14 - same as f)
+  'v': 14, 'V': 14,
+  
+  // /h/ - hat (Frame 15)
+  'h': 15, 'ɦ': 15, 'HH': 15,
+  
+  // /ch/ - chair (Frame 16)
+  'ch': 16, 't͡ʃ': 16, 'tʃ': 16, 'CH': 16,
+  
+  // /j/ - judge (Frame 16 - same as ch)
+  'j': 16, 'dʒ': 16, 'JH': 16,
+  
+  // LIQUIDS/LATERALS
+  // /r/ - red (Frame 17)
+  'r': 17, 'ɹ': 17, 'ɾ': 17, 'R': 17, 'ER': 17,
+  
+  // /l/ - lip (Frame 18)
+  'l': 18, 'ɫ': 18, 'ɭ': 18, 'L': 18,
+  
+  // /ll/ - Welsh ll (Frame 19)
+  'll': 19, 'ɬ': 19,
+  
+  // /w/ - we (Frame 4 - rounded lips)
+  'w': 4, 'W': 4,
+  
+  // Diphthongs map to primary vowel
+  'AW': 4, 'AY': 1, 'OY': 4,
 };
 
-// Special phonemes by language (from your Special phonemes.txt)
-const LANGUAGE_SPECIAL_PHONEMES = {
-  en: ['ch', 'sh', 'th', 'ng', 'oy', 'ow', 'ay', 'ee', 'oi', 'ar', 'or', 'er', 'aw'],
-  es: ['ny', 'rr', 'eu'],  // ñ sound, rolled r
-  fr: ['sh', 'ny', 'oe', 'wa', 'zh'],  // French sounds
-  de: ['kh', 'sh', 'sht', 'shp', 'oy', 'aw'],  // German sounds
-  it: ['ch', 'sh', 'ts', 'ny', 'ly', 'ai', 'ei', 'oi', 'ui', 'au', 'eu'],
-  pt: ['sh', 'ny', 'ly', 'zh', 'ai', 'ei', 'oi', 'ui', 'au', 'eu'],
-  zh: ['zh', 'ch', 'sh', 'dz', 'ts', 'ng', 'ang', 'eng', 'ing', 'ong'],
-  ja: ['sh', 'ch', 'ts', 'zu', 'fu'],
-  ar: ['sh', 'th', 'gh', 'kh', 'dh', 'zh', 'q', 'ai', 'au'],
-  hi: ['sh', 'ch', 'th', 'dh', 'kh', 'gh', 'ph', 'bh', 'ny', 'ng', 'ai', 'au'],
+// Get frame for any phoneme/sound
+export const getFrameForPhoneme = (phoneme) => {
+  const p = phoneme.replace(/[0-2]$/, ''); // Remove stress markers
+  return PHONEME_TO_FRAME[p] ?? PHONEME_TO_FRAME[p.toLowerCase()] ?? 0;
 };
 
-// Punctuation pause durations (in animation frames at 30fps)
-const PUNCTUATION_PAUSE = {
-  ',': 6,   // ~200ms pause for comma
-  '.': 10,  // ~333ms pause for period
-  '!': 10,  // ~333ms pause for exclamation
-  '?': 10,  // ~333ms pause for question
-  ';': 8,   // ~266ms pause for semicolon
-  ':': 6,   // ~200ms pause for colon
-  '-': 3,   // ~100ms pause for hyphen
-  '—': 6,   // ~200ms pause for em-dash
-};
-
-// Get pronunciation from CMU dictionary
-export const getWordPronunciation = (word) => {
+// Simplified word-to-phoneme using CMU dictionary
+// Returns condensed phoneme sequence (not every ARPABET, just key sounds)
+export const wordToSimplePhonemes = (word) => {
   const cleaned = word.toLowerCase().replace(/[^a-z]/g, '');
-  if (!cleaned) return null;
+  if (!cleaned) return [];
   
-  // Check CMU dictionary
   const pronunciation = cmudict[cleaned];
-  if (pronunciation) {
-    return pronunciation.split(' ');
+  if (!pronunciation) {
+    // Fallback: use simple letter mapping
+    return fallbackWordToPhonemes(cleaned);
   }
   
-  return null;
-};
-
-// Convert ARPABET phoneme to frame number
-export const arpabetToFrame = (phoneme) => {
-  // Remove stress markers (0, 1, 2)
-  const base = phoneme.replace(/[0-2]$/, '');
-  return ARPABET_TO_FRAME[base] ?? ARPABET_TO_FRAME[phoneme] ?? 0;
-};
-
-// Fallback: Convert a single letter/sound to frame
-const simpleLetterToFrame = (char) => {
-  const map = {
-    'a': 1, 'e': 5, 'i': 3, 'o': 4, 'u': 1,
-    'b': 2, 'c': 7, 'd': 8, 'f': 14, 'g': 7,
-    'h': 15, 'j': 16, 'k': 7, 'l': 18, 'm': 2,
-    'n': 9, 'p': 2, 'q': 7, 'r': 17, 's': 11,
-    't': 8, 'v': 14, 'w': 4, 'x': 7, 'y': 19, 'z': 11,
-  };
-  return map[char.toLowerCase()] ?? 0;
-};
-
-// Fallback phonetic rules for words not in CMU dictionary
-const fallbackToPhonemes = (word) => {
+  // Parse ARPABET and condense to simpler sequence
+  const arpabet = pronunciation.split(' ');
   const result = [];
-  const lower = word.toLowerCase();
-  let i = 0;
+  let prevFrame = -1;
   
-  // Common patterns
+  for (const phone of arpabet) {
+    const frame = getFrameForPhoneme(phone);
+    // Skip consecutive same frames (condenses animation)
+    if (frame !== prevFrame) {
+      result.push({
+        phoneme: phone.replace(/[0-2]$/, ''),
+        frame,
+        isVowel: /[AEIOU]/.test(phone),
+      });
+      prevFrame = frame;
+    }
+  }
+  
+  return result;
+};
+
+// Fallback for words not in dictionary
+const fallbackWordToPhonemes = (word) => {
+  const result = [];
+  let i = 0;
+  let prevFrame = -1;
+  
   const patterns = {
-    'tion': [12, 1, 9],     // sh-uh-n
-    'sion': [12, 1, 9],     // sh-uh-n
-    'ious': [3, 1, 11],     // ee-uh-s
-    'eous': [3, 1, 11],     // ee-uh-s
-    'ough': [4],            // oh (though), or [1, 14] (cough)
-    'ight': [1, 8],         // ai-t
-    'ould': [4, 8],         // oo-d
-    'ness': [9, 5, 11],     // n-eh-s
-    'ment': [2, 5, 9, 8],   // m-eh-n-t
-    'able': [1, 2, 18],     // uh-b-l
-    'ible': [3, 2, 18],     // ih-b-l
-    'ture': [16, 17],       // ch-er
-    'sure': [12, 17],       // zh-er
-    'th': [13],
-    'sh': [12],
-    'ch': [16],
-    'ph': [14],
-    'wh': [4],
-    'ck': [7],
-    'ng': [10],
-    'qu': [7, 4],           // kw
-    'ee': [3],
-    'ea': [3],
-    'oo': [4],
-    'ou': [4],
-    'ow': [4],
-    'ai': [1],
-    'ay': [1],
-    'ey': [3],
-    'ie': [3],
-    'oa': [4],
-    'oe': [4],
-    'ue': [4],
-    'au': [4],
-    'aw': [4],
+    // Multi-letter sounds
+    'tion': [{ phoneme: 'sh', frame: 12 }, { phoneme: 'u', frame: 4 }, { phoneme: 'n', frame: 9 }],
+    'sion': [{ phoneme: 'zh', frame: 12 }, { phoneme: 'u', frame: 4 }, { phoneme: 'n', frame: 9 }],
+    'ough': [{ phoneme: 'o', frame: 4 }],
+    'ight': [{ phoneme: 'ai', frame: 1 }, { phoneme: 't', frame: 8 }],
+    'th': [{ phoneme: 'th', frame: 13 }],
+    'sh': [{ phoneme: 'sh', frame: 12 }],
+    'ch': [{ phoneme: 'ch', frame: 16 }],
+    'ng': [{ phoneme: 'ng', frame: 10 }],
+    'ph': [{ phoneme: 'f', frame: 14 }],
+    'wh': [{ phoneme: 'w', frame: 4 }],
+    'ck': [{ phoneme: 'k', frame: 7 }],
+    'ee': [{ phoneme: 'ee', frame: 3 }],
+    'ea': [{ phoneme: 'ee', frame: 3 }],
+    'oo': [{ phoneme: 'oo', frame: 4 }],
+    'ou': [{ phoneme: 'ow', frame: 4 }],
+    'ow': [{ phoneme: 'ow', frame: 4 }],
+    'ai': [{ phoneme: 'ay', frame: 1 }],
+    'ay': [{ phoneme: 'ay', frame: 1 }],
+    'ie': [{ phoneme: 'ee', frame: 3 }],
+    'qu': [{ phoneme: 'kw', frame: 7 }],
   };
   
-  while (i < lower.length) {
+  while (i < word.length) {
     let matched = false;
     
-    // Try matching patterns (longest first)
     for (let len = 4; len >= 2; len--) {
-      if (i + len <= lower.length) {
-        const segment = lower.substring(i, i + len);
+      if (i + len <= word.length) {
+        const segment = word.substring(i, i + len);
         if (patterns[segment]) {
-          result.push(...patterns[segment]);
+          for (const p of patterns[segment]) {
+            if (p.frame !== prevFrame) {
+              result.push({ ...p, isVowel: [1, 3, 4, 5, 6].includes(p.frame) });
+              prevFrame = p.frame;
+            }
+          }
           i += len;
           matched = true;
           break;
@@ -204,15 +210,19 @@ const fallbackToPhonemes = (word) => {
     
     if (!matched) {
       // Silent e at end
-      if (lower[i] === 'e' && i === lower.length - 1 && i > 0) {
+      if (word[i] === 'e' && i === word.length - 1 && i > 0) {
         i++;
         continue;
       }
       
-      // Single letter
-      const frame = simpleLetterToFrame(lower[i]);
-      if (frame > 0) {
-        result.push(frame);
+      const frame = getFrameForPhoneme(word[i]);
+      if (frame !== prevFrame && frame > 0) {
+        result.push({
+          phoneme: word[i],
+          frame,
+          isVowel: [1, 3, 4, 5, 6].includes(frame),
+        });
+        prevFrame = frame;
       }
       i++;
     }
@@ -221,135 +231,76 @@ const fallbackToPhonemes = (word) => {
   return result;
 };
 
-// Convert text to phoneme/frame sequence using CMU dictionary
-export const textToVisemeSequence = (text) => {
-  const result = [];
-  const words = text.split(/(\s+|[,.!?;:—-])/);
+// Punctuation pause durations (in frames at 30fps)
+const PUNCTUATION_PAUSE = {
+  ',': 10,  // ~333ms
+  '.': 15,  // ~500ms
+  '!': 15,
+  '?': 15,
+  ';': 12,
+  ':': 10,
+};
+
+// Build animation timeline for word/sentence
+export const buildWordTimeline = (text) => {
+  const timeline = [];
+  const words = text.split(/(\s+|[,.!?;:])/);
+  
+  // Start from neutral
+  timeline.push({ frame: 0, phoneme: '_', duration: 3, type: 'start' });
   
   for (const segment of words) {
     if (!segment) continue;
     
-    // Check for punctuation
     const trimmed = segment.trim();
+    
+    // Punctuation pause
     if (PUNCTUATION_PAUSE[trimmed]) {
-      result.push({
-        type: 'pause',
-        duration: PUNCTUATION_PAUSE[trimmed],
+      timeline.push({
         frame: 0,
         phoneme: trimmed,
+        duration: PUNCTUATION_PAUSE[trimmed],
+        type: 'pause',
       });
       continue;
     }
     
-    // Skip whitespace
+    // Word space
     if (/^\s+$/.test(segment)) {
-      // Small pause between words
-      result.push({
-        type: 'pause',
+      timeline.push({ frame: 0, phoneme: '_', duration: 3, type: 'space' });
+      continue;
+    }
+    
+    // Get phonemes for word
+    const phonemes = wordToSimplePhonemes(segment);
+    
+    for (const p of phonemes) {
+      // Approach
+      timeline.push({
+        frame: p.frame,
+        phoneme: p.phoneme,
         duration: 2,
-        frame: 0,
-        phoneme: '_',
+        type: 'approach',
       });
-      continue;
-    }
-    
-    // Get pronunciation from CMU dictionary
-    const pronunciation = getWordPronunciation(segment);
-    
-    if (pronunciation) {
-      // CMU dictionary has this word
-      for (const arpabet of pronunciation) {
-        const frame = arpabetToFrame(arpabet);
-        const isVowel = /[AEIOU]/.test(arpabet);
-        result.push({
-          type: 'phoneme',
-          frame,
-          phoneme: arpabet,
-          isVowel,
-          duration: isVowel ? 4 : 2, // Vowels hold longer
-        });
-      }
-    } else {
-      // Fallback to rule-based conversion
-      const frames = fallbackToPhonemes(segment);
-      for (const frame of frames) {
-        const isVowel = [1, 3, 4, 5, 6].includes(frame);
-        result.push({
-          type: 'phoneme',
-          frame,
-          phoneme: segment,
-          isVowel,
-          duration: isVowel ? 4 : 2,
-        });
-      }
-    }
-  }
-  
-  return result;
-};
-
-// Build animation timeline from viseme sequence
-export const buildAnimationTimeline = (visemeSequence) => {
-  const timeline = [];
-  
-  // Start from neutral
-  timeline.push({ frame: 0, phoneme: '_', duration: 2, type: 'start' });
-  
-  let prevFrame = 0;
-  
-  for (const item of visemeSequence) {
-    if (item.type === 'pause') {
-      // Hold at neutral for punctuation pause
+      
+      // Hold at phoneme (longer for vowels)
+      const holdDuration = p.isVowel ? FRAMES_PER_PHONEME : Math.floor(FRAMES_PER_PHONEME / 2);
       timeline.push({
-        frame: 0,
-        phoneme: item.phoneme,
-        duration: item.duration,
-        type: 'pause',
-      });
-      prevFrame = 0;
-      continue;
-    }
-    
-    // Add smooth transition if frame changes significantly
-    if (Math.abs(item.frame - prevFrame) > 3 && prevFrame !== 0) {
-      // Add intermediate transition frame
-      timeline.push({
-        frame: item.frame,
-        phoneme: item.phoneme,
-        duration: 1,
-        type: 'transition',
+        frame: p.frame,
+        phoneme: p.phoneme,
+        duration: holdDuration,
+        type: 'hold',
       });
     }
-    
-    // Approach
-    timeline.push({
-      frame: item.frame,
-      phoneme: item.phoneme,
-      duration: 1,
-      type: 'approach',
-    });
-    
-    // Apex - hold at the phoneme
-    timeline.push({
-      frame: item.frame,
-      phoneme: item.phoneme,
-      duration: item.duration,
-      type: 'apex',
-    });
-    
-    prevFrame = item.frame;
   }
   
   // Return to neutral
-  if (prevFrame !== 0) {
-    timeline.push({ frame: 0, phoneme: '_', duration: 2, type: 'depart' });
-  }
-  timeline.push({ frame: 0, phoneme: '_', duration: 2, type: 'end' });
+  timeline.push({ frame: 0, phoneme: '_', duration: 4, type: 'end' });
   
   return timeline;
 };
 
-// Letter Practice - pronunciation for individual letters
+// Letter Practice pronunciation (unchanged structure but doubled durations)
 export const LETTER_PRONUNCIATION = {
   'a': { frames: [1], audioLabel: 'ah', display: 'ah' },
   'b': { frames: [2, 1], audioLabel: 'ba', display: 'ba' },
@@ -375,50 +326,74 @@ export const LETTER_PRONUNCIATION = {
   'v': { frames: [14, 1], audioLabel: 'va', display: 'va' },
   'w': { frames: [4, 1], audioLabel: 'wa', display: 'wa' },
   'x': { frames: [5, 7, 11], audioLabel: 'xa', display: 'eks' },
-  'y': { frames: [19, 1], audioLabel: 'ya', display: 'ya' },
+  'y': { frames: [6, 1], audioLabel: 'ya', display: 'ya' },
   'z': { frames: [11, 1], audioLabel: 'za', display: 'za' },
 };
 
-// Build timeline for single letter
+// Build timeline for single letter (with doubled frame durations)
 export const buildLetterTimeline = (letter) => {
   const pronunciation = LETTER_PRONUNCIATION[letter.toLowerCase()];
   if (!pronunciation) {
-    return [{ frame: 0, phoneme: '_', duration: 5, type: 'neutral' }];
+    return [{ frame: 0, phoneme: '_', duration: 10, type: 'neutral' }];
   }
 
   const timeline = [];
   const { frames, display } = pronunciation;
   
-  timeline.push({ frame: 0, phoneme: '_', duration: 2, type: 'start' });
+  // Start from neutral (longer hold)
+  timeline.push({ frame: 0, phoneme: '_', duration: 4, type: 'start' });
   
   frames.forEach((frame, idx) => {
     const isLast = idx === frames.length - 1;
     const isVowel = [1, 3, 4, 5, 6].includes(frame);
     
-    timeline.push({ frame, phoneme: display, duration: 2, type: 'approach' });
+    // Approach (doubled)
+    timeline.push({ frame, phoneme: display, duration: 4, type: 'approach' });
     
-    const holdDuration = isVowel || isLast ? 6 : 3;
-    timeline.push({ frame, phoneme: display, duration: holdDuration, type: 'apex' });
+    // Hold at phoneme (doubled - vowels get extra)
+    const holdDuration = isVowel || isLast ? 12 : 6;
+    timeline.push({ frame, phoneme: display, duration: holdDuration, type: 'hold' });
   });
   
-  timeline.push({ frame: 0, phoneme: '_', duration: 3, type: 'end' });
+  // Return to neutral (longer)
+  timeline.push({ frame: 0, phoneme: '_', duration: 6, type: 'end' });
   
   return timeline;
 };
 
-// Build timeline for word/sentence (Word Practice)
-export const buildWordTimeline = (text) => {
-  const visemeSequence = textToVisemeSequence(text);
-  return buildAnimationTimeline(visemeSequence);
+// Frame info
+export const FRAME_PHONEMES = {
+  0: { name: 'neutral', description: 'Rest position' },
+  1: { name: 'a_ah', description: '/a/ - father, spa' },
+  2: { name: 'b_p_m', description: '/b,p,m/ - lips closed' },
+  3: { name: 'ee_i', description: '/i/ - see, machine' },
+  4: { name: 'oo_o_w', description: '/u,o,w/ - rounded lips' },
+  5: { name: 'e_eh', description: '/e/ - bed, met' },
+  6: { name: 'y_ü', description: '/y/ - French tu' },
+  7: { name: 'k_g_c', description: '/k,g/ - back tongue' },
+  8: { name: 't_d', description: '/t,d/ - tongue to ridge' },
+  9: { name: 'n', description: '/n/ - nasal' },
+  10: { name: 'ng', description: '/ŋ/ - sing' },
+  11: { name: 's_z', description: '/s,z/ - hiss' },
+  12: { name: 'sh_zh', description: '/ʃ,ʒ/ - ship' },
+  13: { name: 'th', description: '/θ,ð/ - think, this' },
+  14: { name: 'f_v', description: '/f,v/ - lip-to-teeth' },
+  15: { name: 'h', description: '/h/ - breath' },
+  16: { name: 'ch_j', description: '/tʃ,dʒ/ - chair, judge' },
+  17: { name: 'r', description: '/r/ - red' },
+  18: { name: 'l', description: '/l/ - lip' },
+  19: { name: 'll', description: '/ɬ/ - Welsh ll' },
 };
 
-// Get display label for a letter
+export const getFrameInfo = (frameNum) => {
+  return FRAME_PHONEMES[frameNum] || FRAME_PHONEMES[0];
+};
+
 export const getLetterDisplay = (letter) => {
   const pronunciation = LETTER_PRONUNCIATION[letter.toLowerCase()];
   return pronunciation ? pronunciation.display : letter;
 };
 
-// Audio path for letter pronunciation
 export const getPhonemeAudioPath = (letter, lang) => {
   const pronunciation = LETTER_PRONUNCIATION[letter.toLowerCase()];
   const audioLabel = pronunciation ? pronunciation.audioLabel : 'ah';
@@ -426,28 +401,27 @@ export const getPhonemeAudioPath = (letter, lang) => {
   return `/assets/audio/phonemes/${langCode}-${audioLabel}.mp3`;
 };
 
-// Frame info lookup
-export const getFrameInfo = (frameNum) => {
-  return FRAME_PHONEMES[frameNum] || FRAME_PHONEMES[0];
-};
-
-// Legacy compatibility
+// Legacy exports
 export const textToPhonemes = (text) => {
-  const sequence = textToVisemeSequence(text);
-  return sequence.filter(s => s.type !== 'pause').map(s => s.phoneme);
+  const words = text.split(/\s+/);
+  const result = [];
+  for (const word of words) {
+    const phonemes = wordToSimplePhonemes(word);
+    result.push(...phonemes.map(p => p.phoneme));
+  }
+  return result;
 };
 
 export const wordToPhonemes = textToPhonemes;
 
-// Digraph mapping for display
 export const DIGRAPHS = {
   'll': 19, 'sh': 12, 'ch': 16, 'th': 13, 'ng': 10,
-  'ph': 14, 'wh': 4, 'ck': 7, 'gh': 0,
+  'ph': 14, 'wh': 4, 'ck': 7,
 };
 
 export const LETTER_TO_FRAME = {
   'a': 1, 'b': 2, 'c': 7, 'd': 8, 'e': 5, 'f': 14, 'g': 7, 'h': 15,
   'i': 3, 'j': 16, 'k': 7, 'l': 18, 'm': 2, 'n': 9, 'o': 4, 'p': 2,
   'q': 7, 'r': 17, 's': 11, 't': 8, 'u': 1, 'v': 14, 'w': 4, 'x': 7,
-  'y': 19, 'z': 11,
+  'y': 6, 'z': 11,
 };
