@@ -1,80 +1,90 @@
-// ========== PHONEME SPRITE ENGINE ==========
-// P000-P024 Phoneme mapping with 10 frames per cluster
-// Frame #5 of each cluster = sweet spot (apex articulation)
+// ========== NEW 20-FRAME PHONEME SPRITE ENGINE ==========
+// Single sprite sheet per view (front_master.png, side_master.png)
+// 20 frames total (0-19), each representing specific phoneme groups
+// Frame 00 = neutral (rest position)
 
-export const FRAME_SIZE = 512;
-export const FRAMES_PER_SHEET = 50;
-export const TOTAL_FRAMES = 250;
-export const FRAMES_PER_PHONEME = 10;
+export const FRAME_WIDTH = 939;
+export const FRAME_HEIGHT = 793;
+export const TOTAL_FRAMES = 20;
 
-// Each phoneme cluster has 10 frames (0-9), with frame 5 being the "sweet spot"
-export const PHONEME_MAP = {
-  // P000: Neutral (frames 0-9) - rest position
-  '_': { cluster: 0, name: 'neutral', baseFrame: 0 },
-  ' ': { cluster: 0, name: 'neutral', baseFrame: 0 },
-  
-  // VOWELS (P001-P006)
-  'a': { cluster: 1, name: '/a/ ah', baseFrame: 10 },      // P001 father, spa
-  'i': { cluster: 2, name: '/i/ ee', baseFrame: 20 },      // P002 see, machine
-  'u': { cluster: 3, name: '/u/ oo', baseFrame: 30 },      // P003 food, blue
-  'e': { cluster: 4, name: '/e/ eh', baseFrame: 40 },      // P004 bed, met
-  'o': { cluster: 5, name: '/o/ oh', baseFrame: 50 },      // P005 go (pure)
-  'y': { cluster: 6, name: '/y/ ü', baseFrame: 60 },       // P006 French tu
-  
-  // STOPS / CLOSURES (P007-P012)
-  'p': { cluster: 7, name: '/p/', baseFrame: 70 },         // P007 pat
-  'b': { cluster: 7, name: '/b/', baseFrame: 70 },         // Same as p
-  't': { cluster: 8, name: '/t/', baseFrame: 80 },         // P008 top
-  'd': { cluster: 9, name: '/d/', baseFrame: 90 },         // P009 dog
-  'k': { cluster: 10, name: '/k/', baseFrame: 100 },       // P010 cat
-  'c': { cluster: 10, name: '/k/', baseFrame: 100 },       // Same as k
-  'q': { cluster: 10, name: '/k/', baseFrame: 100 },       // Same as k
-  'g': { cluster: 11, name: '/g/', baseFrame: 110 },       // P011 go
-  'glottal': { cluster: 12, name: '/ʔ/', baseFrame: 120 }, // P012 uh-oh
-  
-  // NASALS (P013-P014)
-  'n': { cluster: 13, name: '/n/', baseFrame: 130 },       // P013 no
-  'm': { cluster: 13, name: '/m/', baseFrame: 130 },       // Same mouth
-  'ng': { cluster: 14, name: '/ŋ/', baseFrame: 140 },      // P014 sing
-  
-  // FRICATIVES / AFFRICATES (P015-P020)
-  's': { cluster: 15, name: '/s/', baseFrame: 150 },       // P015 see
-  'z': { cluster: 15, name: '/z/', baseFrame: 150 },       // Same as s
-  'sh': { cluster: 16, name: '/ʃ/', baseFrame: 160 },      // P016 ship
-  'th': { cluster: 17, name: '/θ/', baseFrame: 170 },      // P017 think
-  'f': { cluster: 18, name: '/f/', baseFrame: 180 },       // P018 fan
-  'v': { cluster: 18, name: '/v/', baseFrame: 180 },       // Same as f
-  'h': { cluster: 19, name: '/h/', baseFrame: 190 },       // P019 hat
-  'ch': { cluster: 20, name: '/tʃ/', baseFrame: 200 },     // P020 chair
-  'j': { cluster: 20, name: '/dʒ/', baseFrame: 200 },      // Same as ch
-  
-  // LIQUIDS / LATERALS (P021-P023)
-  'r': { cluster: 21, name: '/r/', baseFrame: 210 },       // P021 red
-  'l': { cluster: 22, name: '/l/', baseFrame: 220 },       // P022 lip
-  'll': { cluster: 22, name: '/l/', baseFrame: 220 },      // Double L = single phoneme
-  'welsh_ll': { cluster: 23, name: '/ɬ/', baseFrame: 230 },// P023 Welsh ll
-  'w': { cluster: 3, name: '/w/', baseFrame: 30 },         // Like /u/
-  
-  // CLICKS (P024)
-  'click': { cluster: 24, name: '/ǀ/', baseFrame: 240 },   // P024 tsk
-  'x': { cluster: 10, name: '/ks/', baseFrame: 100 },      // Like k+s
+// Frame to phoneme mapping based on filename conventions
+// Each frame can represent multiple phonemes with similar mouth shapes
+export const FRAME_PHONEMES = {
+  0:  { name: 'neutral', phonemes: ['_', ' '], description: 'Neutral/rest position' },
+  1:  { name: 'a_u', phonemes: ['a', 'u', 'ah', 'uh'], description: 'Open vowels' },
+  2:  { name: 'b_p_m', phonemes: ['b', 'p', 'm'], description: 'Bilabial stops' },
+  3:  { name: 'ee_z_x', phonemes: ['i', 'ee', 'z', 'x'], description: 'Spread lips, front vowel' },
+  4:  { name: 'oo_o_ou_w', phonemes: ['o', 'oo', 'ou', 'w'], description: 'Rounded lips' },
+  5:  { name: 'e', phonemes: ['e', 'eh'], description: 'Mid front vowel' },
+  6:  { name: 'ü', phonemes: ['ü', 'y'], description: 'German ü / French u' },
+  7:  { name: 'c_k_q_g', phonemes: ['c', 'k', 'q', 'g'], description: 'Velar stops' },
+  8:  { name: 't_tsk_d_j', phonemes: ['t', 'd', 'j', 'tsk'], description: 'Alveolar/palatal' },
+  9:  { name: 'n', phonemes: ['n'], description: 'Alveolar nasal' },
+  10: { name: 'ng', phonemes: ['ng'], description: 'Velar nasal' },
+  11: { name: 's', phonemes: ['s'], description: 'Alveolar fricative' },
+  12: { name: 'sh', phonemes: ['sh'], description: 'Postalveolar fricative' },
+  13: { name: 'th', phonemes: ['th'], description: 'Dental fricative' },
+  14: { name: 'f_v', phonemes: ['f', 'v'], description: 'Labiodental fricatives' },
+  15: { name: 'h', phonemes: ['h'], description: 'Glottal fricative' },
+  16: { name: 'ch', phonemes: ['ch'], description: 'Affricate' },
+  17: { name: 'r', phonemes: ['r'], description: 'Rhotic' },
+  18: { name: 'L', phonemes: ['l'], description: 'Lateral approximant' },
+  19: { name: 'LL_y', phonemes: ['ll', 'y'], description: 'Welsh LL / palatal' },
+};
+
+// Reverse mapping: phoneme/letter -> frame number
+export const PHONEME_TO_FRAME = {};
+Object.entries(FRAME_PHONEMES).forEach(([frameNum, data]) => {
+  data.phonemes.forEach(phoneme => {
+    PHONEME_TO_FRAME[phoneme.toLowerCase()] = parseInt(frameNum);
+  });
+});
+
+// Letter to frame mapping (covers all alphabet letters)
+export const LETTER_TO_FRAME = {
+  'a': 1,   // a_u
+  'b': 2,   // b_p_m
+  'c': 7,   // c_k_q_g
+  'd': 8,   // t_tsk_d_j
+  'e': 5,   // e
+  'f': 14,  // f_v
+  'g': 7,   // c_k_q_g
+  'h': 15,  // h
+  'i': 3,   // ee_z_x
+  'j': 8,   // t_tsk_d_j
+  'k': 7,   // c_k_q_g
+  'l': 18,  // L
+  'm': 2,   // b_p_m
+  'n': 9,   // n
+  'o': 4,   // oo_o_ou_w
+  'p': 2,   // b_p_m
+  'q': 7,   // c_k_q_g
+  'r': 17,  // r
+  's': 11,  // s
+  't': 8,   // t_tsk_d_j
+  'u': 1,   // a_u
+  'v': 14,  // f_v
+  'w': 4,   // oo_o_ou_w
+  'x': 3,   // ee_z_x
+  'y': 19,  // LL_y
+  'z': 3,   // ee_z_x
 };
 
 // Digraph detection - these letter combinations are single phonemes
 export const DIGRAPHS = {
-  'll': 'll',    // hello -> he-ll-o (3 phonemes, not 4)
-  'sh': 'sh',    // ship -> sh-i-p
-  'ch': 'ch',    // chair -> ch-ai-r
-  'th': 'th',    // think -> th-i-nk
-  'ng': 'ng',    // sing -> si-ng
-  'ph': 'f',     // phone -> f-o-ne
-  'wh': 'w',     // what -> w-a-t
-  'ck': 'k',     // back -> ba-k
-  'gh': '_',     // silent in "night"
+  'll': 19,  // LL_y frame
+  'sh': 12,  // sh frame
+  'ch': 16,  // ch frame
+  'th': 13,  // th frame
+  'ng': 10,  // ng frame
+  'ph': 14,  // f_v frame (ph sounds like f)
+  'wh': 4,   // oo_o_ou_w frame
+  'ck': 7,   // c_k_q_g frame
+  'gh': 0,   // silent - neutral
 };
 
-// Convert text to phoneme sequence (handles digraphs)
-export const textToPhonemes = (text) => {
+// Convert text to frame sequence (handles digraphs)
+export const textToFrames = (text) => {
   const result = [];
   const lower = text.toLowerCase().replace(/[^a-z\s]/g, '');
   let i = 0;
@@ -83,8 +93,12 @@ export const textToPhonemes = (text) => {
     // Check for digraphs first (2-letter combinations)
     if (i < lower.length - 1) {
       const digraph = lower.substring(i, i + 2);
-      if (DIGRAPHS[digraph]) {
-        result.push(DIGRAPHS[digraph]);
+      if (DIGRAPHS[digraph] !== undefined) {
+        result.push({ 
+          frame: DIGRAPHS[digraph], 
+          phoneme: digraph,
+          isDigraph: true 
+        });
         i += 2;
         continue;
       }
@@ -93,9 +107,10 @@ export const textToPhonemes = (text) => {
     // Single character
     const char = lower[i];
     if (char === ' ') {
-      result.push('_'); // Word pause
+      result.push({ frame: 0, phoneme: '_', isDigraph: false }); // Word pause
     } else {
-      result.push(char);
+      const frame = LETTER_TO_FRAME[char] || 0;
+      result.push({ frame, phoneme: char, isDigraph: false });
     }
     i++;
   }
@@ -103,34 +118,34 @@ export const textToPhonemes = (text) => {
   return result;
 };
 
-// Get the base frame for a phoneme
-export const getPhonemeBaseFrame = (phoneme) => {
-  const data = PHONEME_MAP[phoneme] || PHONEME_MAP['_'];
-  return data.baseFrame;
+// Get frame number for a single phoneme
+export const getFrameForPhoneme = (phoneme) => {
+  const lower = phoneme.toLowerCase();
+  
+  // Check digraphs first
+  if (DIGRAPHS[lower] !== undefined) {
+    return DIGRAPHS[lower];
+  }
+  
+  // Check letter mapping
+  if (LETTER_TO_FRAME[lower] !== undefined) {
+    return LETTER_TO_FRAME[lower];
+  }
+  
+  // Check phoneme mapping
+  if (PHONEME_TO_FRAME[lower] !== undefined) {
+    return PHONEME_TO_FRAME[lower];
+  }
+  
+  return 0; // Default to neutral
 };
 
-// Get the sweet spot frame (frame #5 of the 10-frame cluster)
-export const getSweetSpot = (phoneme) => {
-  return getPhonemeBaseFrame(phoneme) + 5;
+// Get frame info
+export const getFrameInfo = (frameNum) => {
+  return FRAME_PHONEMES[frameNum] || FRAME_PHONEMES[0];
 };
 
-// Get phoneme display name
-export const getPhonemeName = (phoneme) => {
-  const data = PHONEME_MAP[phoneme] || PHONEME_MAP['_'];
-  return data.name;
-};
-
-// Calculate which sprite sheet contains a frame
-export const getSheetForFrame = (frameNum) => {
-  return Math.floor(frameNum / FRAMES_PER_SHEET);
-};
-
-// Calculate the position within a sprite sheet
-export const getFramePositionInSheet = (frameNum) => {
-  return frameNum % FRAMES_PER_SHEET;
-};
-
-// Phoneme audio path mapping
+// Phoneme audio path mapping (unchanged)
 export const getPhonemeAudioPath = (letter, lang) => {
   const phonemeMap = {
     'a': 'ah', 'b': 'ba', 'c': 'ca', 'd': 'da', 'e': 'eh', 'f': 'fa', 'g': 'ga',
@@ -141,4 +156,10 @@ export const getPhonemeAudioPath = (letter, lang) => {
   const langCode = lang.split('-')[0];
   const phoneme = phonemeMap[letter.toLowerCase()] || 'ah';
   return `/assets/audio/phonemes/${langCode}-${phoneme}.mp3`;
+};
+
+// For backwards compatibility - convert text to phoneme array
+export const textToPhonemes = (text) => {
+  const frames = textToFrames(text);
+  return frames.map(f => f.phoneme);
 };
