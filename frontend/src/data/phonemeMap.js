@@ -3,7 +3,7 @@
 // Maps ARPABET phonemes to 20-frame viseme system
 // Supports 10 languages with special phoneme rules
 
-import cmudict from 'cmu-pronouncing-dictionary';
+import { dictionary as cmudict } from 'cmu-pronouncing-dictionary';
 
 export const FRAME_WIDTH = 939;
 export const FRAME_HEIGHT = 793;
