@@ -3,7 +3,6 @@ import {
   FRAME_WIDTH, 
   FRAME_HEIGHT, 
   TOTAL_FRAMES,
-  TARGET_FPS,
   FRAME_DURATION_MS,
   buildLetterTimeline,
   buildWordTimeline,
@@ -40,14 +39,10 @@ preloadSheets();
 
 /**
  * DualHeadAnimator - Movie-quality 30fps sprite animation
- * 
- * Modes:
- * - Letter mode: Shows full consonant + vowel pronunciation (e.g., B = "bah")
- * - Word mode: Smooth flow through each phoneme with transitions
  */
 function DualHeadAnimator({ 
   phonemeSequence = [], 
-  letter = null,  // For Letter Practice - single letter pronunciation
+  letter = null,
   isPlaying = false, 
   playbackRate = 1.0, 
   onAnimationComplete, 
@@ -60,26 +55,21 @@ function DualHeadAnimator({
   const [sheetsReady, setSheetsReady] = useState(preloadedSheets.loaded);
   
   const animationRef = useRef(null);
-  const frameIndexRef = useRef(0);
-  const lastFrameTimeRef = useRef(0);
+  const timelineRef = useRef([]);
+  const totalFramesRef = useRef(0);
 
-  // Build timeline based on input type
-  const timeline = useMemo(() => {
+  // Build timeline when inputs change (NOT during animation)
+  useEffect(() => {
     if (letter) {
-      // Letter Practice mode - full pronunciation
-      return buildLetterTimeline(letter);
+      timelineRef.current = buildLetterTimeline(letter);
     } else if (Array.isArray(phonemeSequence) && phonemeSequence.length > 0) {
-      // Word Practice mode
       const text = phonemeSequence.join('');
-      return buildWordTimeline(text);
+      timelineRef.current = buildWordTimeline(text);
+    } else {
+      timelineRef.current = [{ frame: 0, phoneme: '_', duration: 3, type: 'neutral' }];
     }
-    return [{ frame: 0, phoneme: '_', duration: 3, type: 'neutral' }];
+    totalFramesRef.current = timelineRef.current.reduce((sum, item) => sum + (item.duration || 1), 0);
   }, [letter, phonemeSequence]);
-
-  // Calculate total animation duration in frames
-  const totalFrameCount = useMemo(() => {
-    return timeline.reduce((sum, item) => sum + (item.duration || 1), 0);
-  }, [timeline]);
 
   // Ensure sheets are loaded
   useEffect(() => {
@@ -88,49 +78,71 @@ function DualHeadAnimator({
     }
   }, [sheetsReady]);
 
-  // Animation loop using requestAnimationFrame at 30fps
+  // Animation loop - only depends on isPlaying and sheetsReady
   useEffect(() => {
     if (!isPlaying || !sheetsReady) {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
         animationRef.current = null;
       }
-      frameIndexRef.current = 0;
       setCurrentFrame(0);
       setCurrentPhoneme('_');
       setCurrentType('neutral');
       return;
     }
 
-    console.log('Animation starting, timeline:', timeline.length, 'items, total frames:', totalFrameCount);
-    frameIndexRef.current = 0;
-    lastFrameTimeRef.current = performance.now();
+    let frameIndex = 0;
+    let lastFrameTime = performance.now();
+    const timeline = timelineRef.current;
+    const totalFrameCount = totalFramesRef.current;
     
     const animate = (timestamp) => {
-      const elapsed = timestamp - lastFrameTimeRef.current;
+      const elapsed = timestamp - lastFrameTime;
       const frameInterval = FRAME_DURATION_MS / playbackRate;
       
-      // Only advance frame at target FPS
       if (elapsed >= frameInterval) {
-        lastFrameTimeRef.current = timestamp - (elapsed % frameInterval);
-        frameIndexRef.current++;
+        lastFrameTime = timestamp - (elapsed % frameInterval);
+        frameIndex++;
         
         // Find current timeline position
         let accumulatedFrames = 0;
         let currentTimelineItem = timeline[0];
         
         for (const item of timeline) {
-          if (frameIndexRef.current <= accumulatedFrames + item.duration) {
+          if (frameIndex <= accumulatedFrames + item.duration) {
             currentTimelineItem = item;
             break;
           }
           accumulatedFrames += item.duration;
         }
         
-        console.log('Frame', frameIndexRef.current, '/', totalFrameCount, '- F' + currentTimelineItem.frame, currentTimelineItem.type);
         setCurrentFrame(currentTimelineItem.frame);
         setCurrentPhoneme(currentTimelineItem.phoneme);
         setCurrentType(currentTimelineItem.type);
+        
+        // Check if animation complete
+        if (frameIndex >= totalFrameCount) {
+          animationRef.current = null;
+          setCurrentFrame(0);
+          setCurrentPhoneme('_');
+          setCurrentType('neutral');
+          onAnimationComplete?.();
+          return;
+        }
+      }
+      
+      animationRef.current = requestAnimationFrame(animate);
+    };
+    
+    animationRef.current = requestAnimationFrame(animate);
+    
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+        animationRef.current = null;
+      }
+    };
+  }, [isPlaying, sheetsReady, playbackRate, onAnimationComplete]);
         
         // Check if animation complete
         if (frameIndexRef.current >= totalFrameCount) {
