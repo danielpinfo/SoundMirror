@@ -162,6 +162,14 @@ function DualHeadAnimator({
       const progressPct = Math.min(elapsed / totalDuration, 1);
       setProgress(progressPct);
       
+      // Safety check for empty timeline
+      if (timeline.length === 0) {
+        setCurrentFrame(0);
+        setCurrentPhoneme('_');
+        onAnimationComplete?.();
+        return;
+      }
+      
       // Calculate which timeline position we're at
       const timelineIndex = Math.min(
         Math.floor(progressPct * timeline.length),
@@ -169,8 +177,10 @@ function DualHeadAnimator({
       );
       
       const current = timeline[timelineIndex];
-      setCurrentFrame(current.frame);
-      setCurrentPhoneme(current.phoneme);
+      if (current) {
+        setCurrentFrame(current.frame);
+        setCurrentPhoneme(current.phoneme);
+      }
       
       if (progressPct >= 1) {
         animationRef.current = null;
