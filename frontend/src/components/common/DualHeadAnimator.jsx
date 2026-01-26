@@ -3,8 +3,10 @@ import {
   FRAME_WIDTH, 
   FRAME_HEIGHT, 
   TOTAL_FRAMES,
-  textToFrames,
-  getFrameForPhoneme,
+  TARGET_FPS,
+  FRAME_DURATION_MS,
+  buildLetterTimeline,
+  buildWordTimeline,
   getFrameInfo
 } from '../../data/phonemeMap';
 
@@ -15,7 +17,6 @@ const preloadSheets = () => {
   if (preloadedSheets.loaded) return Promise.resolve();
   
   const promises = [];
-  
   ['front', 'side'].forEach(view => {
     const img = new Image();
     const promise = new Promise((resolve) => {
@@ -23,7 +24,7 @@ const preloadSheets = () => {
         preloadedSheets[view] = img;
         resolve();
       };
-      img.onerror = () => resolve(); // Still resolve on error
+      img.onerror = () => resolve();
     });
     img.src = `/assets/sprites/${view}_master.png`;
     promises.push(promise);
@@ -38,14 +39,15 @@ const preloadSheets = () => {
 preloadSheets();
 
 /**
- * DualHeadAnimator - Movie-quality sprite animation
+ * DualHeadAnimator - Movie-quality 30fps sprite animation
  * 
- * New 20-frame system with single sprite sheet per view.
- * Uses smooth interpolation between frames for flowing animation.
- * Frame 0 = neutral (rest), frames 1-19 = various phonemes.
+ * Modes:
+ * - Letter mode: Shows full consonant + vowel pronunciation (e.g., B = "bah")
+ * - Word mode: Smooth flow through each phoneme with transitions
  */
 function DualHeadAnimator({ 
   phonemeSequence = [], 
+  letter = null,  // For Letter Practice - single letter pronunciation
   isPlaying = false, 
   playbackRate = 1.0, 
   onAnimationComplete, 
@@ -54,27 +56,30 @@ function DualHeadAnimator({
 }) {
   const [currentFrame, setCurrentFrame] = useState(0);
   const [currentPhoneme, setCurrentPhoneme] = useState('_');
+  const [currentType, setCurrentType] = useState('neutral');
   const [sheetsReady, setSheetsReady] = useState(preloadedSheets.loaded);
-  const [progress, setProgress] = useState(0);
   
   const animationRef = useRef(null);
-  const startTimeRef = useRef(null);
-  
-  // Convert input to frame sequence
-  const frameSequence = useMemo(() => {
-    if (!Array.isArray(phonemeSequence) || phonemeSequence.length === 0) {
-      // Default to 'a' for demo
-      return textToFrames('a');
-    }
-    
-    // If it's strings, convert each
-    if (typeof phonemeSequence[0] === 'string') {
+  const frameIndexRef = useRef(0);
+  const lastFrameTimeRef = useRef(0);
+
+  // Build timeline based on input type
+  const timeline = useMemo(() => {
+    if (letter) {
+      // Letter Practice mode - full pronunciation
+      return buildLetterTimeline(letter);
+    } else if (Array.isArray(phonemeSequence) && phonemeSequence.length > 0) {
+      // Word Practice mode
       const text = phonemeSequence.join('');
-      return textToFrames(text);
+      return buildWordTimeline(text);
     }
-    
-    return textToFrames('a');
-  }, [phonemeSequence]);
+    return [{ frame: 0, phoneme: '_', duration: 3, type: 'neutral' }];
+  }, [letter, phonemeSequence]);
+
+  // Calculate total animation duration in frames
+  const totalFrameCount = useMemo(() => {
+    return timeline.reduce((sum, item) => sum + (item.duration || 1), 0);
+  }, [timeline]);
 
   // Ensure sheets are loaded
   useEffect(() => {
@@ -83,112 +88,58 @@ function DualHeadAnimator({
     }
   }, [sheetsReady]);
 
-  // Animation timing - smooth and natural
-  // Each phoneme gets ~150ms at 1x speed, with smooth transitions
-  const PHONEME_DURATION_MS = 150 / playbackRate;
-  const TRANSITION_FRAMES = 3; // Number of interpolation steps between phonemes
-  
-  // Total animation duration
-  const totalDuration = useMemo(() => {
-    const phonemeTime = frameSequence.length * PHONEME_DURATION_MS;
-    const returnTime = PHONEME_DURATION_MS; // Time to return to neutral
-    return phonemeTime + returnTime;
-  }, [frameSequence.length, PHONEME_DURATION_MS]);
-
-  // Build smooth animation timeline with interpolation
-  const buildTimeline = useCallback(() => {
-    const timeline = [];
-    
-    // Start from neutral
-    timeline.push({ frame: 0, phoneme: '_', type: 'start' });
-    
-    for (let i = 0; i < frameSequence.length; i++) {
-      const current = frameSequence[i];
-      const prev = i > 0 ? frameSequence[i - 1] : { frame: 0, phoneme: '_' };
-      
-      // Add transition frames from previous to current (interpolation)
-      if (current.frame !== prev.frame) {
-        // Simple crossfade - we'll show the target frame
-        // In a more advanced version, we could blend frames
-        timeline.push({ 
-          frame: current.frame, 
-          phoneme: current.phoneme, 
-          type: 'transition'
-        });
-      }
-      
-      // Hold at the target frame (the "sweet spot")
-      timeline.push({ 
-        frame: current.frame, 
-        phoneme: current.phoneme, 
-        type: 'apex'
-      });
-      timeline.push({ 
-        frame: current.frame, 
-        phoneme: current.phoneme, 
-        type: 'hold'
-      });
-    }
-    
-    // Return to neutral smoothly
-    const lastFrame = frameSequence.length > 0 ? frameSequence[frameSequence.length - 1].frame : 0;
-    if (lastFrame !== 0) {
-      timeline.push({ frame: 0, phoneme: '_', type: 'return' });
-    }
-    timeline.push({ frame: 0, phoneme: '_', type: 'end' });
-    
-    return timeline;
-  }, [frameSequence]);
-
-  const timeline = useMemo(() => buildTimeline(), [buildTimeline]);
-
-  // Animation loop using requestAnimationFrame
+  // Animation loop using requestAnimationFrame at 30fps
   useEffect(() => {
     if (!isPlaying || !sheetsReady) {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
         animationRef.current = null;
       }
+      frameIndexRef.current = 0;
       setCurrentFrame(0);
       setCurrentPhoneme('_');
-      setProgress(0);
+      setCurrentType('neutral');
       return;
     }
 
-    startTimeRef.current = performance.now();
+    frameIndexRef.current = 0;
+    lastFrameTimeRef.current = performance.now();
     
     const animate = (timestamp) => {
-      const elapsed = timestamp - startTimeRef.current;
-      const progressPct = Math.min(elapsed / totalDuration, 1);
-      setProgress(progressPct);
+      const elapsed = timestamp - lastFrameTimeRef.current;
+      const frameInterval = FRAME_DURATION_MS / playbackRate;
       
-      // Safety check for empty timeline
-      if (timeline.length === 0) {
-        setCurrentFrame(0);
-        setCurrentPhoneme('_');
-        onAnimationComplete?.();
-        return;
-      }
-      
-      // Calculate which timeline position we're at
-      const timelineIndex = Math.min(
-        Math.floor(progressPct * timeline.length),
-        timeline.length - 1
-      );
-      
-      const current = timeline[timelineIndex];
-      if (current) {
-        setCurrentFrame(current.frame);
-        setCurrentPhoneme(current.phoneme);
-      }
-      
-      if (progressPct >= 1) {
-        animationRef.current = null;
-        setCurrentFrame(0);
-        setCurrentPhoneme('_');
-        setProgress(0);
-        onAnimationComplete?.();
-        return;
+      // Only advance frame at target FPS
+      if (elapsed >= frameInterval) {
+        lastFrameTimeRef.current = timestamp - (elapsed % frameInterval);
+        frameIndexRef.current++;
+        
+        // Find current timeline position
+        let accumulatedFrames = 0;
+        let currentTimelineItem = timeline[0];
+        
+        for (const item of timeline) {
+          if (frameIndexRef.current <= accumulatedFrames + item.duration) {
+            currentTimelineItem = item;
+            break;
+          }
+          accumulatedFrames += item.duration;
+        }
+        
+        setCurrentFrame(currentTimelineItem.frame);
+        setCurrentPhoneme(currentTimelineItem.phoneme);
+        setCurrentType(currentTimelineItem.type);
+        
+        // Check if animation complete
+        if (frameIndexRef.current >= totalFrameCount) {
+          animationRef.current = null;
+          frameIndexRef.current = 0;
+          setCurrentFrame(0);
+          setCurrentPhoneme('_');
+          setCurrentType('neutral');
+          onAnimationComplete?.();
+          return;
+        }
       }
       
       animationRef.current = requestAnimationFrame(animate);
@@ -202,9 +153,9 @@ function DualHeadAnimator({
         animationRef.current = null;
       }
     };
-  }, [isPlaying, sheetsReady, timeline, totalDuration, onAnimationComplete]);
+  }, [isPlaying, sheetsReady, timeline, totalFrameCount, playbackRate, onAnimationComplete]);
 
-  // Calculate sprite position - single sheet, direct positioning
+  // Calculate sprite position
   const yOffset = currentFrame * FRAME_HEIGHT;
   
   // Size mappings - maintain aspect ratio
@@ -214,9 +165,7 @@ function DualHeadAnimator({
   const displayHeight = Math.round(FRAME_HEIGHT * multiplier);
   
   const frameInfo = getFrameInfo(currentFrame);
-  const isApex = timeline.find((t, i) => 
-    i === Math.floor(progress * timeline.length) && t.type === 'apex'
-  );
+  const isApex = currentType === 'apex';
 
   if (!sheetsReady) {
     return (
@@ -235,7 +184,7 @@ function DualHeadAnimator({
               {view === 'front' ? 'Front View' : 'Side View'}
             </div>
             <div 
-              className={`relative overflow-hidden rounded-xl border-2 transition-all duration-100 ${
+              className={`relative overflow-hidden rounded-xl border-2 transition-all duration-75 ${
                 isApex 
                   ? 'border-amber-400 ring-2 ring-amber-400/40' 
                   : 'border-slate-600'
@@ -282,7 +231,10 @@ function DualHeadAnimator({
           <span className="text-slate-600">
             {frameInfo.name}
           </span>
-          {isApex && <span className="text-amber-400">★ apex</span>}
+          <span className="text-slate-500 text-[10px]">
+            {currentType}
+          </span>
+          {isApex && <span className="text-amber-400">★</span>}
         </div>
       )}
     </div>
