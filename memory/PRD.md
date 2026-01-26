@@ -51,29 +51,28 @@ Convert existing Base44 web app into a fully native cross-platform mobile and de
   - DualHeadAnimator moved to `/src/components/common/DualHeadAnimator.jsx`
   - Phoneme engine moved to `/src/data/phonemeMap.js`
   - Proper component structure with `/src/components/`, `/src/data/`, `/src/context/`
-- **Clinical-Grade Sprite Animation Engine** ✅ REFACTORED & WORKING
-  - Uses `requestAnimationFrame` for smooth, jitter-free animation
-  - 10 sprite sheets (5 front + 5 side views, 50 frames each)
-  - "Sweet spot" frame #5 prioritization for apex articulation
-  - Pre-loaded on mount for zero-latency animation
-  - Animation plays ONCE and returns to neutral (no looping)
-  - Natural timing: ~200ms per phoneme at 1x speed
-  - NO white/empty frames - smooth transitions between sheets
+- **NEW 20-Frame Sprite Engine** ✅ REBUILT (Jan 26, 2026)
+  - **Single sprite sheet per view** (2 files total: front_master.png, side_master.png)
+  - 20 frames total (0-19), each representing specific phoneme groups
+  - Frame 0 = neutral (rest position)
+  - Movie-quality animation using `requestAnimationFrame`
+  - Frame mapping:
+    - F0: neutral | F1: a,u | F2: b,p,m | F3: ee,z,x,i | F4: oo,o,ou,w
+    - F5: e | F6: ü | F7: c,k,q,g | F8: t,d,j,tsk | F9: n
+    - F10: ng | F11: s | F12: sh | F13: th | F14: f,v
+    - F15: h | F16: ch | F17: r | F18: L | F19: LL,y
+  - Reuses frames for phonemes with similar mouth shapes (e.g., b/p/m share F2)
+  - Smooth transitions with golden "apex" indicator
 - **Digraph Handling** ✅ VERIFIED
   - 'll', 'sh', 'ch', 'th', 'ng', 'ph', 'wh', 'ck', 'gh' treated as single phonemes
   - Example: 'hello' = H, E, LL, O (4 phonemes, not 5)
-  - Example: 'ship' = SH, I, P (3 phonemes)
-- **Compressed Assets:**
-  - 500 JPEGs at 15KB each (vs 619KB original PNGs)
-  - Sprite sheets: ~750KB front, ~4.8MB side per sheet
+- **Asset Structure:**
+  - `/assets/sprites/front_master.png` (12 MB, 939x15860px)
+  - `/assets/sprites/side_master.png` (19 MB, 939x15860px)
 - **Pre-recorded Phoneme Audio (from S3):**
   - 240 MP3 files for all 10 languages
   - Stored at `/assets/audio/phonemes/{lang}-{phoneme}.mp3`
   - Used for Letter Practice instead of robotic TTS
-  - Each phoneme has a unique frame sequence path for realistic articulation
-  - Smooth transitions between phonemes
-  - Always starts/ends at frame 0 (neutral mouth)
-  - Variable duration per phoneme type (vowels longer, plosives quick)
 - Full i18n support for 10 languages
 - Splash screen with falling water drop and thick white ripples
 - Word Practice: large camera LEFT, model articulation RIGHT
