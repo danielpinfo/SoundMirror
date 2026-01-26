@@ -497,7 +497,7 @@ const ALPHABETS = {
   hi: ['अ','आ','इ','ई','उ','ऊ','ए','ऐ','ओ','औ','क','ख','ग','घ','च','छ','ज','झ','ट','ठ','ड','ढ','ण','त','थ'].map((l,i) => ({ letter: l, phoneme: l, isVowel: i < 10 })),
 };
 
-const PHONEME_MAP = { a:{letter:'A',phoneme:'a'}, b:{letter:'B',phoneme:'b'}, c:{letter:'C',phoneme:'k'}, d:{letter:'D',phoneme:'d'}, e:{letter:'E',phoneme:'e'}, f:{letter:'F',phoneme:'f'}, g:{letter:'G',phoneme:'g'}, h:{letter:'H',phoneme:'h'}, i:{letter:'I',phoneme:'i'}, j:{letter:'J',phoneme:'j'}, k:{letter:'K',phoneme:'k'}, l:{letter:'L',phoneme:'l'}, m:{letter:'M',phoneme:'m'}, n:{letter:'N',phoneme:'n'}, o:{letter:'O',phoneme:'o'}, p:{letter:'P',phoneme:'p'}, q:{letter:'Q',phoneme:'k'}, r:{letter:'R',phoneme:'r'}, s:{letter:'S',phoneme:'s'}, t:{letter:'T',phoneme:'t'}, u:{letter:'U',phoneme:'u'}, v:{letter:'V',phoneme:'v'}, w:{letter:'W',phoneme:'w'}, x:{letter:'X',phoneme:'x'}, y:{letter:'Y',phoneme:'y'}, z:{letter:'Z',phoneme:'z'} };
+const LETTER_PHONEME_MAP = { a:{letter:'A',phoneme:'a'}, b:{letter:'B',phoneme:'b'}, c:{letter:'C',phoneme:'k'}, d:{letter:'D',phoneme:'d'}, e:{letter:'E',phoneme:'e'}, f:{letter:'F',phoneme:'f'}, g:{letter:'G',phoneme:'g'}, h:{letter:'H',phoneme:'h'}, i:{letter:'I',phoneme:'i'}, j:{letter:'J',phoneme:'j'}, k:{letter:'K',phoneme:'k'}, l:{letter:'L',phoneme:'l'}, m:{letter:'M',phoneme:'m'}, n:{letter:'N',phoneme:'n'}, o:{letter:'O',phoneme:'o'}, p:{letter:'P',phoneme:'p'}, q:{letter:'Q',phoneme:'k'}, r:{letter:'R',phoneme:'r'}, s:{letter:'S',phoneme:'s'}, t:{letter:'T',phoneme:'t'}, u:{letter:'U',phoneme:'u'}, v:{letter:'V',phoneme:'v'}, w:{letter:'W',phoneme:'w'}, x:{letter:'X',phoneme:'x'}, y:{letter:'Y',phoneme:'y'}, z:{letter:'Z',phoneme:'z'} };
 
 // ========== LANGUAGE CONTEXT ==========
 const LanguageContext = React.createContext({ lang: 'en', setLang: () => {}, t: (k) => k });
@@ -1313,7 +1313,7 @@ function WordPracticePage() {
   const [audioScore, setAudioScore] = useState(null);
   const timerRef = useRef(null);
 
-  const phonemes = word.toLowerCase().replace(/[^a-z]/g, '').split('').map(c => PHONEME_MAP[c] || { letter: c.toUpperCase(), phoneme: c });
+  const phonemes = word.toLowerCase().replace(/[^a-z]/g, '').split('').map(c => LETTER_PHONEME_MAP[c] || { letter: c.toUpperCase(), phoneme: c });
   const phonemeTokens = phonemes.map(p => p.phoneme);
 
   const handlePlay = () => { 
