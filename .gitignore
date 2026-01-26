@@ -97,3 +97,4 @@ frontend/build/assets/sprites/front_spritesheet.png
 *.env
 *.env.*
 frontend/public/assets/sprites/side_master.png
+frontend/node_modules/.cache/default-development/8.pack

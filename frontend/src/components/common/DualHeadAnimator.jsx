@@ -9,7 +9,7 @@ import {
   getFrameInfo
 } from '../../data/phonemeMap';
 
-// Preload sprite sheets once globally
+// Preload sprite sheets
 const preloadedSheets = { front: null, side: null, loaded: false };
 
 const preloadSheets = () => {
@@ -34,15 +34,15 @@ const preloadSheets = () => {
   });
 };
 
-// Start preloading immediately
 preloadSheets();
 
 /**
- * DualHeadAnimator - Movie-quality 30fps sprite animation
+ * DualHeadAnimator - Movie-quality 30fps sprite animation with frame blending
  * 
- * Modes:
- * - Letter mode: Shows full consonant + vowel pronunciation (e.g., B = "bah")
- * - Word mode: Smooth flow through each phoneme with transitions
+ * Uses dual-layer rendering for smooth transitions:
+ * - Current frame layer (solid)
+ * - Previous frame layer (fading out)
+ * This creates visual interpolation between frames
  */
 function DualHeadAnimator({ 
   phonemeSequence = [], 
@@ -54,6 +54,8 @@ function DualHeadAnimator({
   showDebug = true 
 }) {
   const [currentFrame, setCurrentFrame] = useState(0);
+  const [prevFrame, setPrevFrame] = useState(0);
+  const [blendOpacity, setBlendOpacity] = useState(0);
   const [currentPhoneme, setCurrentPhoneme] = useState('_');
   const [currentType, setCurrentType] = useState('neutral');
   const [sheetsReady, setSheetsReady] = useState(preloadedSheets.loaded);
@@ -62,12 +64,12 @@ function DualHeadAnimator({
   const timelineRef = useRef([]);
   const totalFramesRef = useRef(0);
 
-  // Build timeline when inputs change (NOT during animation)
+  // Build timeline when inputs change
   useEffect(() => {
     if (letter) {
       timelineRef.current = buildLetterTimeline(letter);
     } else if (Array.isArray(phonemeSequence) && phonemeSequence.length > 0) {
-      const text = phonemeSequence.join('');
+      const text = phonemeSequence.join(' ');
       timelineRef.current = buildWordTimeline(text);
     } else {
       timelineRef.current = [{ frame: 0, phoneme: '_', duration: 3, type: 'neutral' }];
@@ -75,14 +77,13 @@ function DualHeadAnimator({
     totalFramesRef.current = timelineRef.current.reduce((sum, item) => sum + (item.duration || 1), 0);
   }, [letter, phonemeSequence]);
 
-  // Ensure sheets are loaded
   useEffect(() => {
     if (!sheetsReady) {
       preloadSheets().then(() => setSheetsReady(true));
     }
   }, [sheetsReady]);
 
-  // Animation loop - only depends on isPlaying and sheetsReady
+  // Animation loop with frame blending
   useEffect(() => {
     if (!isPlaying || !sheetsReady) {
       if (animationRef.current) {
@@ -90,6 +91,8 @@ function DualHeadAnimator({
         animationRef.current = null;
       }
       setCurrentFrame(0);
+      setPrevFrame(0);
+      setBlendOpacity(0);
       setCurrentPhoneme('_');
       setCurrentType('neutral');
       return;
@@ -97,15 +100,21 @@ function DualHeadAnimator({
 
     let frameIndex = 0;
     let lastFrameTime = performance.now();
+    let subFrameProgress = 0;
     const timeline = timelineRef.current;
     const totalFrameCount = totalFramesRef.current;
+    let lastDisplayFrame = 0;
     
     const animate = (timestamp) => {
       const elapsed = timestamp - lastFrameTime;
       const frameInterval = FRAME_DURATION_MS / playbackRate;
       
-      if (elapsed >= frameInterval) {
-        lastFrameTime = timestamp - (elapsed % frameInterval);
+      // Accumulate sub-frame progress for smoother blending
+      subFrameProgress += elapsed / frameInterval;
+      
+      if (subFrameProgress >= 1) {
+        subFrameProgress -= 1;
+        lastFrameTime = timestamp;
         frameIndex++;
         
         // Find current timeline position
@@ -120,20 +129,32 @@ function DualHeadAnimator({
           accumulatedFrames += item.duration;
         }
         
+        // Handle frame change with blending
+        if (currentTimelineItem.frame !== lastDisplayFrame) {
+          setPrevFrame(lastDisplayFrame);
+          setBlendOpacity(1); // Start fade
+          lastDisplayFrame = currentTimelineItem.frame;
+        }
+        
         setCurrentFrame(currentTimelineItem.frame);
         setCurrentPhoneme(currentTimelineItem.phoneme);
         setCurrentType(currentTimelineItem.type);
         
-        // Check if animation complete
+        // Check completion
         if (frameIndex >= totalFrameCount) {
           animationRef.current = null;
           setCurrentFrame(0);
+          setPrevFrame(0);
+          setBlendOpacity(0);
           setCurrentPhoneme('_');
           setCurrentType('neutral');
           onAnimationComplete?.();
           return;
         }
       }
+      
+      // Fade out previous frame for smooth blending
+      setBlendOpacity(prev => Math.max(0, prev - 0.15));
       
       animationRef.current = requestAnimationFrame(animate);
     };
@@ -148,10 +169,7 @@ function DualHeadAnimator({
     };
   }, [isPlaying, sheetsReady, playbackRate, onAnimationComplete]);
 
-  // Calculate sprite position
-  const yOffset = currentFrame * FRAME_HEIGHT;
-  
-  // Size mappings - maintain aspect ratio
+  // Size mappings
   const sizeMultipliers = { large: 0.38, medium: 0.30, small: 0.22 };
   const multiplier = sizeMultipliers[size] || sizeMultipliers.large;
   const displayWidth = Math.round(FRAME_WIDTH * multiplier);
@@ -159,6 +177,7 @@ function DualHeadAnimator({
   
   const frameInfo = getFrameInfo(currentFrame);
   const isApex = currentType === 'apex';
+  const isPause = currentType === 'pause';
 
   if (!sheetsReady) {
     return (
@@ -167,6 +186,30 @@ function DualHeadAnimator({
       </div>
     );
   }
+
+  // Render a sprite layer
+  const renderSpriteLayer = (view, frame, opacity = 1, zIndex = 1) => {
+    const yOffset = frame * FRAME_HEIGHT * multiplier;
+    return (
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: displayWidth,
+          height: displayHeight,
+          backgroundImage: `url(/assets/sprites/${view}_master.png)`,
+          backgroundPosition: `0 -${yOffset}px`,
+          backgroundSize: `${displayWidth}px ${TOTAL_FRAMES * displayHeight}px`,
+          backgroundRepeat: 'no-repeat',
+          imageRendering: 'auto',
+          opacity,
+          zIndex,
+          transition: 'opacity 0.05s ease-out',
+        }}
+      />
+    );
+  };
 
   return (
     <div className="flex flex-col items-center gap-3" data-testid="dual-head-animator">
@@ -177,10 +220,12 @@ function DualHeadAnimator({
               {view === 'front' ? 'Front View' : 'Side View'}
             </div>
             <div 
-              className={`relative overflow-hidden rounded-xl border-2 transition-all duration-75 ${
+              className={`relative overflow-hidden rounded-xl border-2 transition-all duration-100 ${
                 isApex 
                   ? 'border-amber-400 ring-2 ring-amber-400/40' 
-                  : 'border-slate-600'
+                  : isPause
+                    ? 'border-slate-500'
+                    : 'border-slate-600'
               }`}
               style={{ 
                 width: displayWidth, 
@@ -192,20 +237,21 @@ function DualHeadAnimator({
               }}
               data-testid={`animator-${view}`}
             >
-              <div
-                style={{
-                  width: displayWidth,
-                  height: displayHeight,
-                  backgroundImage: `url(/assets/sprites/${view}_master.png)`,
-                  backgroundPosition: `0 -${yOffset * multiplier}px`,
-                  backgroundSize: `${displayWidth}px ${TOTAL_FRAMES * displayHeight}px`,
-                  backgroundRepeat: 'no-repeat',
-                  imageRendering: 'auto'
-                }}
-              />
+              {/* Previous frame (fading out for smooth blend) */}
+              {blendOpacity > 0 && prevFrame !== currentFrame && (
+                renderSpriteLayer(view, prevFrame, blendOpacity, 1)
+              )}
+              {/* Current frame */}
+              {renderSpriteLayer(view, currentFrame, 1, 2)}
+              
               {isApex && (
-                <div className="absolute top-1 right-1 px-1.5 py-0.5 bg-amber-500 rounded text-[9px] font-bold text-slate-900 uppercase shadow">
+                <div className="absolute top-1 right-1 px-1.5 py-0.5 bg-amber-500 rounded text-[9px] font-bold text-slate-900 uppercase shadow z-10">
                   ★
+                </div>
+              )}
+              {isPause && (
+                <div className="absolute top-1 right-1 px-1.5 py-0.5 bg-slate-600 rounded text-[9px] font-bold text-slate-300 z-10">
+                  ⏸
                 </div>
               )}
             </div>
@@ -215,7 +261,7 @@ function DualHeadAnimator({
       
       {showDebug && (
         <div className="flex items-center gap-3 text-xs">
-          <span className="text-slate-400">
+          <span className="text-slate-400 font-mono">
             /{currentPhoneme}/ 
           </span>
           <span className="text-emerald-400 font-mono">
@@ -224,7 +270,7 @@ function DualHeadAnimator({
           <span className="text-slate-600">
             {frameInfo.name}
           </span>
-          <span className="text-slate-500 text-[10px]">
+          <span className={`text-[10px] ${isPause ? 'text-slate-500' : 'text-slate-500'}`}>
             {currentType}
           </span>
           {isApex && <span className="text-amber-400">★</span>}
