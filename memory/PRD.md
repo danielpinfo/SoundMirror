@@ -152,10 +152,12 @@ SoundMirror/ (GitHub: danielpinfo/SoundMirror)
 ## Next Tasks List
 1. ✅ **Import sprites** - Pulled 500 PNGs from GitHub repo - **DONE**
 2. ✅ **Wire up sprites** - DualHeadAnimator now uses real PNG sprites - **DONE**
-3. **Real Recording** - Implement camera/microphone capture with Web APIs
-4. **Animation Timing** - Implement "frame #5 sweet spot" pause logic
-5. **Test TTS** - Validate Web Speech API timing sync with sprites
-6. **Build Tauri** - Create first desktop executable
+3. ✅ **Animation Engine** - Clinical-grade engine with sweet spot logic - **DONE (Jan 26, 2026)**
+4. ✅ **Digraph Handling** - 'll', 'sh', 'ch', 'th' as single phonemes - **DONE (Jan 26, 2026)**
+5. **Real Recording** - Implement camera/microphone capture with Web APIs
+6. **Animation Scrubbing** - Add slider to manually scrub through animation frames
+7. **Test TTS** - Validate Web Speech API timing sync with sprites
+8. **Build Tauri** - Create first desktop executable
 
 ---
-*Last Updated: January 25, 2026 - Sprites fully integrated*
+*Last Updated: January 26, 2026 - Animation engine tested and verified*
