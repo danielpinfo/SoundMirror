@@ -1,219 +1,216 @@
-// ========== SIMPLE PHONETIC ENGINE ==========
-// Human-readable phonetics: "excuse" → "eks-kyooz", not ARPABET
-// Fast, smooth animations
+// ========== UNIVERSAL VISEME ENGINE ==========
+// 20 mouth shapes. That's ALL we have. Every sound maps to one of these.
+// Language-agnostic: IPA → Viseme Frame
+// Works for recognition too: heard sound → our phoneme library
 
 export const FRAME_WIDTH = 939;
 export const FRAME_HEIGHT = 793;
 export const TOTAL_FRAMES = 20;
 export const TARGET_FPS = 30;
 export const FRAME_DURATION_MS = 1000 / TARGET_FPS;
-
-// Timing
 export const LETTER_PRACTICE_DELAY_MS = 1000;
 
-// Simple phoneme to frame mapping
-const PHONEME_FRAMES = {
-  // Vowels
-  'a': 1, 'ah': 1, 'uh': 1,
-  'ee': 3, 'i': 3,
-  'oo': 4, 'o': 4, 'u': 4, 'w': 4,
-  'e': 5, 'eh': 5,
-  'y': 6,
-  
-  // Consonants
-  'b': 2, 'p': 2, 'm': 2,
-  'k': 7, 'g': 7, 'c': 7, 'q': 7,
-  't': 8, 'd': 8,
-  'n': 9,
-  'ng': 10,
-  's': 11, 'z': 11, 'x': 11,
-  'sh': 12, 'zh': 12,
-  'th': 13,
-  'f': 14, 'v': 14,
-  'h': 15,
-  'ch': 16, 'j': 16,
-  'r': 17,
-  'l': 18,
-  'll': 19,
-  
-  // Neutral
-  '_': 0, ' ': 0,
+// ========== THE 20 VISEME FRAMES ==========
+// This is our COMPLETE library. Every sound maps to ONE of these.
+export const VISEME_LIBRARY = {
+  0:  { id: 'neutral', shapes: ['silence', 'pause', 'rest'] },
+  1:  { id: 'aa', shapes: ['a', 'ah', 'uh', 'ʌ', 'ɑ', 'æ', 'ə'] },           // Open mouth
+  2:  { id: 'bpm', shapes: ['b', 'p', 'm'] },                                  // Lips closed/together
+  3:  { id: 'ee', shapes: ['i', 'ee', 'ɪ', 'iː', 'e', 'ɛ'] },                 // Lips spread wide
+  4:  { id: 'oo', shapes: ['u', 'oo', 'o', 'ʊ', 'oʊ', 'ɔ', 'w', 'aw'] },     // Lips rounded
+  5:  { id: 'eh', shapes: ['e', 'ɛ', 'eɪ'] },                                  // Slightly open
+  6:  { id: 'y', shapes: ['y', 'ü', 'ʏ', 'yː'] },                             // Rounded + front
+  7:  { id: 'kg', shapes: ['k', 'g', 'c', 'q', 'x', 'ɡ', 'ŋ'] },             // Back tongue
+  8:  { id: 'td', shapes: ['t', 'd', 'ɾ', 'ʈ', 'ɖ'] },                        // Tongue tip up
+  9:  { id: 'n', shapes: ['n', 'ɲ', 'ɳ'] },                                    // Nasal, tongue up
+  10: { id: 'ng', shapes: ['ŋ', 'ng'] },                                       // Back nasal
+  11: { id: 'sz', shapes: ['s', 'z', 'ts', 'dz'] },                           // Teeth close, hiss
+  12: { id: 'sh', shapes: ['ʃ', 'ʒ', 'sh', 'zh'] },                           // Lips pushed out
+  13: { id: 'th', shapes: ['θ', 'ð', 'th'] },                                  // Tongue between teeth
+  14: { id: 'fv', shapes: ['f', 'v'] },                                        // Teeth on lip
+  15: { id: 'h', shapes: ['h', 'ɦ', 'x', 'χ'] },                              // Open breath
+  16: { id: 'ch', shapes: ['tʃ', 'dʒ', 'ch', 'j', 'ʧ', 'ʤ'] },               // Affricate
+  17: { id: 'r', shapes: ['r', 'ɹ', 'ɾ', 'ʀ', 'ɽ'] },                        // R sounds
+  18: { id: 'l', shapes: ['l', 'ɫ', 'ɭ', 'ʎ'] },                              // Lateral
+  19: { id: 'll', shapes: ['ɬ', 'ʎ', 'j', 'ʝ'] },                             // Welsh ll / palatal
 };
 
-// Simple word to phoneme breakdown (human readable)
-const SIMPLE_PRONUNCIATIONS = {
-  // Common words - simple phonetic spelling
-  'the': ['th', 'uh'],
-  'a': ['uh'],
-  'an': ['a', 'n'],
-  'is': ['i', 'z'],
-  'are': ['ah', 'r'],
-  'was': ['w', 'ah', 'z'],
-  'were': ['w', 'er'],
-  'be': ['b', 'ee'],
-  'been': ['b', 'i', 'n'],
-  'being': ['b', 'ee', 'i', 'ng'],
-  'have': ['h', 'a', 'v'],
-  'has': ['h', 'a', 'z'],
-  'had': ['h', 'a', 'd'],
-  'do': ['d', 'oo'],
-  'does': ['d', 'uh', 'z'],
-  'did': ['d', 'i', 'd'],
-  'will': ['w', 'i', 'l'],
-  'would': ['w', 'oo', 'd'],
-  'could': ['k', 'oo', 'd'],
-  'should': ['sh', 'oo', 'd'],
-  'can': ['k', 'a', 'n'],
-  'may': ['m', 'ay'],
-  'might': ['m', 'ai', 't'],
-  'must': ['m', 'uh', 's', 't'],
-  'shall': ['sh', 'a', 'l'],
+// ========== COMPLETE IPA → FRAME MAPPING ==========
+// Every IPA symbol used in all 10 languages maps to exactly ONE frame
+const IPA_TO_FRAME = {
+  // === VOWELS ===
+  // Open vowels → Frame 1
+  'a': 1, 'ɑ': 1, 'ɐ': 1, 'æ': 1, 'ʌ': 1, 'ə': 1, 'ɜ': 1, 'ɚ': 1,
   
-  // User's examples
-  'excuse': ['x', 'k', 'y', 'oo', 'z'],
-  'me': ['m', 'ee'],
-  'hello': ['h', 'e', 'l', 'o'],
-  'beautiful': ['b', 'y', 'oo', 't', 'i', 'f', 'oo', 'l'],
-  'apple': ['a', 'p', 'l'],
-  'pronunciation': ['p', 'r', 'o', 'n', 'uh', 'n', 's', 'ee', 'ay', 'sh', 'uh', 'n'],
-  'thank': ['th', 'a', 'ng', 'k'],
-  'you': ['y', 'oo'],
-  'please': ['p', 'l', 'ee', 'z'],
-  'sorry': ['s', 'ah', 'r', 'ee'],
-  'yes': ['y', 'e', 's'],
-  'no': ['n', 'o'],
-  'good': ['g', 'oo', 'd'],
-  'bad': ['b', 'a', 'd'],
-  'great': ['g', 'r', 'ay', 't'],
-  'nice': ['n', 'ai', 's'],
-  'love': ['l', 'uh', 'v'],
-  'like': ['l', 'ai', 'k'],
-  'want': ['w', 'ah', 'n', 't'],
-  'need': ['n', 'ee', 'd'],
-  'know': ['n', 'o'],
-  'think': ['th', 'i', 'ng', 'k'],
-  'see': ['s', 'ee'],
-  'look': ['l', 'oo', 'k'],
-  'come': ['k', 'uh', 'm'],
-  'go': ['g', 'o'],
-  'get': ['g', 'e', 't'],
-  'make': ['m', 'ay', 'k'],
-  'take': ['t', 'ay', 'k'],
-  'give': ['g', 'i', 'v'],
-  'say': ['s', 'ay'],
-  'tell': ['t', 'e', 'l'],
-  'ask': ['a', 's', 'k'],
-  'use': ['y', 'oo', 'z'],
-  'find': ['f', 'ai', 'n', 'd'],
-  'put': ['p', 'oo', 't'],
-  'try': ['t', 'r', 'ai'],
-  'leave': ['l', 'ee', 'v'],
-  'call': ['k', 'ah', 'l'],
-  'feel': ['f', 'ee', 'l'],
-  'become': ['b', 'ee', 'k', 'uh', 'm'],
-  'keep': ['k', 'ee', 'p'],
-  'let': ['l', 'e', 't'],
-  'begin': ['b', 'ee', 'g', 'i', 'n'],
-  'seem': ['s', 'ee', 'm'],
-  'help': ['h', 'e', 'l', 'p'],
-  'show': ['sh', 'o'],
-  'hear': ['h', 'ee', 'r'],
-  'play': ['p', 'l', 'ay'],
-  'run': ['r', 'uh', 'n'],
-  'move': ['m', 'oo', 'v'],
-  'live': ['l', 'i', 'v'],
-  'believe': ['b', 'ee', 'l', 'ee', 'v'],
-  'hold': ['h', 'o', 'l', 'd'],
-  'bring': ['b', 'r', 'i', 'ng'],
-  'happen': ['h', 'a', 'p', 'n'],
-  'write': ['r', 'ai', 't'],
-  'provide': ['p', 'r', 'o', 'v', 'ai', 'd'],
-  'sit': ['s', 'i', 't'],
-  'stand': ['s', 't', 'a', 'n', 'd'],
-  'lose': ['l', 'oo', 'z'],
-  'pay': ['p', 'ay'],
-  'meet': ['m', 'ee', 't'],
-  'include': ['i', 'n', 'k', 'l', 'oo', 'd'],
-  'continue': ['k', 'uh', 'n', 't', 'i', 'n', 'y', 'oo'],
-  'set': ['s', 'e', 't'],
-  'learn': ['l', 'er', 'n'],
-  'change': ['ch', 'ay', 'n', 'j'],
-  'lead': ['l', 'ee', 'd'],
-  'understand': ['uh', 'n', 'd', 'er', 's', 't', 'a', 'n', 'd'],
-  'watch': ['w', 'ah', 'ch'],
-  'follow': ['f', 'ah', 'l', 'o'],
-  'stop': ['s', 't', 'ah', 'p'],
-  'create': ['k', 'r', 'ee', 'ay', 't'],
-  'speak': ['s', 'p', 'ee', 'k'],
-  'read': ['r', 'ee', 'd'],
-  'spend': ['s', 'p', 'e', 'n', 'd'],
-  'grow': ['g', 'r', 'o'],
-  'open': ['o', 'p', 'n'],
-  'walk': ['w', 'ah', 'k'],
-  'win': ['w', 'i', 'n'],
-  'offer': ['ah', 'f', 'er'],
-  'remember': ['r', 'ee', 'm', 'e', 'm', 'b', 'er'],
-  'consider': ['k', 'uh', 'n', 's', 'i', 'd', 'er'],
-  'appear': ['uh', 'p', 'ee', 'r'],
-  'buy': ['b', 'ai'],
-  'wait': ['w', 'ay', 't'],
-  'serve': ['s', 'er', 'v'],
-  'die': ['d', 'ai'],
-  'send': ['s', 'e', 'n', 'd'],
-  'expect': ['x', 'p', 'e', 'k', 't'],
-  'build': ['b', 'i', 'l', 'd'],
-  'stay': ['s', 't', 'ay'],
-  'fall': ['f', 'ah', 'l'],
-  'cut': ['k', 'uh', 't'],
-  'reach': ['r', 'ee', 'ch'],
-  'kill': ['k', 'i', 'l'],
-  'remain': ['r', 'ee', 'm', 'ay', 'n'],
+  // Front high vowels → Frame 3
+  'i': 3, 'ɪ': 3, 'e': 3, 'ɛ': 3, 'y': 3,
+  
+  // Rounded vowels → Frame 4
+  'u': 4, 'ʊ': 4, 'o': 4, 'ɔ': 4, 'ø': 4, 'œ': 4,
+  
+  // Mid vowels → Frame 5 (can also use 3)
+  'ɘ': 5, 'ɵ': 5,
+  
+  // Rounded front (German ü) → Frame 6
+  'ʏ': 6,
+  
+  // === CONSONANTS ===
+  // Bilabials (lips together) → Frame 2
+  'p': 2, 'b': 2, 'm': 2, 'ɓ': 2, 'ʙ': 2,
+  
+  // Velars (back tongue) → Frame 7
+  'k': 7, 'g': 7, 'ɡ': 7, 'x': 7, 'ɣ': 7, 'q': 7, 'ɢ': 7,
+  
+  // Alveolars (tongue tip) → Frame 8
+  't': 8, 'd': 8, 'ɾ': 8, 'ʈ': 8, 'ɖ': 8, 'ɗ': 8,
+  
+  // Alveolar nasal → Frame 9
+  'n': 9, 'ɳ': 9, 'ɲ': 9,
+  
+  // Velar nasal → Frame 10
+  'ŋ': 10,
+  
+  // Alveolar fricatives → Frame 11
+  's': 11, 'z': 11, 'ʦ': 11, 'ʣ': 11, 'c': 11, 'ɕ': 11, 'ʑ': 11,
+  
+  // Postalveolar fricatives → Frame 12
+  'ʃ': 12, 'ʒ': 12, 'ʂ': 12, 'ʐ': 12,
+  
+  // Dental fricatives → Frame 13
+  'θ': 13, 'ð': 13,
+  
+  // Labiodental fricatives → Frame 14
+  'f': 14, 'v': 14, 'ʋ': 14,
+  
+  // Glottal → Frame 15
+  'h': 15, 'ɦ': 15, 'ʔ': 15, 'χ': 15, 'ʁ': 15,
+  
+  // Affricates → Frame 16
+  'ʧ': 16, 'ʤ': 16, 'tʃ': 16, 'dʒ': 16, 'ʨ': 16, 'ʥ': 16,
+  
+  // Rhotics → Frame 17
+  'r': 17, 'ɹ': 17, 'ɻ': 17, 'ʀ': 17, 'ɽ': 17, 'ɺ': 17,
+  
+  // Laterals → Frame 18
+  'l': 18, 'ɫ': 18, 'ɭ': 18, 'ʎ': 18, 'ɬ': 18,
+  
+  // Palatal approximant → Frame 19
+  'j': 19, 'ʝ': 19, 'ɥ': 19,
+  
+  // Labial-velar approximant → Frame 4 (rounded)
+  'w': 4, 'ʍ': 4,
 };
 
-// Simple letter-based fallback
-const letterToPhoneme = (word) => {
-  const result = [];
-  const lower = word.toLowerCase();
-  let i = 0;
+// ========== SIMPLE LETTER → FRAME (fallback) ==========
+const LETTER_TO_FRAME = {
+  'a': 1, 'e': 3, 'i': 3, 'o': 4, 'u': 4,
+  'b': 2, 'c': 7, 'd': 8, 'f': 14, 'g': 7,
+  'h': 15, 'j': 16, 'k': 7, 'l': 18, 'm': 2,
+  'n': 9, 'p': 2, 'q': 7, 'r': 17, 's': 11,
+  't': 8, 'v': 14, 'w': 4, 'x': 11, 'y': 19, 'z': 11,
+};
+
+// ========== COMMON PATTERNS → FRAMES ==========
+// Multi-letter patterns that represent single sounds
+const PATTERNS_TO_FRAMES = {
+  // Digraphs
+  'th': [13],
+  'sh': [12],
+  'ch': [16],
+  'ng': [10],
+  'ph': [14],
+  'wh': [4],
+  'ck': [7],
+  'qu': [7, 4],
+  'gh': [],  // Usually silent
   
-  // Common patterns
-  const patterns = {
-    'tion': ['sh', 'n'],
-    'sion': ['zh', 'n'],
-    'ough': ['o'],
-    'ight': ['ai', 't'],
-    'ould': ['oo', 'd'],
-    'th': ['th'],
-    'sh': ['sh'],
-    'ch': ['ch'],
-    'ng': ['ng'],
-    'ph': ['f'],
-    'wh': ['w'],
-    'ck': ['k'],
-    'qu': ['k', 'w'],
-    'ee': ['ee'],
-    'ea': ['ee'],
-    'oo': ['oo'],
-    'ou': ['ow'],
-    'ow': ['o'],
-    'ai': ['ay'],
-    'ay': ['ay'],
-    'ey': ['ay'],
-    'ie': ['ee'],
-    'oa': ['o'],
-    'ue': ['oo'],
-    'au': ['aw'],
-    'aw': ['aw'],
+  // Vowel combinations
+  'ee': [3],
+  'ea': [3],
+  'ie': [3],
+  'ey': [3],
+  'ai': [1],
+  'ay': [1],
+  'oo': [4],
+  'ou': [4],
+  'ow': [4],
+  'oa': [4],
+  'oe': [4],
+  'ue': [4],
+  'ew': [4],
+  'au': [4],
+  'aw': [4],
+  
+  // Endings
+  'tion': [12, 9],      // sh-n
+  'sion': [12, 9],      // sh-n  
+  'ious': [3, 11],      // ee-s
+  'eous': [3, 11],      // ee-s
+  'ture': [16, 17],     // ch-r
+  'sure': [12, 17],     // sh-r
+  'ight': [1, 8],       // ai-t
+  'ough': [4],          // varies but usually "o"
+  'ould': [4, 8],       // oo-d
+};
+
+// ========== GET FRAME FOR ANY SOUND ==========
+export const getFrameForSound = (sound) => {
+  if (!sound) return 0;
+  const s = sound.toLowerCase();
+  
+  // Check IPA mapping first
+  if (IPA_TO_FRAME[s] !== undefined) return IPA_TO_FRAME[s];
+  
+  // Check letter mapping
+  if (LETTER_TO_FRAME[s] !== undefined) return LETTER_TO_FRAME[s];
+  
+  // Check if it's a simple phoneme name
+  const phonemeMap = {
+    'aa': 1, 'ah': 1, 'uh': 1,
+    'ee': 3, 'ih': 3,
+    'oo': 4, 'oh': 4,
+    'eh': 5,
+    'bpm': 2,
+    'kg': 7,
+    'td': 8,
+    'sz': 11,
+    'fv': 14,
   };
+  if (phonemeMap[s] !== undefined) return phonemeMap[s];
+  
+  return 0; // Neutral for unknown
+};
+
+// ========== CONVERT ANY TEXT TO VISEME SEQUENCE ==========
+export const textToVisemes = (text) => {
+  const result = [];
+  const lower = text.toLowerCase().replace(/[^a-z\s]/g, '');
+  let i = 0;
+  let prevFrame = -1;
   
   while (i < lower.length) {
-    let matched = false;
+    // Skip spaces
+    if (lower[i] === ' ') {
+      if (prevFrame !== 0) {
+        result.push({ frame: 0, sound: '_' });
+        prevFrame = 0;
+      }
+      i++;
+      continue;
+    }
     
+    // Try patterns (longest first)
+    let matched = false;
     for (let len = 4; len >= 2; len--) {
       if (i + len <= lower.length) {
-        const seg = lower.substring(i, i + len);
-        if (patterns[seg]) {
-          result.push(...patterns[seg]);
+        const pattern = lower.substring(i, i + len);
+        if (PATTERNS_TO_FRAMES[pattern] !== undefined) {
+          for (const frame of PATTERNS_TO_FRAMES[pattern]) {
+            if (frame !== prevFrame) {
+              result.push({ frame, sound: pattern });
+              prevFrame = frame;
+            }
+          }
           i += len;
           matched = true;
           break;
@@ -229,11 +226,10 @@ const letterToPhoneme = (word) => {
       }
       
       // Single letter
-      const c = lower[i];
-      if (c !== ' ' && PHONEME_FRAMES[c] !== undefined) {
-        result.push(c);
-      } else if (c === 'x') {
-        result.push('x');
+      const frame = LETTER_TO_FRAME[lower[i]] || 0;
+      if (frame !== prevFrame && frame > 0) {
+        result.push({ frame, sound: lower[i] });
+        prevFrame = frame;
       }
       i++;
     }
@@ -242,83 +238,26 @@ const letterToPhoneme = (word) => {
   return result;
 };
 
-// Get phonemes for a word
-export const getWordPhonemes = (word) => {
-  const lower = word.toLowerCase().replace(/[^a-z]/g, '');
-  if (!lower) return [];
-  
-  // Check our simple dictionary first
-  if (SIMPLE_PRONUNCIATIONS[lower]) {
-    return SIMPLE_PRONUNCIATIONS[lower];
-  }
-  
-  // Fallback to letter-based
-  return letterToPhoneme(lower);
-};
-
-// Get frame for phoneme
-export const getFrameForPhoneme = (phoneme) => {
-  return PHONEME_FRAMES[phoneme] ?? PHONEME_FRAMES[phoneme.toLowerCase()] ?? 0;
-};
-
-// Punctuation pauses (in frames)
-const PUNCTUATION_PAUSE = {
-  ',': 6,
-  '.': 8,
-  '!': 8,
-  '?': 8,
-};
-
-// Build Word Practice timeline - FAST version
+// ========== BUILD ANIMATION TIMELINE ==========
 export const buildWordTimeline = (text) => {
   const timeline = [];
-  const words = text.split(/(\s+|[,.!?])/);
+  const visemes = textToVisemes(text);
   
   // Start neutral
   timeline.push({ frame: 0, phoneme: '_', duration: 2, type: 'start' });
   
-  for (const segment of words) {
-    if (!segment) continue;
-    const trimmed = segment.trim();
-    
-    // Punctuation
-    if (PUNCTUATION_PAUSE[trimmed]) {
-      timeline.push({
-        frame: 0,
-        phoneme: trimmed,
-        duration: PUNCTUATION_PAUSE[trimmed],
-        type: 'pause',
-      });
-      continue;
-    }
-    
-    // Space between words
-    if (/^\s+$/.test(segment)) {
+  for (const v of visemes) {
+    if (v.frame === 0) {
+      // Word break
       timeline.push({ frame: 0, phoneme: '_', duration: 2, type: 'space' });
-      continue;
-    }
-    
-    // Get phonemes
-    const phonemes = getWordPhonemes(segment);
-    let prevFrame = -1;
-    
-    for (const p of phonemes) {
-      const frame = getFrameForPhoneme(p);
-      
-      // Skip if same frame as previous (condense)
-      if (frame === prevFrame) continue;
-      
-      const isVowel = [1, 3, 4, 5, 6].includes(frame);
-      
-      // Quick hold - vowels 3 frames, consonants 2 frames
+    } else {
+      const isVowel = [1, 3, 4, 5, 6].includes(v.frame);
       timeline.push({
-        frame,
-        phoneme: p,
+        frame: v.frame,
+        phoneme: v.sound,
         duration: isVowel ? 3 : 2,
         type: 'hold',
       });
-      
-      prevFrame = frame;
     }
   }
   
@@ -328,13 +267,36 @@ export const buildWordTimeline = (text) => {
   return timeline;
 };
 
-// Letter Practice
+// ========== RECOGNITION: CONVERT HEARD SOUNDS TO OUR PHONEMES ==========
+// When user speaks "woowwefool" trying to say "beautiful", 
+// we capture exactly what we heard using our phoneme library
+export const heardSoundToPhoneme = (sound) => {
+  const frame = getFrameForSound(sound);
+  const frameInfo = VISEME_LIBRARY[frame];
+  return {
+    frame,
+    id: frameInfo?.id || 'neutral',
+    original: sound,
+  };
+};
+
+// Convert recognition result to our phoneme string
+// Input: "woowwefool" → Output: "w_oo_w_w_ee_f_oo_l"
+export const recognitionToPhonemeString = (heard) => {
+  const visemes = textToVisemes(heard);
+  return visemes.map(v => {
+    const info = VISEME_LIBRARY[v.frame];
+    return info?.id || '_';
+  }).join('_');
+};
+
+// ========== LETTER PRACTICE ==========
 export const LETTER_PRONUNCIATION = {
   'a': { frames: [1], audioLabel: 'ah', display: 'ah' },
   'b': { frames: [2, 1], audioLabel: 'ba', display: 'ba' },
   'c': { frames: [7, 1], audioLabel: 'ca', display: 'ca' },
   'd': { frames: [8, 1], audioLabel: 'da', display: 'da' },
-  'e': { frames: [5], audioLabel: 'eh', display: 'eh' },
+  'e': { frames: [3], audioLabel: 'eh', display: 'eh' },
   'f': { frames: [14, 1], audioLabel: 'fa', display: 'fa' },
   'g': { frames: [7, 1], audioLabel: 'ga', display: 'ga' },
   'h': { frames: [15, 1], audioLabel: 'ha', display: 'ha' },
@@ -350,76 +312,46 @@ export const LETTER_PRONUNCIATION = {
   'r': { frames: [17, 1], audioLabel: 'ra', display: 'ra' },
   's': { frames: [11, 1], audioLabel: 'sa', display: 'sa' },
   't': { frames: [8, 1], audioLabel: 'ta', display: 'ta' },
-  'u': { frames: [1], audioLabel: 'uh', display: 'uh' },
+  'u': { frames: [4], audioLabel: 'uh', display: 'uh' },
   'v': { frames: [14, 1], audioLabel: 'va', display: 'va' },
   'w': { frames: [4, 1], audioLabel: 'wa', display: 'wa' },
-  'x': { frames: [5, 7, 11], audioLabel: 'xa', display: 'eks' },
-  'y': { frames: [6, 1], audioLabel: 'ya', display: 'ya' },
+  'x': { frames: [3, 7, 11], audioLabel: 'xa', display: 'eks' },
+  'y': { frames: [19, 1], audioLabel: 'ya', display: 'ya' },
   'z': { frames: [11, 1], audioLabel: 'za', display: 'za' },
 };
 
 export const buildLetterTimeline = (letter) => {
-  const pronunciation = LETTER_PRONUNCIATION[letter.toLowerCase()];
-  if (!pronunciation) {
-    return [{ frame: 0, phoneme: '_', duration: 10, type: 'neutral' }];
-  }
+  const p = LETTER_PRONUNCIATION[letter.toLowerCase()];
+  if (!p) return [{ frame: 0, phoneme: '_', duration: 10, type: 'neutral' }];
 
   const timeline = [];
-  const { frames, display } = pronunciation;
-  
   timeline.push({ frame: 0, phoneme: '_', duration: 3, type: 'start' });
   
-  frames.forEach((frame, idx) => {
-    const isLast = idx === frames.length - 1;
+  for (let i = 0; i < p.frames.length; i++) {
+    const frame = p.frames[i];
     const isVowel = [1, 3, 4, 5, 6].includes(frame);
+    const isLast = i === p.frames.length - 1;
     
-    timeline.push({ frame, phoneme: display, duration: 3, type: 'approach' });
-    
-    const holdDuration = isVowel || isLast ? 10 : 5;
-    timeline.push({ frame, phoneme: display, duration: holdDuration, type: 'hold' });
-  });
+    timeline.push({ frame, phoneme: p.display, duration: 3, type: 'approach' });
+    timeline.push({ frame, phoneme: p.display, duration: isVowel || isLast ? 10 : 5, type: 'hold' });
+  }
   
   timeline.push({ frame: 0, phoneme: '_', duration: 4, type: 'end' });
-  
   return timeline;
 };
 
-// Frame info
-export const FRAME_PHONEMES = {
-  0: { name: 'neutral', description: 'Rest' },
-  1: { name: 'a', description: '/a/ ah' },
-  2: { name: 'b_p_m', description: '/b,p,m/' },
-  3: { name: 'ee', description: '/ee/' },
-  4: { name: 'oo', description: '/oo,o/' },
-  5: { name: 'e', description: '/e/' },
-  6: { name: 'y', description: '/y/' },
-  7: { name: 'k_g', description: '/k,g/' },
-  8: { name: 't_d', description: '/t,d/' },
-  9: { name: 'n', description: '/n/' },
-  10: { name: 'ng', description: '/ng/' },
-  11: { name: 's_z', description: '/s,z/' },
-  12: { name: 'sh', description: '/sh/' },
-  13: { name: 'th', description: '/th/' },
-  14: { name: 'f_v', description: '/f,v/' },
-  15: { name: 'h', description: '/h/' },
-  16: { name: 'ch_j', description: '/ch,j/' },
-  17: { name: 'r', description: '/r/' },
-  18: { name: 'l', description: '/l/' },
-  19: { name: 'll', description: '/ll/' },
-};
-
-export const getFrameInfo = (frameNum) => FRAME_PHONEMES[frameNum] || FRAME_PHONEMES[0];
-export const getLetterDisplay = (letter) => LETTER_PRONUNCIATION[letter.toLowerCase()]?.display || letter;
-export const getPhonemeAudioPath = (letter, lang) => {
-  const p = LETTER_PRONUNCIATION[letter.toLowerCase()];
+// ========== EXPORTS ==========
+export const FRAME_PHONEMES = VISEME_LIBRARY;
+export const getFrameInfo = (f) => VISEME_LIBRARY[f] || VISEME_LIBRARY[0];
+export const getLetterDisplay = (l) => LETTER_PRONUNCIATION[l.toLowerCase()]?.display || l;
+export const getPhonemeAudioPath = (l, lang) => {
+  const p = LETTER_PRONUNCIATION[l.toLowerCase()];
   return `/assets/audio/phonemes/${lang.split('-')[0]}-${p?.audioLabel || 'ah'}.mp3`;
 };
+export const getFrameForPhoneme = getFrameForSound;
 
-// Legacy exports
-export const textToPhonemes = (text) => {
-  const words = text.split(/\s+/);
-  return words.flatMap(w => getWordPhonemes(w));
-};
+// Legacy
+export const textToPhonemes = (text) => textToVisemes(text).map(v => v.sound);
 export const wordToPhonemes = textToPhonemes;
 export const DIGRAPHS = { 'll': 19, 'sh': 12, 'ch': 16, 'th': 13, 'ng': 10, 'ph': 14, 'wh': 4, 'ck': 7 };
-export const LETTER_TO_FRAME = { 'a': 1, 'b': 2, 'c': 7, 'd': 8, 'e': 5, 'f': 14, 'g': 7, 'h': 15, 'i': 3, 'j': 16, 'k': 7, 'l': 18, 'm': 2, 'n': 9, 'o': 4, 'p': 2, 'q': 7, 'r': 17, 's': 11, 't': 8, 'u': 1, 'v': 14, 'w': 4, 'x': 11, 'y': 6, 'z': 11 };
+export { LETTER_TO_FRAME };
