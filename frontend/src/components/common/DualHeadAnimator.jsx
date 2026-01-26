@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   FRAME_WIDTH, 
   FRAME_HEIGHT, 
@@ -39,6 +39,10 @@ preloadSheets();
 
 /**
  * DualHeadAnimator - Movie-quality 30fps sprite animation
+ * 
+ * Modes:
+ * - Letter mode: Shows full consonant + vowel pronunciation (e.g., B = "bah")
+ * - Word mode: Smooth flow through each phoneme with transitions
  */
 function DualHeadAnimator({ 
   phonemeSequence = [], 
@@ -143,31 +147,6 @@ function DualHeadAnimator({
       }
     };
   }, [isPlaying, sheetsReady, playbackRate, onAnimationComplete]);
-        
-        // Check if animation complete
-        if (frameIndexRef.current >= totalFrameCount) {
-          animationRef.current = null;
-          frameIndexRef.current = 0;
-          setCurrentFrame(0);
-          setCurrentPhoneme('_');
-          setCurrentType('neutral');
-          onAnimationComplete?.();
-          return;
-        }
-      }
-      
-      animationRef.current = requestAnimationFrame(animate);
-    };
-    
-    animationRef.current = requestAnimationFrame(animate);
-    
-    return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-        animationRef.current = null;
-      }
-    };
-  }, [isPlaying, sheetsReady, timeline, totalFrameCount, playbackRate, onAnimationComplete]);
 
   // Calculate sprite position
   const yOffset = currentFrame * FRAME_HEIGHT;
