@@ -1138,7 +1138,7 @@ function LetterPracticePage() {
           <div className="lg:col-span-3">
             <div className="glass-card p-4 h-full flex flex-col items-center justify-center">
               <DualHeadAnimator 
-                phonemeSequence={[currentLetter.letter.toLowerCase()]} 
+                letter={currentLetter.letter.toLowerCase()}
                 isPlaying={isPlaying} 
                 playbackRate={playbackSpeed} 
                 onAnimationComplete={() => setIsPlaying(false)} 
