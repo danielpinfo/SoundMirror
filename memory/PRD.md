@@ -52,16 +52,17 @@ Convert existing Base44 web app into a fully native cross-platform mobile and de
   - Phoneme engine moved to `/src/data/phonemeMap.js`
   - Proper component structure with `/src/components/`, `/src/data/`, `/src/context/`
 - **NEW 20-Frame Sprite Engine** ✅ REBUILT (Jan 26, 2026)
-  - **Single sprite sheet per view** (2 files total: front_master.png, side_master.png)
+  - **Single sprite sheet per view** (2 files total: front_master.png 12MB, side_master.png 19MB)
+  - **30 FPS movie-quality animation** using requestAnimationFrame
   - 20 frames total (0-19), each representing specific phoneme groups
-  - Frame 0 = neutral (rest position)
-  - Movie-quality animation using `requestAnimationFrame`
+  - **Letter Practice**: Full consonant + vowel pronunciation (B = "bah" = F2→F1)
+  - **Word Practice**: Smooth flow with transitions between phonemes
   - Frame mapping:
     - F0: neutral | F1: a,u | F2: b,p,m | F3: ee,z,x,i | F4: oo,o,ou,w
     - F5: e | F6: ü | F7: c,k,q,g | F8: t,d,j,tsk | F9: n
     - F10: ng | F11: s | F12: sh | F13: th | F14: f,v
     - F15: h | F16: ch | F17: r | F18: L | F19: LL,y
-  - Reuses frames for phonemes with similar mouth shapes (e.g., b/p/m share F2)
+  - All consonants include vowel endings (bah, cah, dah, etc.)
   - Smooth transitions with golden "apex" indicator
 - **Digraph Handling** ✅ VERIFIED
   - 'll', 'sh', 'ch', 'th', 'ng', 'ph', 'wh', 'ck', 'gh' treated as single phonemes
