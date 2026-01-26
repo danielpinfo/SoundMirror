@@ -1169,8 +1169,13 @@ function WordPracticePage() {
   const [audioScore, setAudioScore] = useState(null);
   const timerRef = useRef(null);
 
-  const phonemes = word.toLowerCase().replace(/[^a-z]/g, '').split('').map(c => LETTER_PHONEME_MAP[c] || { letter: c.toUpperCase(), phoneme: c });
-  const phonemeTokens = phonemes.map(p => p.phoneme);
+  // Use textToPhonemes for digraph handling (ll, sh, ch, th, etc.)
+  const phonemeTokens = textToPhonemes(word);
+  const phonemes = phonemeTokens.map(p => ({
+    letter: p.toUpperCase(),
+    phoneme: p,
+    isDigraph: p.length > 1
+  }));
 
   const handlePlay = () => { 
     // Start animation immediately
