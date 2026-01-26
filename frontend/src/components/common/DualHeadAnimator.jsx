@@ -102,6 +102,7 @@ function DualHeadAnimator({
       return;
     }
 
+    console.log('Animation starting, timeline:', timeline.length, 'items, total frames:', totalFrameCount);
     frameIndexRef.current = 0;
     lastFrameTimeRef.current = performance.now();
     
@@ -126,6 +127,7 @@ function DualHeadAnimator({
           accumulatedFrames += item.duration;
         }
         
+        console.log('Frame', frameIndexRef.current, '/', totalFrameCount, '- F' + currentTimelineItem.frame, currentTimelineItem.type);
         setCurrentFrame(currentTimelineItem.frame);
         setCurrentPhoneme(currentTimelineItem.phoneme);
         setCurrentType(currentTimelineItem.type);
