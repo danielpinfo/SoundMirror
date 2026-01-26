@@ -44,12 +44,20 @@ Convert existing Base44 web app into a fully native cross-platform mobile and de
 
 ## What's Been Implemented
 
-### Phase 1: Web Preview MVP (Jan 25, 2026) ✓
+### Phase 1: Web Preview MVP (Jan 25-26, 2026) ✓
 - Complete React frontend with 5 pages
-- **Sprite Sheet Animation Engine** (CSS sprite technique for instant frame switching)
+- **Clinical-Grade Sprite Animation Engine** ✅ TESTED & WORKING
   - 10 sprite sheets (5 front + 5 side views, 50 frames each)
+  - "Sweet spot" frame #5 prioritization for apex articulation
+  - Intelligent frame selection algorithm for smooth transitions
   - Pre-loaded on mount for zero-latency animation
   - 10 frames per phoneme at 35ms intervals (~28fps)
+  - Animation plays ONCE and returns to neutral (no looping)
+  - Natural timing: ~1.5-2 seconds for words
+- **Digraph Handling** ✅ VERIFIED
+  - 'll', 'sh', 'ch', 'th', 'ng', 'ph', 'wh', 'ck', 'gh' treated as single phonemes
+  - Example: 'hello' = H, E, LL, O (4 phonemes, not 5)
+  - Example: 'ship' = SH, I, P (3 phonemes)
 - **Compressed Assets:**
   - 500 JPEGs at 15KB each (vs 619KB original PNGs)
   - Sprite sheets: ~750KB front, ~4.8MB side per sheet
