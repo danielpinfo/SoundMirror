@@ -1,4 +1,21 @@
-import React, { useState, useEffect, useRef } from 'react';
+/**
+ * DualHeadAnimator - Enhanced Movie-quality Sprite Animation
+ * 
+ * Features:
+ * - Smooth crossfade transitions between frames
+ * - Cubic easing for natural movement
+ * - Timeline scrubbing support
+ * - Dual-view synchronization
+ * - Frame blending with configurable duration
+ * 
+ * Architecture:
+ * - Phoneme Engine: Converts text to viseme sequence
+ * - Timeline Builder: Creates timed animation sequence
+ * - Renderer: Handles sprite display and blending
+ * - Controller: Manages playback state
+ */
+
+import React, { useState, useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { 
   FRAME_WIDTH, 
   FRAME_HEIGHT, 
@@ -37,36 +54,65 @@ const preloadSheets = () => {
 
 preloadSheets();
 
+// Easing functions for smooth transitions
+const easings = {
+  linear: t => t,
+  easeInOut: t => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t,
+  easeOut: t => t * (2 - t),
+  easeIn: t => t * t,
+  // Smooth start and end for speech-like movement
+  speech: t => {
+    const c4 = (2 * Math.PI) / 3;
+    return t === 0 ? 0 : t === 1 ? 1 
+      : Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * c4) + 1;
+  }
+};
+
 /**
- * DualHeadAnimator - Movie-quality sprite animation
+ * DualHeadAnimator Component
  * 
- * Features:
- * - 1 second delay before Letter Practice animation starts
- * - Doubled frame durations for slower, clearer animation
- * - Dual-layer blending for smooth transitions
- * - No flashing borders
+ * @param {Array} phonemeSequence - Array of phoneme tokens for word practice
+ * @param {string} letter - Single letter for letter practice
+ * @param {boolean} isPlaying - Controls animation playback
+ * @param {number} playbackRate - Speed multiplier (0.25 to 2.0)
+ * @param {function} onAnimationComplete - Callback when animation finishes
+ * @param {function} onTimeUpdate - Callback with current time in ms
+ * @param {function} onFrameChange - Callback when frame changes
+ * @param {string} size - Display size: 'large', 'medium', 'small'
+ * @param {boolean} showDebug - Show debug information
+ * @param {number} seekTime - External seek position in ms (for scrubbing)
+ * @param {number} blendDuration - Frame blend duration in ms (default: 80)
  */
-function DualHeadAnimator({ 
+const DualHeadAnimator = forwardRef(function DualHeadAnimator({ 
   phonemeSequence = [], 
   letter = null,
   isPlaying = false, 
   playbackRate = 1.0, 
   onAnimationComplete, 
+  onTimeUpdate,
+  onFrameChange,
   size = 'large',
-  showDebug = true 
-}) {
+  showDebug = true,
+  seekTime = null,
+  blendDuration = 80,
+}, ref) {
+  // State
   const [currentFrame, setCurrentFrame] = useState(0);
   const [prevFrame, setPrevFrame] = useState(0);
-  const [blendOpacity, setBlendOpacity] = useState(0);
+  const [blendProgress, setBlendProgress] = useState(0);
   const [currentPhoneme, setCurrentPhoneme] = useState('_');
   const [currentType, setCurrentType] = useState('neutral');
   const [sheetsReady, setSheetsReady] = useState(preloadedSheets.loaded);
   const [isDelaying, setIsDelaying] = useState(false);
+  const [animationTime, setAnimationTime] = useState(0);
   
+  // Refs
   const animationRef = useRef(null);
   const delayTimeoutRef = useRef(null);
   const timelineRef = useRef([]);
-  const totalFramesRef = useRef(0);
+  const totalDurationRef = useRef(0);
+  const lastFrameChangeRef = useRef(0);
+  const blendStartRef = useRef(0);
 
   // Build timeline when inputs change
   useEffect(() => {
@@ -78,14 +124,68 @@ function DualHeadAnimator({
     } else {
       timelineRef.current = [{ frame: 0, phoneme: '_', duration: 3, type: 'neutral' }];
     }
-    totalFramesRef.current = timelineRef.current.reduce((sum, item) => sum + (item.duration || 1), 0);
+    
+    // Calculate total duration in ms
+    const totalFrames = timelineRef.current.reduce((sum, item) => sum + (item.duration || 1), 0);
+    totalDurationRef.current = totalFrames * FRAME_DURATION_MS;
   }, [letter, phonemeSequence]);
 
+  // Ensure sheets are loaded
   useEffect(() => {
     if (!sheetsReady) {
       preloadSheets().then(() => setSheetsReady(true));
     }
   }, [sheetsReady]);
+
+  // Get timeline item at specific time
+  const getTimelineItemAtTime = useCallback((timeMs) => {
+    const timeline = timelineRef.current;
+    const frameTime = FRAME_DURATION_MS / playbackRate;
+    let elapsed = 0;
+    
+    for (const item of timeline) {
+      const itemDuration = item.duration * frameTime;
+      if (timeMs < elapsed + itemDuration) {
+        return { item, progress: (timeMs - elapsed) / itemDuration };
+      }
+      elapsed += itemDuration;
+    }
+    
+    return { item: timeline[timeline.length - 1], progress: 1 };
+  }, [playbackRate]);
+
+  // Seek to specific time (for scrubbing)
+  const seekToTime = useCallback((timeMs) => {
+    const { item } = getTimelineItemAtTime(timeMs);
+    
+    if (item.frame !== currentFrame) {
+      setPrevFrame(currentFrame);
+      setBlendProgress(0);
+      blendStartRef.current = performance.now();
+    }
+    
+    setCurrentFrame(item.frame);
+    setCurrentPhoneme(item.phoneme);
+    setCurrentType(item.type);
+    setAnimationTime(timeMs);
+    
+    onFrameChange?.(item.frame);
+  }, [currentFrame, getTimelineItemAtTime, onFrameChange]);
+
+  // External seek via prop
+  useEffect(() => {
+    if (seekTime !== null && !isPlaying) {
+      seekToTime(seekTime);
+    }
+  }, [seekTime, isPlaying, seekToTime]);
+
+  // Expose methods to parent
+  useImperativeHandle(ref, () => ({
+    seekTo: seekToTime,
+    getTimeline: () => timelineRef.current,
+    getDuration: () => totalDurationRef.current,
+    getCurrentTime: () => animationTime,
+  }), [seekToTime, animationTime]);
 
   // Animation loop
   useEffect(() => {
@@ -100,16 +200,14 @@ function DualHeadAnimator({
     }
     
     if (!isPlaying || !sheetsReady) {
-      setIsDelaying(false);
-      setCurrentFrame(0);
-      setPrevFrame(0);
-      setBlendOpacity(0);
-      setCurrentPhoneme('_');
-      setCurrentType('neutral');
+      if (!isPlaying) {
+        setIsDelaying(false);
+        // Don't reset frame when stopping - keep current position
+      }
       return;
     }
 
-    // For Letter Practice, add 1 second delay
+    // For Letter Practice, add delay
     if (letter) {
       setIsDelaying(true);
       delayTimeoutRef.current = setTimeout(() => {
@@ -117,63 +215,72 @@ function DualHeadAnimator({
         startAnimation();
       }, LETTER_PRACTICE_DELAY_MS);
     } else {
-      // Word Practice starts immediately
       startAnimation();
     }
 
     function startAnimation() {
-      let frameIndex = 0;
-      let lastFrameTime = performance.now();
-      let lastDisplayFrame = 0;
+      const startTime = performance.now();
       const timeline = timelineRef.current;
-      const totalFrameCount = totalFramesRef.current;
+      const frameTime = FRAME_DURATION_MS / playbackRate;
+      const totalDuration = timeline.reduce((sum, item) => sum + (item.duration || 1), 0) * frameTime;
+      
+      let lastDisplayFrame = currentFrame;
       
       const animate = (timestamp) => {
-        const elapsed = timestamp - lastFrameTime;
-        const frameInterval = FRAME_DURATION_MS / playbackRate;
+        const elapsed = timestamp - startTime;
         
-        if (elapsed >= frameInterval) {
-          lastFrameTime = timestamp - (elapsed % frameInterval);
-          frameIndex++;
-          
-          // Find current timeline position
-          let accumulatedFrames = 0;
-          let currentTimelineItem = timeline[0];
-          
-          for (const item of timeline) {
-            if (frameIndex <= accumulatedFrames + item.duration) {
-              currentTimelineItem = item;
-              break;
-            }
-            accumulatedFrames += item.duration;
-          }
-          
-          // Frame blending
-          if (currentTimelineItem.frame !== lastDisplayFrame) {
-            setPrevFrame(lastDisplayFrame);
-            setBlendOpacity(0.7);
-            lastDisplayFrame = currentTimelineItem.frame;
-          }
-          
-          setCurrentFrame(currentTimelineItem.frame);
-          setCurrentPhoneme(currentTimelineItem.phoneme);
-          setCurrentType(currentTimelineItem.type);
-          
-          // Check completion
-          if (frameIndex >= totalFrameCount) {
-            animationRef.current = null;
-            setCurrentFrame(0);
-            setPrevFrame(0);
-            setBlendOpacity(0);
-            setCurrentPhoneme('_');
-            setCurrentType('neutral');
-            onAnimationComplete?.();
-            return;
-          }
+        if (elapsed >= totalDuration) {
+          // Animation complete
+          animationRef.current = null;
+          setCurrentFrame(0);
+          setPrevFrame(0);
+          setBlendProgress(0);
+          setCurrentPhoneme('_');
+          setCurrentType('neutral');
+          setAnimationTime(0);
+          onAnimationComplete?.();
+          return;
         }
         
-        // Fade blend
-        setBlendOpacity(prev => Math.max(0, prev - 0.1));
+        // Find current timeline position
+        let accumulatedTime = 0;
+        let currentItem = timeline[0];
+        
+        for (const item of timeline) {
+          const itemDuration = item.duration * frameTime;
+          if (elapsed < accumulatedTime + itemDuration) {
+            currentItem = item;
+            break;
+          }
+          accumulatedTime += itemDuration;
+        }
+        
+        // Handle frame transition with blending
+        if (currentItem.frame !== lastDisplayFrame) {
+          setPrevFrame(lastDisplayFrame);
+          setBlendProgress(0);
+          blendStartRef.current = timestamp;
+          lastDisplayFrame = currentItem.frame;
+          lastFrameChangeRef.current = timestamp;
+          onFrameChange?.(currentItem.frame);
+        }
+        
+        // Update blend progress with easing
+        const blendElapsed = timestamp - blendStartRef.current;
+        if (blendElapsed < blendDuration) {
+          const rawProgress = blendElapsed / blendDuration;
+          const easedProgress = easings.easeOut(rawProgress);
+          setBlendProgress(easedProgress);
+        } else {
+          setBlendProgress(1);
+        }
+        
+        setCurrentFrame(currentItem.frame);
+        setCurrentPhoneme(currentItem.phoneme);
+        setCurrentType(currentItem.type);
+        setAnimationTime(elapsed);
+        
+        onTimeUpdate?.(elapsed);
         
         animationRef.current = requestAnimationFrame(animate);
       };
@@ -189,7 +296,17 @@ function DualHeadAnimator({
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [isPlaying, sheetsReady, letter, playbackRate, onAnimationComplete]);
+  }, [isPlaying, sheetsReady, letter, playbackRate, onAnimationComplete, onTimeUpdate, onFrameChange, blendDuration, currentFrame]);
+
+  // Reset when inputs change
+  useEffect(() => {
+    setCurrentFrame(0);
+    setPrevFrame(0);
+    setBlendProgress(0);
+    setCurrentPhoneme('_');
+    setCurrentType('neutral');
+    setAnimationTime(0);
+  }, [letter, phonemeSequence]);
 
   // Size mappings
   const sizeMultipliers = { large: 0.38, medium: 0.30, small: 0.22 };
@@ -208,7 +325,7 @@ function DualHeadAnimator({
     );
   }
 
-  // Render sprite layer
+  // Render sprite layer with smooth blending
   const renderSpriteLayer = (view, frame, opacity = 1, zIndex = 1) => {
     const yOffset = frame * FRAME_HEIGHT * multiplier;
     return (
@@ -227,11 +344,15 @@ function DualHeadAnimator({
           imageRendering: 'auto',
           opacity,
           zIndex,
-          transition: 'opacity 0.08s ease-out',
+          // Smooth transition for opacity changes
+          transition: `opacity ${blendDuration}ms ease-out`,
         }}
       />
     );
   };
+
+  // Calculate blend opacity using easing
+  const blendOpacity = blendProgress < 1 ? 1 - blendProgress : 0;
 
   return (
     <div className="flex flex-col items-center gap-3" data-testid="dual-head-animator">
@@ -251,8 +372,8 @@ function DualHeadAnimator({
               }}
               data-testid={`animator-${view}`}
             >
-              {/* Previous frame for blending */}
-              {blendOpacity > 0 && prevFrame !== currentFrame && (
+              {/* Previous frame for crossfade blending */}
+              {blendOpacity > 0.01 && prevFrame !== currentFrame && (
                 renderSpriteLayer(view, prevFrame, blendOpacity, 1)
               )}
               {/* Current frame */}
@@ -278,13 +399,13 @@ function DualHeadAnimator({
             F{currentFrame}
           </span>
           <span className="text-slate-600">
-            {frameInfo.name}
+            {frameInfo?.label || frameInfo?.name || 'neutral'}
           </span>
           {isPause && <span className="text-slate-500">⏸</span>}
         </div>
       )}
     </div>
   );
-}
+});
 
 export default DualHeadAnimator;
