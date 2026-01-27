@@ -61,7 +61,6 @@ export function useMediaRecorder({
       // Use refs directly in cleanup to avoid stale closures
       if (timerRef.current) clearInterval(timerRef.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Request media permissions and setup stream
