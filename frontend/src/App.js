@@ -853,14 +853,15 @@ function WordPracticePage() {
   // Generate reference timing for timeline
   const referenceDuration = phonemeTokens.length * 200; // ~200ms per phoneme
   const phoneTimeline = useMemo(() => {
-    let time = 0;
-    return phonemeTokens.map(p => {
+    const timeline = [];
+    let currentTime = 0;
+    for (const p of phonemeTokens) {
       const isVowel = ['a', 'e', 'i', 'o', 'u', 'ah', 'eh', 'ee', 'oo', 'ay'].includes(p.toLowerCase());
       const duration = isVowel ? 250 : 150;
-      const item = { phoneme: p, start: time, end: time + duration, frame: 0 };
-      time += duration;
-      return item;
-    });
+      timeline.push({ phoneme: p, start: currentTime, end: currentTime + duration, frame: 0 });
+      currentTime += duration;
+    }
+    return timeline;
   }, [phonemeTokens]);
 
   const handlePlay = () => { 
