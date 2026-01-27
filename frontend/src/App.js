@@ -1118,10 +1118,11 @@ function LetterPracticePage() {
 function HistoryProgressPage() {
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const [history, setHistory] = useState([]);
+  const [history, setHistory] = useState(() => {
+    const s = localStorage.getItem('soundmirror_history');
+    return s ? JSON.parse(s) : [];
+  });
   const [playingId, setPlayingId] = useState(null);
-
-  useEffect(() => { const s = localStorage.getItem('soundmirror_history'); if (s) setHistory(JSON.parse(s)); }, []);
 
   const stats = { total: history.length, avg: history.length > 0 ? history.reduce((s, h) => s + (h.score || 0), 0) / history.length : 0, visual: history.length > 0 ? history.reduce((s, h) => s + (h.visualScore || 0), 0) / history.length : 0, audio: history.length > 0 ? history.reduce((s, h) => s + (h.audioScore || 0), 0) / history.length : 0, streak: 3 };
   const getScoreColor = (s) => s >= 0.85 ? 'text-emerald-400' : s >= 0.70 ? 'text-amber-400' : 'text-rose-400';
