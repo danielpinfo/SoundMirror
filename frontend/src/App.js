@@ -1042,7 +1042,7 @@ function LetterPracticePage() {
                   {currentLetter.letter}
                 </span>
                 <div>
-                  <div className="text-lg text-slate-300">"{currentLetter.phoneme}"</div>
+                  <div className="text-lg text-slate-300">&quot;{currentLetter.phoneme}&quot;</div>
                   <div className="text-xs text-slate-500">{currentLetter.isVowel ? 'Vowel' : 'Consonant'}</div>
                 </div>
               </div>
