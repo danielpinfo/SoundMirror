@@ -23,38 +23,24 @@ Convert existing Base44 web app into a fully native cross-platform mobile and de
 4. **Speech Therapy Patients** - Articulation practice and feedback
 5. **ESL Students** - Native-level pronunciation training
 
-## Core Requirements (Static)
-
-### MVP Features
-- [x] Dual-head animator (Front View + Side View synchronized)
-- [x] Phoneme timeline with current position indicator
-- [x] Playback controls (Play/Pause, Reset, Speed 0.25x-1x, Mute)
-- [x] Language selector (10 languages including Arabic)
-- [x] Word/phrase input with suggestions
-- [x] Letter Practice page for individual phonemes
-- [x] Combined History + Progress tracking
-- [x] Offline-first Bug Reporter with categorized dropdowns
-
-### Technical Requirements
-- Desktop: Tauri 2.0 (Windows/macOS)
-- Mobile: React Native (Phase 2)
-- Shared Core: TypeScript logic + Rust timing engine
-- Storage: SQLite/JSON for offline data
-- TTS: Native OS speech APIs
+---
 
 ## What's Been Implemented
 
-### Phase 1: Web Preview MVP (Jan 25-26, 2026) ✓
+### Phase 1: Web Preview MVP (Jan 25-27, 2026) ✓
+
+#### Sprint 1: Core Application (Jan 25-26) ✓
 - Complete React frontend with 5 pages
-- **Refactored Code Architecture** ✅ COMPLETED (Jan 26, 2026)
-  - App.js reduced from 1651 to 1322 lines
-  - DualHeadAnimator moved to `/src/components/common/DualHeadAnimator.jsx`
-  - Phoneme engine moved to `/src/data/phonemeMap.js`
+- **Refactored Code Architecture** ✅
+  - DualHeadAnimator at `/src/components/common/DualHeadAnimator.jsx`
+  - Phoneme engine at `/src/data/phonemeMap.js`
   - Proper component structure with `/src/components/`, `/src/data/`, `/src/context/`
-- **NEW 20-Frame Sprite Engine** ✅ REBUILT (Jan 26, 2026)
-  - **Single sprite sheet per view** (2 files total: front_master.png 12MB, side_master.png 19MB)
+
+#### Sprint 2: Animation Engine (Jan 26) ✓
+- **NEW 20-Frame Sprite Engine** ✅ REBUILT
+  - **Single sprite sheet per view** (2 files: front_master.png, side_master.png)
   - **30 FPS movie-quality animation** using requestAnimationFrame
-  - 20 frames total (0-19), each representing specific phoneme groups
+  - 20 frames (0-19), each representing specific phoneme groups
   - **Letter Practice**: Full consonant + vowel pronunciation (B = "bah" = F2→F1)
   - **Word Practice**: Smooth flow with transitions between phonemes
   - Frame mapping:
@@ -62,83 +48,118 @@ Convert existing Base44 web app into a fully native cross-platform mobile and de
     - F5: e | F6: ü | F7: c,k,q,g | F8: t,d,j,tsk | F9: n
     - F10: ng | F11: s | F12: sh | F13: th | F14: f,v
     - F15: h | F16: ch | F17: r | F18: L | F19: LL,y
-  - All consonants include vowel endings (bah, cah, dah, etc.)
-  - Smooth transitions with golden "apex" indicator
 - **Digraph Handling** ✅ VERIFIED
   - 'll', 'sh', 'ch', 'th', 'ng', 'ph', 'wh', 'ck', 'gh' treated as single phonemes
-  - Example: 'hello' = H, E, LL, O (4 phonemes, not 5)
-- **Asset Structure:**
-  - `/assets/sprites/front_master.png` (12 MB, 939x15860px)
-  - `/assets/sprites/side_master.png` (19 MB, 939x15860px)
-- **Pre-recorded Phoneme Audio (from S3):**
-  - 240 MP3 files for all 10 languages
-  - Stored at `/assets/audio/phonemes/{lang}-{phoneme}.mp3`
-  - Used for Letter Practice instead of robotic TTS
-- Full i18n support for 10 languages
-- Splash screen with falling water drop and thick white ripples
-- Word Practice: large camera LEFT, model articulation RIGHT
-- Letter Practice: alphabet grid with vowels highlighted, dual head animators
-- Phoneme timeline with clickable badges
-- Playback controls with speed adjustment (0.25x-1x)
-- **10 Languages** (EN, ES, FR, DE, IT, PT, ZH, JA, AR, HI)
-- **10 Suggested words per language** (including compounds like "thank you")
-- **Word Practice** (renamed from Practice) with:
-  - Side-by-side Model Articulation + Recording panel
-  - Dual grading: Visual Score (lip/jaw) + Audio Score (pronunciation)
-  - Video recorder placeholder with lip outline overlay
-  - Playback functionality
-- **Letter Practice** with:
-  - Full alphabet grid (26+ letters per language)
-  - Vowels highlighted in gold/amber
-  - Phoneme pronunciation under each letter (e.g., "ah", "buh")
-  - Dual head animator + recording panel per letter
-- **Progress page** with:
-  - 5 stat cards (Total, Average, Visual, Audio, Streak)
-  - Download button for institutional storage
-  - Visual + Audio score breakdown per session
-- Bug Reporter with 6 categories including Recording issues
-- Offline indicator
-- Medical dark theme UI (sky/cyan accent on slate-900)
 
-### Core Engine Files Created
-- `/app/soundmirror/core/phoneme-engine/phoneme-map.ts`
-- `/app/soundmirror/core/phoneme-engine/timeline-builder.ts`
-- `/app/soundmirror/core/sprite-scheduler/sprite-scheduler.ts`
-- `/app/soundmirror/tools/manifest-generator/generate-manifest.js`
+#### Sprint 3: Recording & Grading System (Jan 27) ✅ COMPLETED
+- **Audio & Video Recording** ✅
+  - `/src/hooks/useMediaRecorder.js` - Full MediaRecorder API integration
+  - Audio recording with microphone
+  - Video recording with webcam
+  - Real-time audio level visualization
+  - Download recording functionality
+- **Attempt History System** ✅
+  - `/src/hooks/useAttemptHistory.js` - IndexedDB persistence
+  - Save up to 100 attempts with timestamps
+  - Track scores, phoneme analysis, feedback
+- **Grading Service v1 (Heuristic)** ✅
+  - `/src/services/gradingService.js` - Audio analysis pipeline
+  - Energy envelope extraction
+  - Voice activity detection
+  - Timing alignment scoring
+  - Pronunciation scoring (heuristic placeholder)
+  - Clarity scoring based on energy variance
+- **Recording Studio Component** ✅
+  - `/src/components/recording/RecordingStudio.jsx`
+  - Audio/Video mode toggle
+  - Real-time recording indicator with audio level
+  - Automatic grading on recording stop
+  - Score display with feedback
+- **Timeline Scrubber Component** ✅
+  - `/src/components/recording/TimelineScrubber.jsx`
+  - Visual phoneme segments on timeline
+  - Clickable scrubbing
+  - Play/Pause with frame-accurate seeking
+  - Vowel vs consonant color coding
+- **Comparison View Component** ✅
+  - `/src/components/recording/ComparisonView.jsx`
+  - Side-by-side and overlay modes
+  - Synchronized playback
+  - Score comparison display
+- **Enhanced DualHeadAnimator** ✅
+  - Smooth crossfade transitions between frames
+  - Cubic easing for natural movement
+  - External seek support for scrubbing
+  - Configurable blend duration
 
-### Tauri Desktop Structure
-- `/app/soundmirror/apps/desktop/` - Full Tauri 2.0 project
-- `/app/soundmirror/apps/desktop/src-tauri/` - Rust backend with TTS stubs
+---
 
-### Asset Management
-- IPA Master phoneme table: `/app/soundmirror/assets/phoneme_tables/ipa_master.json`
-- 24 phonemes mapped to frame ranges (250 total frames)
-- **SPRITES INTEGRATED:** `/app/frontend/public/assets/sprites/front/` (250 PNG frames)
-- **SPRITES INTEGRATED:** `/app/frontend/public/assets/sprites/side/` (250 PNG frames)
+## Architecture
 
-## GitHub Repository Structure
+### Current File Structure
 ```
-SoundMirror/ (GitHub: danielpinfo/SoundMirror)
-├── sprites_head_front/     # 250 front-view PNGs
-├── sprites_head_side/      # 250 side-view PNGs  
-├── Base44_export/          # Legacy reference code
+/app/frontend/
+├── public/
+│   └── assets/
+│       ├── audio/phonemes/     # 240 MP3s
+│       └── sprites/
+│           ├── front_master.png (939x15860px, 12MB)
+│           └── side_master.png  (939x15860px, 19MB)
+├── src/
+│   ├── components/
+│   │   ├── common/
+│   │   │   └── DualHeadAnimator.jsx   # Core animation component
+│   │   ├── recording/
+│   │   │   ├── RecordingStudio.jsx    # Audio/video recording
+│   │   │   ├── TimelineScrubber.jsx   # Timeline navigation
+│   │   │   └── ComparisonView.jsx     # Side-by-side comparison
+│   │   └── ui/                        # Shadcn components
+│   ├── data/
+│   │   └── phonemeMap.js              # Phonetic engine
+│   ├── hooks/
+│   │   ├── useMediaRecorder.js        # Recording hook
+│   │   └── useAttemptHistory.js       # History persistence
+│   ├── services/
+│   │   └── gradingService.js          # Heuristic scoring
+│   └── App.js                         # Main app with pages
 ```
+
+### Data Flow
+```
+User Input (Word/Letter)
+     ↓
+phonemeMap.js (Text → Viseme Sequence)
+     ↓
+DualHeadAnimator (Viseme → Sprite Frames)
+     ↓
+Sprite Sheet Rendering (CSS background-position)
+     ↓
+User Records Attempt
+     ↓
+useMediaRecorder (MediaRecorder API)
+     ↓
+gradingService (Audio Analysis)
+     ↓
+Score Display + useAttemptHistory (IndexedDB)
+```
+
+---
 
 ## Prioritized Backlog
 
 ### P0 (Critical - Next Sprint)
-1. ✅ Import 500 PNG sprites from GitHub into assets folder - **COMPLETED**
-2. ✅ Replace placeholder shapes with actual sprite images - **COMPLETED**
-3. Implement native TTS bridge (Windows SAPI / macOS NSSpeech)
-4. Build Tauri desktop executable
-5. Real camera/microphone recording with browser APIs
+1. ✅ Import 500 PNG sprites from GitHub - **COMPLETED**
+2. ✅ Real camera/microphone recording - **COMPLETED (Jan 27)**
+3. ✅ Timeline scrubbing - **COMPLETED (Jan 27)**
+4. Fix non-English language animations (Chinese/Japanese)
+5. Build Tauri desktop executable
 
 ### P1 (High Priority)
 6. SQLite integration for offline storage
-7. Recording functionality with Web Audio API
-8. Phoneme comparison/feedback system
-9. User progress persistence
-10. Language pack loading system
+7. ML-based pronunciation scoring (replace heuristics)
+8. User progress persistence across sessions
+9. Language pack loading system
+10. Native TTS bridge (Windows SAPI / macOS NSSpeech)
 
 ### P2 (Medium Priority)
 11. React Native mobile setup (Android)
@@ -147,22 +168,32 @@ SoundMirror/ (GitHub: danielpinfo/SoundMirror)
 14. Airflow overlay animations
 15. Additional language packs
 
-### P3 (Future)
-16. Cloud sync for progress (opt-in)
-17. Speech-to-text comparison
-18. Pronunciation scoring algorithm
-19. Gamification elements
-20. Community language contributions
-
-## Next Tasks List
-1. ✅ **Import sprites** - Pulled 500 PNGs from GitHub repo - **DONE**
-2. ✅ **Wire up sprites** - DualHeadAnimator now uses real PNG sprites - **DONE**
-3. ✅ **Animation Engine** - Clinical-grade engine with sweet spot logic - **DONE (Jan 26, 2026)**
-4. ✅ **Digraph Handling** - 'll', 'sh', 'ch', 'th' as single phonemes - **DONE (Jan 26, 2026)**
-5. **Real Recording** - Implement camera/microphone capture with Web APIs
-6. **Animation Scrubbing** - Add slider to manually scrub through animation frames
-7. **Test TTS** - Validate Web Speech API timing sync with sprites
-8. **Build Tauri** - Create first desktop executable
+### P3 (Future - Deferred per User Spec)
+16. Native C++/Rust SoundMirrorCore engine
+17. Godot desktop cockpit
+18. iOS/Android native SDK wrappers
+19. Parametric articulator splines (tongue/lips physics)
+20. Neural frame interpolation (RIFE)
+21. Offline sprite expansion tool
+22. Coarticulation physics modeling
 
 ---
-*Last Updated: January 26, 2026 - Animation engine tested and verified*
+
+## Key Technical Concepts
+
+- **Frontend:** React 18, Tailwind CSS, Vite
+- **Animation:** CSS sprite animation via `background-position`, `requestAnimationFrame` timing, CSS opacity crossfades
+- **Recording:** MediaRecorder API, Web Audio API for analysis
+- **Storage:** IndexedDB for attempts, localStorage for settings
+- **Phonetics:** Custom phonetic engine mapping text patterns to 20-frame viseme library
+
+---
+
+## Next Tasks
+1. **Test Recording Flow** - Verify full record → grade → history pipeline
+2. **Fix Non-English** - Debug Chinese/Japanese animation defaulting to 'a'
+3. **Tauri Build** - Create first desktop executable
+4. **ML Scoring Integration** - Replace heuristic grading with actual speech recognition
+
+---
+*Last Updated: January 27, 2026 - Recording & Grading System Implemented*
