@@ -47,15 +47,6 @@ export function useMediaRecorder({
   const timerRef = useRef(null);
   const startTimeRef = useRef(null);
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      stopStream();
-      if (timerRef.current) clearInterval(timerRef.current);
-      if (recordingUrl) URL.revokeObjectURL(recordingUrl);
-    };
-  }, []);
-
   // Stop all tracks in the stream
   const stopStream = useCallback(() => {
     if (stream) {
@@ -63,6 +54,15 @@ export function useMediaRecorder({
       setStream(null);
     }
   }, [stream]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      // Use refs directly in cleanup to avoid stale closures
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Request media permissions and setup stream
   const requestPermissions = useCallback(async () => {
