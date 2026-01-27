@@ -496,6 +496,24 @@ export const getPhonemeAudioPath = (l, lang) => {
 };
 export const getFrameForPhoneme = getFrameForSound;
 
+// Generate reference timing for a phoneme sequence
+export const generateReferenceTiming = (phonemes, totalDuration = 2000) => {
+  const weights = phonemes.map(p => {
+    const isVowel = ['a', 'e', 'i', 'o', 'u', 'ah', 'eh', 'ee', 'oo', 'ay'].includes(p.toLowerCase());
+    return isVowel ? 1.5 : 1;
+  });
+  const totalWeight = weights.reduce((a, b) => a + b, 0);
+  let currentTime = 0;
+  
+  return phonemes.map((phoneme, i) => {
+    const duration = (weights[i] / totalWeight) * totalDuration;
+    const frame = getFrameForSound(phoneme);
+    const timing = { phoneme, start: currentTime, end: currentTime + duration, duration, frame };
+    currentTime += duration;
+    return timing;
+  });
+};
+
 // Legacy
 export const textToPhonemes = (text) => textToVisemes(text).map(v => v.sound);
 export const wordToPhonemes = textToPhonemes;
