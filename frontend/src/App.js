@@ -837,12 +837,10 @@ function WordPracticePage() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(0.5);
-  const [isRecording, setIsRecording] = useState(false);
-  const [hasRecording, setHasRecording] = useState(false);
-  const [recordingTime, setRecordingTime] = useState(0);
-  const [visualScore, setVisualScore] = useState(null);
-  const [audioScore, setAudioScore] = useState(null);
-  const timerRef = useRef(null);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [gradingResults, setGradingResults] = useState(null);
+  const [recordingData, setRecordingData] = useState(null);
+  const animatorRef = useRef(null);
 
   // Use textToPhonemes for digraph handling (ll, sh, ch, th, etc.)
   const phonemeTokens = textToPhonemes(word);
@@ -852,55 +850,70 @@ function WordPracticePage() {
     isDigraph: p.length > 1
   }));
 
+  // Generate reference timing for timeline
+  const referenceDuration = phonemeTokens.length * 200; // ~200ms per phoneme
+  const phoneTimeline = useMemo(() => {
+    let time = 0;
+    return phonemeTokens.map(p => {
+      const isVowel = ['a', 'e', 'i', 'o', 'u', 'ah', 'eh', 'ee', 'oo', 'ay'].includes(p.toLowerCase());
+      const duration = isVowel ? 250 : 150;
+      const item = { phoneme: p, start: time, end: time + duration, frame: 0 };
+      time += duration;
+      return item;
+    });
+  }, [phonemeTokens]);
+
   const handlePlay = () => { 
-    // Start animation immediately
     setIsPlaying(true);
     
     if ('speechSynthesis' in window && !isMuted) { 
-      // Cancel any ongoing speech first
       window.speechSynthesis.cancel();
-      
       const u = new SpeechSynthesisUtterance(word); 
       u.rate = playbackSpeed; 
       u.lang = lang;
-      
-      // Animation handles its own completion via onAnimationComplete
       window.speechSynthesis.speak(u);
     }
   };
-  
-  const startRecording = () => { 
-    setIsRecording(true); 
-    setHasRecording(false); 
-    setVisualScore(null); 
-    setAudioScore(null); 
-    setRecordingTime(0); 
-    timerRef.current = setInterval(() => setRecordingTime(t => t + 100), 100); 
-  };
-  
-  const stopRecording = () => { 
-    setIsRecording(false); 
-    setHasRecording(true); 
-    clearInterval(timerRef.current);
-    setTimeout(() => { 
-      const v = Math.floor(Math.random()*30)+70;
-      const a = Math.floor(Math.random()*30)+70;
-      setVisualScore(v); 
-      setAudioScore(a);
-      // Save to history
-      const h = JSON.parse(localStorage.getItem('soundmirror_history') || '[]');
-      h.unshift({ id: Date.now(), word, lang, visualScore: v / 100, audioScore: a / 100, score: (v + a) / 200, date: new Date().toISOString(), duration: recordingTime });
-      localStorage.setItem('soundmirror_history', JSON.stringify(h.slice(0, 50)));
-    }, 500);
+
+  const handleTimeUpdate = (time) => {
+    setCurrentTime(time);
   };
 
-  const getScoreColor = (s) => s >= 85 ? 'text-emerald-400' : s >= 70 ? 'text-amber-400' : 'text-rose-400';
+  const handleSeek = (time) => {
+    setCurrentTime(time);
+    if (animatorRef.current) {
+      animatorRef.current.seekTo(time);
+    }
+  };
+
+  const handleGradingComplete = (results) => {
+    setGradingResults(results);
+    // Save to history
+    const h = JSON.parse(localStorage.getItem('soundmirror_history') || '[]');
+    h.unshift({ 
+      id: Date.now(), 
+      word, 
+      lang, 
+      visualScore: results.scores.timing, 
+      audioScore: results.scores.pronunciation, 
+      score: results.scores.overall, 
+      date: new Date().toISOString(),
+      feedback: results.feedback,
+    });
+    localStorage.setItem('soundmirror_history', JSON.stringify(h.slice(0, 50)));
+  };
+
+  const handleRecordingComplete = (data) => {
+    setRecordingData(data);
+  };
 
   return (
     <div className="min-h-screen p-4 lg:p-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-4">
-          <button onClick={() => navigate('/')} className="flex items-center gap-2 text-slate-400 hover:text-slate-200"><ArrowLeft className="w-5 h-5" />{t('back')}</button>
+          <button onClick={() => navigate('/')} className="flex items-center gap-2 text-slate-400 hover:text-slate-200">
+            <ArrowLeft className="w-5 h-5" />{t('back')}
+          </button>
           <div className="text-center">
             <h1 className="text-2xl font-bold text-slate-100">{t('wordPractice')}: <span className="text-sky-400">{word}</span></h1>
             <p className="text-slate-500 text-sm">{t('watchListen')}</p>
@@ -908,112 +921,59 @@ function WordPracticePage() {
           <LanguageSelector compact />
         </div>
         
-        {/* Main content: Large Camera LEFT, Model + Controls RIGHT */}
+        {/* Main content: Recording LEFT, Model + Timeline RIGHT */}
         <div className="grid lg:grid-cols-5 gap-4">
-          {/* LEFT: Large Camera/Recording Screen */}
-          <div className="lg:col-span-2 glass-card p-4">
-            <h3 className="text-sm font-semibold text-slate-400 mb-3 text-center uppercase tracking-wider flex items-center justify-center gap-2">
-              <Camera className="w-4 h-4 text-cyan-400" />{t('recordGrade')}
-            </h3>
-            {/* Large Video Preview */}
-            <div className="relative bg-slate-950 rounded-2xl mb-4 overflow-hidden border border-slate-700/50 aspect-[4/3]">
-              <div className="absolute inset-0 flex items-center justify-center">
-                {isRecording ? (
-                  <div className="text-center">
-                    <div className="w-20 h-20 rounded-full border-4 border-rose-500 flex items-center justify-center mb-2 animate-pulse">
-                      <Video className="w-10 h-10 text-rose-400" />
-                    </div>
-                    <div className="text-rose-400 font-mono text-2xl">{(recordingTime / 1000).toFixed(1)}s</div>
-                    <div className="text-rose-300 text-sm mt-1">Recording...</div>
-                  </div>
-                ) : hasRecording ? (
-                  <div className="text-center">
-                    <Video className="w-16 h-16 mx-auto mb-2 text-emerald-400" />
-                    <div className="text-emerald-400 text-lg font-medium">Recording Ready</div>
-                  </div>
-                ) : (
-                  <div className="text-slate-500 text-center">
-                    <Video className="w-20 h-20 mx-auto mb-2 text-slate-600" />
-                    <div className="text-lg">Camera Preview</div>
-                    <div className="text-sm text-slate-600">Press record to capture</div>
-                  </div>
-                )}
-              </div>
-              {/* Lip tracking overlay */}
-              {isRecording && (
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className="w-32 h-20 border-2 border-dashed border-cyan-400/60 rounded-full animate-pulse" />
-                </div>
-              )}
-            </div>
-            
-            {/* Record Controls */}
-            <div className="flex justify-center gap-3 mb-4">
-              {!isRecording ? (
-                <button onClick={startRecording} className="btn-glow flex items-center gap-2 px-6 py-3 text-base">
-                  <Circle className="w-5 h-5 fill-current" />{t('startRecording')}
-                </button>
-              ) : (
-                <button onClick={stopRecording} className="flex items-center gap-2 px-6 py-3 bg-rose-500 text-white rounded-xl text-base hover:bg-rose-600 transition-colors">
-                  <Square className="w-5 h-5" />{t('stopRecording')}
-                </button>
-              )}
-              {hasRecording && (
-                <button className="flex items-center gap-2 px-4 py-3 bg-slate-700 text-slate-200 rounded-xl">
-                  <Play className="w-5 h-5" />{t('playback')}
-                </button>
-              )}
-            </div>
-            
-            {/* Scores */}
-            {visualScore !== null && (
-              <div className="grid grid-cols-2 gap-3">
-                <div className="p-3 rounded-xl bg-slate-800/50 text-center border border-slate-700/50">
-                  <div className="flex items-center justify-center gap-2 mb-1">
-                    <Eye className="w-4 h-4 text-cyan-400" />
-                    <span className="text-xs text-slate-400">{t('visualScore')}</span>
-                  </div>
-                  <div className={`text-3xl font-bold ${getScoreColor(visualScore)}`}>{visualScore}%</div>
-                  <div className="text-[10px] text-slate-500">{t('lipJaw')}</div>
-                </div>
-                <div className="p-3 rounded-xl bg-slate-800/50 text-center border border-slate-700/50">
-                  <div className="flex items-center justify-center gap-2 mb-1">
-                    <Ear className="w-4 h-4 text-purple-400" />
-                    <span className="text-xs text-slate-400">{t('audioScore')}</span>
-                  </div>
-                  <div className={`text-3xl font-bold ${getScoreColor(audioScore)}`}>{audioScore}%</div>
-                  <div className="text-[10px] text-slate-500">{t('pronunciation')}</div>
-                </div>
-              </div>
-            )}
+          {/* LEFT: Recording Studio */}
+          <div className="lg:col-span-2">
+            <RecordingStudio 
+              target={word}
+              expectedPhonemes={phonemeTokens}
+              referenceDuration={referenceDuration}
+              onRecordingComplete={handleRecordingComplete}
+              onGradingComplete={handleGradingComplete}
+            />
           </div>
           
-          {/* RIGHT: Model Articulation + Playback Controls */}
-          <div className="lg:col-span-3 glass-card p-5">
-            <h3 className="text-sm font-semibold text-slate-400 mb-3 text-center uppercase tracking-wider">{t('modelArticulation')}</h3>
-            <DualHeadAnimator 
-              phonemeSequence={phonemeTokens} 
-              isPlaying={isPlaying} 
-              playbackRate={playbackSpeed} 
-              frameDuration={Math.round(100 / playbackSpeed)} 
-              onAnimationComplete={() => setIsPlaying(false)} 
-              size="large" 
-            />
-            <div className="mt-4 flex flex-wrap items-center justify-center gap-1">
-              {phonemes.map((p, i) => <span key={i} className="phoneme-badge min-w-[50px]">{p.letter}</span>)}
-            </div>
-            <div className="mt-4 flex justify-center">
-              <PlaybackControls 
+          {/* RIGHT: Model Articulation + Timeline */}
+          <div className="lg:col-span-3 space-y-4">
+            {/* Model Animation */}
+            <div className="glass-card p-5">
+              <h3 className="text-sm font-semibold text-slate-400 mb-3 text-center uppercase tracking-wider">{t('modelArticulation')}</h3>
+              <DualHeadAnimator 
+                ref={animatorRef}
+                phonemeSequence={phonemeTokens} 
                 isPlaying={isPlaying} 
-                isMuted={isMuted} 
-                playbackSpeed={playbackSpeed} 
-                onPlay={handlePlay} 
-                onPause={() => { setIsPlaying(false); window.speechSynthesis?.cancel(); }} 
-                onReset={() => { setIsPlaying(false); window.speechSynthesis?.cancel(); }} 
-                onSpeedChange={setPlaybackSpeed} 
-                onMuteToggle={() => setIsMuted(!isMuted)} 
+                playbackRate={playbackSpeed} 
+                onAnimationComplete={() => setIsPlaying(false)}
+                onTimeUpdate={handleTimeUpdate}
+                size="large" 
               />
+              <div className="mt-4 flex flex-wrap items-center justify-center gap-1">
+                {phonemes.map((p, i) => <span key={i} className="phoneme-badge min-w-[50px]">{p.letter}</span>)}
+              </div>
+              <div className="mt-4 flex justify-center">
+                <PlaybackControls 
+                  isPlaying={isPlaying} 
+                  isMuted={isMuted} 
+                  playbackSpeed={playbackSpeed} 
+                  onPlay={handlePlay} 
+                  onPause={() => { setIsPlaying(false); window.speechSynthesis?.cancel(); }} 
+                  onReset={() => { setIsPlaying(false); setCurrentTime(0); window.speechSynthesis?.cancel(); }} 
+                  onSpeedChange={setPlaybackSpeed} 
+                  onMuteToggle={() => setIsMuted(!isMuted)} 
+                />
+              </div>
             </div>
+
+            {/* Timeline Scrubber */}
+            <TimelineScrubber
+              duration={referenceDuration}
+              currentTime={currentTime}
+              isPlaying={isPlaying}
+              phonemes={phoneTimeline}
+              onSeek={handleSeek}
+              onPlayPause={() => isPlaying ? setIsPlaying(false) : handlePlay()}
+            />
           </div>
         </div>
       </div>
