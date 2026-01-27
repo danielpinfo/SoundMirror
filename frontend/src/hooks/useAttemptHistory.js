@@ -120,12 +120,24 @@ export function useAttemptHistory() {
         request.onerror = () => reject(request.error);
       });
 
-      // Prune old attempts if over limit
+      // Prune old attempts if over limit - inline deletion to avoid hoisting issues
       const allAttempts = await loadAttempts();
       if (allAttempts.length > MAX_ATTEMPTS) {
         const toDelete = allAttempts.slice(MAX_ATTEMPTS);
         for (const old of toDelete) {
-          await deleteAttempt(old.id);
+          // Inline delete logic
+          try {
+            const deleteDb = await openDB();
+            const deleteTx = deleteDb.transaction(STORE_NAME, 'readwrite');
+            const deleteStore = deleteTx.objectStore(STORE_NAME);
+            await new Promise((res, rej) => {
+              const req = deleteStore.delete(old.id);
+              req.onsuccess = () => res();
+              req.onerror = () => rej(req.error);
+            });
+          } catch (delErr) {
+            console.error('Failed to delete old attempt:', delErr);
+          }
         }
       }
 
