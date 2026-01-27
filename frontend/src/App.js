@@ -886,22 +886,23 @@ function WordPracticePage() {
     }
   };
 
-  const handleGradingComplete = (results) => {
+  const handleGradingComplete = useCallback((results) => {
     setGradingResults(results);
     // Save to history
     const h = JSON.parse(localStorage.getItem('soundmirror_history') || '[]');
+    const timestamp = Date.now();
     h.unshift({ 
-      id: Date.now(), 
+      id: timestamp, 
       word, 
       lang, 
       visualScore: results.scores.timing, 
       audioScore: results.scores.pronunciation, 
       score: results.scores.overall, 
-      date: new Date().toISOString(),
+      date: new Date(timestamp).toISOString(),
       feedback: results.feedback,
     });
     localStorage.setItem('soundmirror_history', JSON.stringify(h.slice(0, 50)));
-  };
+  }, [word, lang]);
 
   const handleRecordingComplete = (data) => {
     setRecordingData(data);
