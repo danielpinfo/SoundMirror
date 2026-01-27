@@ -125,13 +125,6 @@ export function RecordingStudio({
       performGrading();
     }
   }, [recorder.hasRecording, recorder.recordingBlob, gradingResults, performGrading]);
-      });
-    } catch (err) {
-      console.error('Grading failed:', err);
-    } finally {
-      setIsGrading(false);
-    }
-  };
 
   // Start recording
   const handleStart = async () => {
