@@ -91,14 +91,8 @@ export function RecordingStudio({
     recorder.stopRecording();
   }, [recorder]);
 
-  // Grade when recording is available
-  useEffect(() => {
-    if (recorder.hasRecording && recorder.recordingBlob && !gradingResults) {
-      performGrading();
-    }
-  }, [recorder.hasRecording, recorder.recordingBlob]);
-
-  const performGrading = async () => {
+  // Grading function - needs to be defined before useEffect
+  const performGrading = useCallback(async () => {
     if (!recorder.recordingBlob) return;
 
     setIsGrading(true);
@@ -117,6 +111,20 @@ export function RecordingStudio({
         url: recorder.recordingUrl,
         duration: recorder.duration,
         grades: results,
+      });
+    } catch (err) {
+      console.error('Grading failed:', err);
+    } finally {
+      setIsGrading(false);
+    }
+  }, [recorder.recordingBlob, recorder.recordingUrl, recorder.duration, referenceDuration, target, expectedPhonemes, onGradingComplete, onRecordingComplete]);
+
+  // Grade when recording is available
+  useEffect(() => {
+    if (recorder.hasRecording && recorder.recordingBlob && !gradingResults) {
+      performGrading();
+    }
+  }, [recorder.hasRecording, recorder.recordingBlob, gradingResults, performGrading]);
       });
     } catch (err) {
       console.error('Grading failed:', err);
