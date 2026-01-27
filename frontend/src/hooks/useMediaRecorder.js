@@ -95,6 +95,18 @@ export function useMediaRecorder({
     }
   }, [audio, video]);
 
+  // Stop recording - defined before startRecording to avoid hoisting issues
+  const stopRecording = useCallback(() => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+    }
+  }, []);
+
   // Start recording
   const startRecording = useCallback(async () => {
     let activeStream = stream;
@@ -151,14 +163,18 @@ export function useMediaRecorder({
       startTimeRef.current = Date.now();
       setState(RecordingState.RECORDING);
 
-      // Duration timer
+      // Duration timer - use ref-based stop to avoid closure issues
       timerRef.current = setInterval(() => {
         const elapsed = Date.now() - startTimeRef.current;
         setDuration(elapsed);
 
-        // Auto-stop at max duration
-        if (elapsed >= maxDuration) {
-          stopRecording();
+        // Auto-stop at max duration using ref
+        if (elapsed >= maxDuration && mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+          if (timerRef.current) {
+            clearInterval(timerRef.current);
+            timerRef.current = null;
+          }
+          mediaRecorderRef.current.stop();
         }
       }, 100);
 
@@ -168,18 +184,6 @@ export function useMediaRecorder({
       setState(RecordingState.ERROR);
     }
   }, [stream, video, maxDuration, recordingUrl, requestPermissions]);
-
-  // Stop recording
-  const stopRecording = useCallback(() => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
-
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-      mediaRecorderRef.current.stop();
-    }
-  }, []);
 
   // Pause recording
   const pauseRecording = useCallback(() => {
