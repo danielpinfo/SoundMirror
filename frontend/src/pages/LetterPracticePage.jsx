@@ -1,8 +1,11 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DualHeadAnimator from '../components/core/DualHeadAnimator';
 import { LETTER_TO_FRAME, LETTER_TO_AUDIO, DIGRAPHS, getAudioPath } from '../services/phonemeEngine';
 import { getTranslation } from '../i18n/translations';
+
+// Vowels don't need a following vowel sound
+const VOWELS = ['a', 'e', 'i', 'o', 'u'];
 
 export default function LetterPracticePage({ language }) {
   const navigate = useNavigate();
@@ -17,21 +20,24 @@ export default function LetterPracticePage({ language }) {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [hasRecording, setHasRecording] = useState(false);
-  const [mediaRecorder, setMediaRecorder] = useState(null);
   const [recordedBlob, setRecordedBlob] = useState(null);
-  const [videoStream, setVideoStream] = useState(null);
+  const [recordedUrl, setRecordedUrl] = useState(null);
 
   // Grading state
   const [visualGrade, setVisualGrade] = useState(null);
   const [audioGrade, setAudioGrade] = useState(null);
   const [detectedSound, setDetectedSound] = useState(null);
+  const [isGrading, setIsGrading] = useState(false);
 
   // Refs
   const animatorRef = useRef(null);
   const audioRef = useRef(null);
   const timerRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const streamRef = useRef(null);
   const videoPreviewRef = useRef(null);
-  const recordedVideoRef = useRef(null);
+  const playbackVideoRef = useRef(null);
+  const chunksRef = useRef([]);
 
   // Get frame for selected letter
   const getFrame = () => {
@@ -41,15 +47,43 @@ export default function LetterPracticePage({ language }) {
   };
 
   // Build alphabet with special chars
-  const alphabet = (t('alphabet') || 'ABCDEFGHIJKLMNOPQRSTUVWXYZ').split('');
-  const specialChars = t('specialChars') || ['CH', 'SH', 'TH', 'NG'];
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+  const specialChars = ['CH', 'SH', 'TH', 'NG'];
   const allChars = [...alphabet, ...specialChars];
+
+  // Check if letter is a vowel
+  const isVowel = VOWELS.includes(selectedLetter.toLowerCase());
+
+  // Build animation timeline for letter
+  // Consonants: neutral -> consonant -> vowel (ah) -> neutral
+  // Vowels: neutral -> vowel -> neutral
+  const buildLetterTimeline = useCallback(() => {
+    const frame = getFrame();
+    
+    if (isVowel) {
+      return [
+        { frame: 0, start: 0, end: 200 },
+        { frame, start: 200, end: 700 },
+        { frame: 0, start: 700, end: 900 },
+      ];
+    } else {
+      // Consonant + vowel (e.g., "B" = "ba")
+      return [
+        { frame: 0, start: 0, end: 150 },
+        { frame, start: 150, end: 400 },  // Consonant
+        { frame: 1, start: 400, end: 700 },  // Vowel "ah" (frame 1)
+        { frame: 0, start: 700, end: 900 },
+      ];
+    }
+  }, [selectedLetter, isVowel]);
 
   // Play animation and audio
   const handlePlay = () => {
     setIsPlaying(true);
+  };
 
-    // Play MP3 audio
+  // Called after the 1000ms delay, plays audio
+  const handleDelayEnd = () => {
     const audioPath = getAudioPath(selectedLetter, language);
     if (audioRef.current) {
       audioRef.current.pause();
@@ -58,7 +92,8 @@ export default function LetterPracticePage({ language }) {
     audioRef.current.play().catch(() => {
       // Fallback to TTS
       if ('speechSynthesis' in window) {
-        const utterance = new SpeechSynthesisUtterance(LETTER_TO_AUDIO[selectedLetter.toLowerCase()] || selectedLetter);
+        const sound = LETTER_TO_AUDIO[selectedLetter.toLowerCase()] || selectedLetter;
+        const utterance = new SpeechSynthesisUtterance(sound);
         utterance.rate = 0.7;
         utterance.lang = language;
         window.speechSynthesis.speak(utterance);
@@ -79,82 +114,146 @@ export default function LetterPracticePage({ language }) {
     }
   };
 
-  // Recording functions
+  // Start Recording
   const startRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      setVideoStream(stream);
-      
-      if (videoPreviewRef.current) {
-        videoPreviewRef.current.srcObject = stream;
-      }
-
-      const recorder = new MediaRecorder(stream);
-      const chunks = [];
-
-      recorder.ondataavailable = (e) => {
-        if (e.data.size > 0) chunks.push(e.data);
-      };
-
-      recorder.onstop = () => {
-        const blob = new Blob(chunks, { type: 'video/webm' });
-        setRecordedBlob(blob);
-        setHasRecording(true);
-        
-        // Simulate grading
-        setTimeout(() => {
-          setVisualGrade(Math.floor(Math.random() * 25) + 75);
-          setAudioGrade(Math.floor(Math.random() * 25) + 75);
-          setDetectedSound(selectedLetter.toLowerCase());
-        }, 800);
-      };
-
-      setMediaRecorder(recorder);
-      recorder.start();
-      setIsRecording(true);
-      setRecordingTime(0);
+      // Reset state
       setHasRecording(false);
       setVisualGrade(null);
       setAudioGrade(null);
+      setDetectedSound(null);
+      setRecordedBlob(null);
+      if (recordedUrl) URL.revokeObjectURL(recordedUrl);
+      setRecordedUrl(null);
+      chunksRef.current = [];
+
+      // Get media stream
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
+        audio: true 
+      });
+      streamRef.current = stream;
+
+      // Show preview
+      if (videoPreviewRef.current) {
+        videoPreviewRef.current.srcObject = stream;
+        videoPreviewRef.current.play();
+      }
+
+      // Create MediaRecorder
+      const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') 
+        ? 'video/webm;codecs=vp9' 
+        : 'video/webm';
+      const recorder = new MediaRecorder(stream, { mimeType });
+      mediaRecorderRef.current = recorder;
+
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          chunksRef.current.push(e.data);
+        }
+      };
+
+      recorder.onstop = () => {
+        const blob = new Blob(chunksRef.current, { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        setRecordedBlob(blob);
+        setRecordedUrl(url);
+        setHasRecording(true);
+
+        // Stop all tracks
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach(track => track.stop());
+        }
+
+        // Perform grading
+        performGrading(blob);
+      };
+
+      // Start recording
+      recorder.start(100);
+      setIsRecording(true);
+      setRecordingTime(0);
 
       timerRef.current = setInterval(() => {
-        setRecordingTime((t) => t + 100);
+        setRecordingTime(t => t + 100);
       }, 100);
+
     } catch (err) {
       console.error('Recording error:', err);
-      alert('Could not access camera/microphone');
+      alert('Could not access camera/microphone. Please allow permissions.');
     }
   };
 
+  // Stop Recording
   const stopRecording = () => {
-    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-      mediaRecorder.stop();
-    }
-    if (videoStream) {
-      videoStream.getTracks().forEach(track => track.stop());
-    }
     clearInterval(timerRef.current);
+    
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+    }
+    
     setIsRecording(false);
   };
 
+  // Perform grading (simulated for now)
+  const performGrading = async (blob) => {
+    setIsGrading(true);
+    
+    // Simulate processing time
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // Generate scores (in real implementation, this would analyze the audio/video)
+    const visual = Math.floor(Math.random() * 20) + 78;
+    const audio = Math.floor(Math.random() * 20) + 78;
+    
+    // Simulate detected sound
+    const target = LETTER_TO_AUDIO[selectedLetter.toLowerCase()] || selectedLetter;
+    const variations = [target, target, target, target.slice(0, -1) + 'e', target + 'h'];
+    const detected = variations[Math.floor(Math.random() * variations.length)];
+
+    setVisualGrade(visual);
+    setAudioGrade(audio);
+    setDetectedSound(detected);
+    setIsGrading(false);
+
+    // Save to history
+    const history = JSON.parse(localStorage.getItem('soundmirror_history') || '[]');
+    history.unshift({
+      id: Date.now(),
+      type: 'letter',
+      target: selectedLetter.toUpperCase(),
+      language,
+      visualScore: visual / 100,
+      audioScore: audio / 100,
+      detectedSound: detected,
+      date: new Date().toISOString(),
+    });
+    localStorage.setItem('soundmirror_history', JSON.stringify(history.slice(0, 100)));
+  };
+
+  // Replay attempt
   const replayAttempt = () => {
-    if (recordedBlob && recordedVideoRef.current) {
-      recordedVideoRef.current.src = URL.createObjectURL(recordedBlob);
-      recordedVideoRef.current.play();
+    if (playbackVideoRef.current && recordedUrl) {
+      playbackVideoRef.current.src = recordedUrl;
+      playbackVideoRef.current.play();
     }
   };
 
   // Cleanup
   useEffect(() => {
     return () => {
-      if (videoStream) {
-        videoStream.getTracks().forEach(track => track.stop());
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+      }
+      if (recordedUrl) {
+        URL.revokeObjectURL(recordedUrl);
       }
       clearInterval(timerRef.current);
     };
-  }, [videoStream]);
+  }, [recordedUrl]);
 
   const targetFrame = getFrame();
+  const timeline = buildLetterTimeline();
 
   return (
     <div style={{
@@ -190,11 +289,11 @@ export default function LetterPracticePage({ language }) {
         }}>
           {allChars.map((char) => {
             const isSelected = char.toLowerCase() === selectedLetter.toLowerCase();
-            const isVowel = 'aeiou'.includes(char.toLowerCase());
+            const charIsVowel = VOWELS.includes(char.toLowerCase());
             return (
               <button
                 key={char}
-                onClick={() => { setSelectedLetter(char); setVisualGrade(null); setAudioGrade(null); }}
+                onClick={() => { setSelectedLetter(char); setVisualGrade(null); setAudioGrade(null); setHasRecording(false); }}
                 style={{
                   width: char.length > 1 ? 56 : 44,
                   height: 44,
@@ -202,8 +301,8 @@ export default function LetterPracticePage({ language }) {
                   fontWeight: 600,
                   border: isSelected ? '2px solid #3b82f6' : '2px solid transparent',
                   borderRadius: 8,
-                  backgroundColor: isSelected ? '#3b82f6' : isVowel ? '#ca8a04' : '#1e3a5f',
-                  color: isSelected ? '#fff' : isVowel ? '#fef3c7' : '#e2e8f0',
+                  backgroundColor: isSelected ? '#3b82f6' : charIsVowel ? '#ca8a04' : '#1e3a5f',
+                  color: isSelected ? '#fff' : charIsVowel ? '#fef3c7' : '#e2e8f0',
                   cursor: 'pointer',
                   transition: 'all 0.15s',
                 }}
@@ -227,12 +326,13 @@ export default function LetterPracticePage({ language }) {
               <span style={{
                 fontSize: 72,
                 fontWeight: 700,
-                color: 'aeiou'.includes(selectedLetter.toLowerCase()) ? '#fbbf24' : '#60a5fa',
+                color: isVowel ? '#fbbf24' : '#60a5fa',
               }}>
                 {selectedLetter.toUpperCase()}
               </span>
               <div style={{ fontSize: 18, color: '#94a3b8' }}>
                 "{LETTER_TO_AUDIO[selectedLetter.toLowerCase()] || selectedLetter}"
+                {!isVowel && <span style={{ color: '#64748b' }}> (consonant + vowel)</span>}
               </div>
             </div>
 
@@ -240,8 +340,12 @@ export default function LetterPracticePage({ language }) {
             <DualHeadAnimator
               ref={animatorRef}
               targetFrame={targetFrame}
+              timeline={timeline}
               isPlaying={isPlaying}
+              preDelay={1000}
+              onDelayEnd={handleDelayEnd}
               onAnimationComplete={handleAnimationComplete}
+              interpolate={true}
             />
 
             {/* Play Button */}
@@ -272,7 +376,8 @@ export default function LetterPracticePage({ language }) {
                 max="19"
                 value={sliderValue}
                 onChange={handleSliderChange}
-                style={{ width: '100%' }}
+                disabled={isPlaying}
+                style={{ width: '100%', cursor: isPlaying ? 'not-allowed' : 'pointer' }}
               />
               <div style={{ textAlign: 'center', fontSize: 12, color: '#64748b' }}>
                 {t('frame')}: {sliderValue}
@@ -299,21 +404,35 @@ export default function LetterPracticePage({ language }) {
               border: '2px solid #1e3a5f',
               position: 'relative',
             }}>
-              {isRecording ? (
-                <video
-                  ref={videoPreviewRef}
-                  autoPlay
-                  muted
-                  playsInline
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                />
-              ) : hasRecording ? (
-                <video
-                  ref={recordedVideoRef}
-                  playsInline
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                />
-              ) : (
+              {/* Live preview while recording */}
+              <video
+                ref={videoPreviewRef}
+                autoPlay
+                muted
+                playsInline
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  display: isRecording ? 'block' : 'none',
+                }}
+              />
+              
+              {/* Playback video */}
+              <video
+                ref={playbackVideoRef}
+                playsInline
+                controls
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  display: hasRecording && !isRecording ? 'block' : 'none',
+                }}
+              />
+
+              {/* Idle state */}
+              {!isRecording && !hasRecording && (
                 <div style={{ textAlign: 'center', color: '#475569' }}>
                   <div style={{ fontSize: 48, marginBottom: 8 }}>📹</div>
                   <div>{t('beginPractice')}</div>
@@ -340,27 +459,45 @@ export default function LetterPracticePage({ language }) {
                     backgroundColor: '#fff',
                     animation: 'pulse 1s infinite',
                   }} />
-                  <span style={{ fontSize: 14, fontWeight: 600 }}>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>
                     {(recordingTime / 1000).toFixed(1)}s
                   </span>
                 </div>
               )}
+
+              {/* Grading indicator */}
+              {isGrading && (
+                <div style={{
+                  position: 'absolute',
+                  inset: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: 'rgba(0, 20, 40, 0.8)',
+                }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: 32, marginBottom: 8 }}>🔍</div>
+                    <div style={{ color: '#60a5fa' }}>Analyzing...</div>
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Record Button */}
+            {/* Record Buttons */}
             <div style={{ textAlign: 'center', marginBottom: 24 }}>
               {!isRecording ? (
                 <button
                   onClick={startRecording}
+                  disabled={isGrading}
                   style={{
                     padding: '16px 40px',
                     fontSize: 16,
                     fontWeight: 600,
                     borderRadius: 10,
                     border: 'none',
-                    backgroundColor: '#10b981',
+                    backgroundColor: isGrading ? '#475569' : '#10b981',
                     color: '#fff',
-                    cursor: 'pointer',
+                    cursor: isGrading ? 'not-allowed' : 'pointer',
                   }}
                 >
                   ● {t('beginPractice')}
@@ -379,11 +516,11 @@ export default function LetterPracticePage({ language }) {
                     cursor: 'pointer',
                   }}
                 >
-                  ■ {t('stop')}
+                  ■ {t('stop')} ({(recordingTime / 1000).toFixed(1)}s)
                 </button>
               )}
               
-              {hasRecording && (
+              {hasRecording && !isRecording && (
                 <button
                   onClick={replayAttempt}
                   style={{
@@ -404,7 +541,7 @@ export default function LetterPracticePage({ language }) {
             </div>
 
             {/* Grading Results */}
-            {visualGrade !== null && (
+            {visualGrade !== null && !isGrading && (
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                 {/* Visual Grade */}
                 <div style={{
