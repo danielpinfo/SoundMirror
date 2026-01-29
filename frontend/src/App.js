@@ -30,6 +30,7 @@ function App() {
 
   // Handle splash completion
   const handleSplashComplete = () => {
+    sessionStorage.setItem('soundmirror_splash_shown', 'true');
     setShowSplash(false);
   };
 
