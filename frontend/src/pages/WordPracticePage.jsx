@@ -1,8 +1,11 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import DualHeadAnimator from '../components/core/DualHeadAnimator';
 import { generateWordTimeline, textToPhonemes } from '../services/phonemeEngine';
 import { getTranslation } from '../i18n/translations';
+
+// Preselected practice words (same in all pages)
+const PRACTICE_WORDS = ['Hello', 'Goodbye', 'Please', 'Thank You', 'Sorry', 'Yes', 'No', 'Water', 'Good Morning', 'How Are You'];
 
 export default function WordPracticePage({ language }) {
   const navigate = useNavigate();
@@ -19,14 +22,14 @@ export default function WordPracticePage({ language }) {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [hasRecording, setHasRecording] = useState(false);
-  const [mediaRecorder, setMediaRecorder] = useState(null);
   const [recordedBlob, setRecordedBlob] = useState(null);
-  const [videoStream, setVideoStream] = useState(null);
+  const [recordedUrl, setRecordedUrl] = useState(null);
 
   // Grading state
   const [visualGrade, setVisualGrade] = useState(null);
   const [audioGrade, setAudioGrade] = useState(null);
   const [detectedText, setDetectedText] = useState(null);
+  const [isGrading, setIsGrading] = useState(false);
 
   // Input state
   const [inputWord, setInputWord] = useState('');
@@ -34,8 +37,11 @@ export default function WordPracticePage({ language }) {
   // Refs
   const animatorRef = useRef(null);
   const timerRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const streamRef = useRef(null);
   const videoPreviewRef = useRef(null);
-  const recordedVideoRef = useRef(null);
+  const playbackVideoRef = useRef(null);
+  const chunksRef = useRef([]);
 
   // Generate timeline for word
   const timeline = generateWordTimeline(word, 150);
@@ -46,8 +52,10 @@ export default function WordPracticePage({ language }) {
   const handlePlay = () => {
     setIsPlaying(true);
     setCurrentTime(0);
+  };
 
-    // Use native TTS
+  // Called after delay - play TTS
+  const handleDelayEnd = () => {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(word);
@@ -61,7 +69,6 @@ export default function WordPracticePage({ language }) {
     setIsPlaying(false);
   };
 
-  // Handle time updates from animator
   const handleTimeUpdate = (time) => {
     setCurrentTime(time);
     setSliderValue(Math.round((time / totalDuration) * 100));
@@ -77,74 +84,121 @@ export default function WordPracticePage({ language }) {
     }
   };
 
-  // Recording functions
+  // Start Recording
   const startRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      setVideoStream(stream);
-      
-      if (videoPreviewRef.current) {
-        videoPreviewRef.current.srcObject = stream;
-      }
-
-      const recorder = new MediaRecorder(stream);
-      const chunks = [];
-
-      recorder.ondataavailable = (e) => {
-        if (e.data.size > 0) chunks.push(e.data);
-      };
-
-      recorder.onstop = () => {
-        const blob = new Blob(chunks, { type: 'video/webm' });
-        setRecordedBlob(blob);
-        setHasRecording(true);
-        
-        // Simulate grading
-        setTimeout(() => {
-          setVisualGrade(Math.floor(Math.random() * 25) + 75);
-          setAudioGrade(Math.floor(Math.random() * 25) + 75);
-          // Simulate phonetic detection
-          const variants = [word, word.replace('e', 'a'), word + 'h', word.slice(0, -1)];
-          setDetectedText(variants[Math.floor(Math.random() * variants.length)]);
-        }, 800);
-      };
-
-      setMediaRecorder(recorder);
-      recorder.start();
-      setIsRecording(true);
-      setRecordingTime(0);
       setHasRecording(false);
       setVisualGrade(null);
       setAudioGrade(null);
+      setDetectedText(null);
+      setRecordedBlob(null);
+      if (recordedUrl) URL.revokeObjectURL(recordedUrl);
+      setRecordedUrl(null);
+      chunksRef.current = [];
+
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
+        audio: true 
+      });
+      streamRef.current = stream;
+
+      if (videoPreviewRef.current) {
+        videoPreviewRef.current.srcObject = stream;
+        videoPreviewRef.current.play();
+      }
+
+      const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') 
+        ? 'video/webm;codecs=vp9' 
+        : 'video/webm';
+      const recorder = new MediaRecorder(stream, { mimeType });
+      mediaRecorderRef.current = recorder;
+
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data);
+      };
+
+      recorder.onstop = () => {
+        const blob = new Blob(chunksRef.current, { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        setRecordedBlob(blob);
+        setRecordedUrl(url);
+        setHasRecording(true);
+
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach(track => track.stop());
+        }
+
+        performGrading(blob);
+      };
+
+      recorder.start(100);
+      setIsRecording(true);
+      setRecordingTime(0);
 
       timerRef.current = setInterval(() => {
-        setRecordingTime((t) => t + 100);
+        setRecordingTime(t => t + 100);
       }, 100);
+
     } catch (err) {
       console.error('Recording error:', err);
-      alert('Could not access camera/microphone');
+      alert('Could not access camera/microphone. Please allow permissions.');
     }
   };
 
   const stopRecording = () => {
-    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-      mediaRecorder.stop();
-    }
-    if (videoStream) {
-      videoStream.getTracks().forEach(track => track.stop());
-    }
     clearInterval(timerRef.current);
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+    }
     setIsRecording(false);
   };
 
+  // Perform grading
+  const performGrading = async (blob) => {
+    setIsGrading(true);
+    await new Promise(resolve => setTimeout(resolve, 1200));
+
+    const visual = Math.floor(Math.random() * 20) + 78;
+    const audio = Math.floor(Math.random() * 20) + 78;
+    
+    // Simulate phonetic detection - what the user actually said
+    const variations = [
+      word,
+      word,
+      word.replace(/e/gi, 'a'),
+      word.replace(/o/gi, 'u'),
+      word + 'h',
+      word.slice(0, -1),
+    ];
+    const detected = variations[Math.floor(Math.random() * variations.length)];
+
+    setVisualGrade(visual);
+    setAudioGrade(audio);
+    setDetectedText(detected);
+    setIsGrading(false);
+
+    // Save to history
+    const history = JSON.parse(localStorage.getItem('soundmirror_history') || '[]');
+    history.unshift({
+      id: Date.now(),
+      type: 'word',
+      target: word,
+      language,
+      visualScore: visual / 100,
+      audioScore: audio / 100,
+      detectedText: detected,
+      date: new Date().toISOString(),
+    });
+    localStorage.setItem('soundmirror_history', JSON.stringify(history.slice(0, 100)));
+  };
+
   const replayAttempt = () => {
-    if (recordedBlob && recordedVideoRef.current) {
-      recordedVideoRef.current.src = URL.createObjectURL(recordedBlob);
-      recordedVideoRef.current.play();
+    if (playbackVideoRef.current && recordedUrl) {
+      playbackVideoRef.current.src = recordedUrl;
+      playbackVideoRef.current.play();
     }
   };
 
-  // Handle new word input
   const handleWordSubmit = (e) => {
     e.preventDefault();
     if (inputWord.trim()) {
@@ -156,17 +210,23 @@ export default function WordPracticePage({ language }) {
     }
   };
 
-  // Cleanup
+  const handleWordClick = (w) => {
+    navigate(`/practice?word=${encodeURIComponent(w)}`);
+    setVisualGrade(null);
+    setAudioGrade(null);
+    setHasRecording(false);
+  };
+
   useEffect(() => {
     return () => {
-      if (videoStream) {
-        videoStream.getTracks().forEach(track => track.stop());
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
       }
+      if (recordedUrl) URL.revokeObjectURL(recordedUrl);
       clearInterval(timerRef.current);
     };
-  }, [videoStream]);
+  }, [recordedUrl]);
 
-  // Alphabet for keyboard
   const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
   const specialChars = ['CH', 'SH', 'TH', 'NG'];
 
@@ -224,16 +284,17 @@ export default function WordPracticePage({ language }) {
             borderRadius: 16,
             padding: 24,
           }}>
-            {/* Dual Head Animator */}
             <DualHeadAnimator
               ref={animatorRef}
               timeline={timeline}
               isPlaying={isPlaying}
+              preDelay={1000}
+              onDelayEnd={handleDelayEnd}
               onAnimationComplete={handleAnimationComplete}
               onTimeUpdate={handleTimeUpdate}
+              interpolate={true}
             />
 
-            {/* Play Button */}
             <div style={{ textAlign: 'center', marginTop: 24 }}>
               <button
                 onClick={handlePlay}
@@ -253,7 +314,6 @@ export default function WordPracticePage({ language }) {
               </button>
             </div>
 
-            {/* Scrubber */}
             <div style={{ marginTop: 20 }}>
               <input
                 type="range"
@@ -261,7 +321,8 @@ export default function WordPracticePage({ language }) {
                 max="100"
                 value={sliderValue}
                 onChange={handleSliderChange}
-                style={{ width: '100%' }}
+                disabled={isPlaying}
+                style={{ width: '100%', cursor: isPlaying ? 'not-allowed' : 'pointer' }}
               />
               <div style={{ textAlign: 'center', fontSize: 12, color: '#64748b' }}>
                 {Math.round(currentTime)}ms / {totalDuration}ms
@@ -275,7 +336,6 @@ export default function WordPracticePage({ language }) {
             borderRadius: 16,
             padding: 24,
           }}>
-            {/* Video Preview */}
             <div style={{
               backgroundColor: '#0a1628',
               borderRadius: 12,
@@ -288,21 +348,32 @@ export default function WordPracticePage({ language }) {
               border: '2px solid #1e3a5f',
               position: 'relative',
             }}>
-              {isRecording ? (
-                <video
-                  ref={videoPreviewRef}
-                  autoPlay
-                  muted
-                  playsInline
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                />
-              ) : hasRecording ? (
-                <video
-                  ref={recordedVideoRef}
-                  playsInline
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                />
-              ) : (
+              <video
+                ref={videoPreviewRef}
+                autoPlay
+                muted
+                playsInline
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  display: isRecording ? 'block' : 'none',
+                }}
+              />
+              
+              <video
+                ref={playbackVideoRef}
+                playsInline
+                controls
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  display: hasRecording && !isRecording ? 'block' : 'none',
+                }}
+              />
+
+              {!isRecording && !hasRecording && (
                 <div style={{ textAlign: 'center', color: '#475569' }}>
                   <div style={{ fontSize: 48, marginBottom: 8 }}>📹</div>
                   <div>{t('beginPractice')}</div>
@@ -328,27 +399,43 @@ export default function WordPracticePage({ language }) {
                     backgroundColor: '#fff',
                     animation: 'pulse 1s infinite',
                   }} />
-                  <span style={{ fontSize: 14, fontWeight: 600 }}>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>
                     {(recordingTime / 1000).toFixed(1)}s
                   </span>
                 </div>
               )}
+
+              {isGrading && (
+                <div style={{
+                  position: 'absolute',
+                  inset: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: 'rgba(0, 20, 40, 0.8)',
+                }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: 32, marginBottom: 8 }}>🔍</div>
+                    <div style={{ color: '#60a5fa' }}>Analyzing...</div>
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Record Button */}
             <div style={{ textAlign: 'center', marginBottom: 20 }}>
               {!isRecording ? (
                 <button
                   onClick={startRecording}
+                  disabled={isGrading}
                   style={{
                     padding: '16px 40px',
                     fontSize: 16,
                     fontWeight: 600,
                     borderRadius: 10,
                     border: 'none',
-                    backgroundColor: '#10b981',
+                    backgroundColor: isGrading ? '#475569' : '#10b981',
                     color: '#fff',
-                    cursor: 'pointer',
+                    cursor: isGrading ? 'not-allowed' : 'pointer',
                   }}
                 >
                   ● {t('beginPractice')}
@@ -367,11 +454,11 @@ export default function WordPracticePage({ language }) {
                     cursor: 'pointer',
                   }}
                 >
-                  ■ {t('stop')}
+                  ■ {t('stop')} ({(recordingTime / 1000).toFixed(1)}s)
                 </button>
               )}
               
-              {hasRecording && (
+              {hasRecording && !isRecording && (
                 <button
                   onClick={replayAttempt}
                   style={{
@@ -392,7 +479,7 @@ export default function WordPracticePage({ language }) {
             </div>
 
             {/* Grading Results */}
-            {visualGrade !== null && (
+            {visualGrade !== null && !isGrading && (
               <>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
                   <div style={{
@@ -434,7 +521,6 @@ export default function WordPracticePage({ language }) {
                   </div>
                 </div>
 
-                {/* What you said */}
                 <div style={{
                   backgroundColor: '#0f2744',
                   borderRadius: 12,
@@ -455,13 +541,57 @@ export default function WordPracticePage({ language }) {
           </div>
         </div>
 
+        {/* Preselected Practice Words */}
+        <div style={{
+          backgroundColor: 'rgba(15, 39, 68, 0.6)',
+          borderRadius: 16,
+          padding: 24,
+          marginBottom: 24,
+        }}>
+          <div style={{ 
+            fontSize: 12, 
+            color: '#64748b', 
+            textTransform: 'uppercase', 
+            letterSpacing: '1px',
+            marginBottom: 16,
+            textAlign: 'center',
+          }}>
+            {t('practiceWords')}
+          </div>
+          <div style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 10,
+            justifyContent: 'center',
+          }}>
+            {PRACTICE_WORDS.map((w) => (
+              <button
+                key={w}
+                onClick={() => handleWordClick(w)}
+                style={{
+                  padding: '10px 18px',
+                  fontSize: 14,
+                  fontWeight: 500,
+                  borderRadius: 8,
+                  border: word.toLowerCase() === w.toLowerCase() ? '2px solid #3b82f6' : '1px solid #2d4a6f',
+                  backgroundColor: word.toLowerCase() === w.toLowerCase() ? 'rgba(59, 130, 246, 0.2)' : '#0f2744',
+                  color: '#e2e8f0',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s',
+                }}
+              >
+                {w}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Word Input & Keyboard */}
         <div style={{
           backgroundColor: 'rgba(15, 39, 68, 0.6)',
           borderRadius: 16,
           padding: 24,
         }}>
-          {/* Text Input */}
           <form onSubmit={handleWordSubmit} style={{ marginBottom: 20 }}>
             <div style={{ display: 'flex', gap: 12 }}>
               <input
@@ -498,7 +628,6 @@ export default function WordPracticePage({ language }) {
             </div>
           </form>
 
-          {/* Alphabet Keyboard */}
           <div style={{
             display: 'flex',
             flexWrap: 'wrap',
