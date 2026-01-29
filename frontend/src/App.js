@@ -6,6 +6,7 @@ import DualHeadAnimator from './components/common/DualHeadAnimator';
 import { RecordingStudio } from './components/recording/RecordingStudio';
 import { TimelineScrubber } from './components/recording/TimelineScrubber';
 import { textToPhonemes, getPhonemeAudioPath, getLetterDisplay, wordToPhonemes, generateReferenceTiming } from './data/phonemeMap';
+import LetterPractice from './pages/LetterPractice';
 
 // ========== FULL i18n TRANSLATIONS ==========
 const TRANSLATIONS = {
