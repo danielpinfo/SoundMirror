@@ -1276,7 +1276,7 @@ function App() {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/practice" element={<WordPracticePage />} />
-            <Route path="/letters" element={<LetterPracticePage />} />
+            <Route path="/letters" element={<LetterPractice />} />
             <Route path="/history" element={<HistoryProgressPage />} />
             <Route path="/report" element={<BugReporterPage />} />
           </Routes>
