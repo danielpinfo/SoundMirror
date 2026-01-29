@@ -155,7 +155,7 @@ export default function HomePage({ language, setLanguage }) {
             gap: 10,
             justifyContent: 'center',
           }}>
-            {practiceWords.map((word) => (
+            {[...practiceWords, ...phrases].map((word) => (
               <button
                 key={word}
                 onClick={() => handleWordClick(word)}
@@ -172,33 +172,6 @@ export default function HomePage({ language, setLanguage }) {
                 }}
               >
                 {word}
-              </button>
-            ))}
-          </div>
-          {/* Phrases */}
-          <div style={{
-            display: 'flex',
-            gap: 10,
-            justifyContent: 'center',
-            marginTop: 12,
-          }}>
-            {phrases.map((phrase) => (
-              <button
-                key={phrase}
-                onClick={() => handleWordClick(phrase)}
-                style={{
-                  padding: '12px 24px',
-                  fontSize: 14,
-                  fontWeight: 500,
-                  borderRadius: 8,
-                  border: '1px solid #3b82f6',
-                  backgroundColor: 'rgba(59, 130, 246, 0.15)',
-                  color: '#60a5fa',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                }}
-              >
-                {phrase}
               </button>
             ))}
           </div>
