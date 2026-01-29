@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import DualHeadAnimator from '../components/core/DualHeadAnimator';
-import { generateWordTimeline, textToPhonemes, LETTER_TO_FRAME, DIGRAPHS } from '../services/phonemeEngine';
+import { generateWordTimeline, textToPhonemes } from '../services/phonemeEngine';
 import { getTranslation } from '../i18n/translations';
 
 export default function WordPracticePage({ language }) {

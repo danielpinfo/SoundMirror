@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LANGUAGES, getTranslation } from '../../i18n/translations';
+import { LANGUAGES, getTranslation } from '../i18n/translations';
 
 export default function HomePage({ language, setLanguage }) {
   const navigate = useNavigate();
