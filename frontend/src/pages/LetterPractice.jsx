@@ -8,11 +8,11 @@ import { useEffect, useRef, useState, forwardRef, useImperativeHandle } from "re
 
 const DualHeadAnimator = forwardRef((props, ref) => {
   const {
-    frontSrc = "/sprites/front_master.png",
-    sideSrc = "/sprites/side_master.png",
+    frontSrc = "/assets/sprites/front_master.png",
+    sideSrc = "/assets/sprites/side_master.png",
     frameCount = 20,
-    frameWidth = 256,
-    frameHeight = 256,
+    frameWidth = 939,
+    frameHeight = 793,
     fps = 24,
   } = props;
 
@@ -49,7 +49,7 @@ const DualHeadAnimator = forwardRef((props, ref) => {
     return () => cancelAnimationFrame(rafRef.current);
   }, [fps, frameCount]);
 
-  const bgPos = (f) => `-${f * frameWidth}px 0px`;
+  const bgPos = (f) => `0px -${f * frameHeight}px`;
 
   const headStyle = (src) => ({
     width: frameWidth,
@@ -57,7 +57,7 @@ const DualHeadAnimator = forwardRef((props, ref) => {
     backgroundImage: `url(${src})`,
     backgroundRepeat: "no-repeat",
     backgroundPosition: bgPos(frame), // SLAVE mirrors MASTER frame
-    backgroundSize: `${frameWidth * frameCount}px ${frameHeight}px`,
+    backgroundSize: `${frameWidth}px ${frameHeight * frameCount}px`,
     imageRendering: "pixelated",
     border: "1px solid #444",
   });
