@@ -15,7 +15,10 @@ import FeedbackPage from './pages/FeedbackPage';
 import './index.css';
 
 function App() {
-  const [showSplash, setShowSplash] = useState(true);
+  const [showSplash, setShowSplash] = useState(() => {
+    // Only show splash once per session
+    return !sessionStorage.getItem('soundmirror_splash_shown');
+  });
   const [language, setLanguage] = useState(() => {
     return localStorage.getItem('soundmirror_language') || 'en';
   });
