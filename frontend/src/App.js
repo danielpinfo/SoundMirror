@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { LanguageProvider } from './context/LanguageContext';
 import SplashScreen from './components/SplashScreen';
 import HomePage from './pages/HomePage';
@@ -10,14 +10,21 @@ import BugReportPage from './pages/BugReportPage';
 import { Toaster } from './components/ui/sonner';
 import './index.css';
 
-function App() {
-  const [showSplash, setShowSplash] = useState(true);
+// Check if splash was already shown this session
+const SPLASH_SHOWN_KEY = 'soundmirror_splash_shown';
+
+const AppContent = () => {
+  const location = useLocation();
+  const [showSplash, setShowSplash] = useState(() => {
+    // Only show splash on home page and if not shown this session
+    const wasShown = sessionStorage.getItem(SPLASH_SHOWN_KEY);
+    return location.pathname === '/' && !wasShown;
+  });
   const [appReady, setAppReady] = useState(false);
 
   // Preload resources while splash is showing
   useEffect(() => {
     const preloadResources = async () => {
-      // Simulate resource loading
       await new Promise(resolve => setTimeout(resolve, 1000));
       setAppReady(true);
     };
@@ -25,10 +32,10 @@ function App() {
   }, []);
 
   const handleSplashComplete = () => {
+    sessionStorage.setItem(SPLASH_SHOWN_KEY, 'true');
     if (appReady) {
       setShowSplash(false);
     } else {
-      // Wait for app to be ready
       const checkReady = setInterval(() => {
         if (appReady) {
           clearInterval(checkReady);
@@ -39,23 +46,31 @@ function App() {
   };
 
   return (
+    <>
+      {showSplash && (
+        <SplashScreen onComplete={handleSplashComplete} />
+      )}
+      
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/letter-practice" element={<LetterPracticePage />} />
+        <Route path="/word-practice" element={<WordPracticePage />} />
+        <Route path="/history" element={<HistoryPage />} />
+        <Route path="/bug-report" element={<BugReportPage />} />
+      </Routes>
+      
+      <Toaster position="top-right" />
+    </>
+  );
+};
+
+function App() {
+  return (
     <LanguageProvider>
       <div className="App">
-        {showSplash && (
-          <SplashScreen onComplete={handleSplashComplete} />
-        )}
-        
         <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/letter-practice" element={<LetterPracticePage />} />
-            <Route path="/word-practice" element={<WordPracticePage />} />
-            <Route path="/history" element={<HistoryPage />} />
-            <Route path="/bug-report" element={<BugReportPage />} />
-          </Routes>
+          <AppContent />
         </BrowserRouter>
-        
-        <Toaster position="top-right" />
       </div>
     </LanguageProvider>
   );
