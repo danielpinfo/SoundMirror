@@ -301,9 +301,9 @@ export default function BugReportPage() {
         )}
 
         {/* Help Text */}
-        <div className="mt-8 p-4 bg-slate-50 rounded-xl border border-slate-200">
-          <h3 className="font-semibold text-slate-700 mb-2">Tips for a Good Bug Report</h3>
-          <ul className="text-sm text-slate-600 space-y-1">
+        <div className="mt-8 p-4 bg-cobalt-surface rounded-xl border border-blue-500/20">
+          <h3 className="font-semibold text-white mb-2">Tips for a Good Bug Report</h3>
+          <ul className="text-sm text-blue-300 space-y-1">
             <li>• Be specific about what you were doing when the bug occurred</li>
             <li>• Include any error messages you saw</li>
             <li>• Describe what you expected to happen vs what actually happened</li>
