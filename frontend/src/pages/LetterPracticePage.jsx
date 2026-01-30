@@ -38,17 +38,17 @@ export default function LetterPracticePage() {
   return (
     <div 
       data-testid="letter-practice-page" 
-      className="min-h-screen bg-gradient-to-b from-slate-50 to-white"
+      className="min-h-screen bg-cobalt-gradient"
     >
       {/* Header */}
-      <header className="sticky top-0 z-40 glass border-b border-white/20">
+      <header className="sticky top-0 z-40 glass border-b border-blue-500/20">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => navigate('/')}
-              className="rounded-full"
+              className="rounded-full text-blue-200 hover:text-white hover:bg-blue-600/30"
               data-testid="nav-home-btn"
             >
               <Home className="w-4 h-4 mr-1" />
@@ -58,7 +58,7 @@ export default function LetterPracticePage() {
               variant="ghost"
               size="sm"
               onClick={() => navigate('/word-practice')}
-              className="rounded-full"
+              className="rounded-full text-blue-200 hover:text-white hover:bg-blue-600/30"
               data-testid="nav-word-practice-btn"
             >
               <BookOpen className="w-4 h-4 mr-1" />
@@ -68,7 +68,7 @@ export default function LetterPracticePage() {
               variant="ghost"
               size="sm"
               onClick={() => navigate('/history')}
-              className="rounded-full"
+              className="rounded-full text-blue-200 hover:text-white hover:bg-blue-600/30"
               data-testid="nav-history-btn"
             >
               <History className="w-4 h-4 mr-1" />
@@ -80,7 +80,7 @@ export default function LetterPracticePage() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-6 max-w-6xl">
-        <h1 className="text-2xl md:text-3xl font-bold text-slate-800 mb-6" style={{ fontFamily: 'Manrope, sans-serif' }}>
+        <h1 className="text-2xl md:text-3xl font-bold text-white mb-6" style={{ fontFamily: 'Manrope, sans-serif' }}>
           {t('letter_practice')}
         </h1>
 
@@ -94,8 +94,8 @@ export default function LetterPracticePage() {
         {/* Selected Letter Display */}
         {selectedLetter && (
           <div className="text-center mb-6">
-            <p className="text-sm text-slate-500 uppercase tracking-wider mb-2">Practicing</p>
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-sky-600 text-white text-4xl font-bold rounded-2xl shadow-lg">
+            <p className="text-sm text-blue-300 uppercase tracking-wider mb-2">Practicing</p>
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-600 text-white text-4xl font-bold rounded-2xl shadow-lg shadow-blue-500/30">
               {selectedLetter}
             </div>
           </div>
@@ -104,8 +104,8 @@ export default function LetterPracticePage() {
         {/* Main Practice Area */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Animation Panel */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-slate-800 mb-4">Reference Animation</h3>
+          <div className="bg-cobalt-surface rounded-2xl border border-blue-500/20 shadow-sm p-6">
+            <h3 className="text-lg font-semibold text-white mb-4">Reference Animation</h3>
             <DualHeadAnimation
               ref={animationRef}
               target={selectedLetter ? `${selectedLetter.toLowerCase()}a` : ''}
@@ -115,16 +115,16 @@ export default function LetterPracticePage() {
           </div>
 
           {/* Recording Panel */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-slate-800 mb-4">Your Practice</h3>
+          <div className="bg-cobalt-surface rounded-2xl border border-blue-500/20 shadow-sm p-6">
+            <h3 className="text-lg font-semibold text-white mb-4">Your Practice</h3>
             {selectedLetter ? (
               <RecordingPanel
                 target={selectedLetter}
                 onGradingComplete={handleGradingComplete}
               />
             ) : (
-              <div className="aspect-video bg-slate-100 rounded-xl flex items-center justify-center">
-                <p className="text-slate-500 text-center px-4">
+              <div className="aspect-video bg-[#0f2847] rounded-xl flex items-center justify-center border border-blue-500/20">
+                <p className="text-blue-300 text-center px-4">
                   Select a letter from the keyboard above to begin practice
                 </p>
               </div>

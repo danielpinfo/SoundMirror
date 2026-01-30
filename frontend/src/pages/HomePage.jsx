@@ -31,16 +31,16 @@ export default function HomePage() {
   return (
     <div 
       data-testid="home-page" 
-      className="min-h-screen bg-gradient-to-b from-slate-50 to-white"
+      className="min-h-screen bg-cobalt-gradient"
     >
       {/* Header */}
-      <header className="sticky top-0 z-40 glass border-b border-white/20">
+      <header className="sticky top-0 z-40 glass border-b border-blue-500/20">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <h1 
             className="text-2xl font-bold tracking-tight"
             style={{
               fontFamily: 'Manrope, sans-serif',
-              background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+              background: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
             }}
@@ -55,16 +55,16 @@ export default function HomePage() {
       <main className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Hero Section */}
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-slate-800 mb-4" style={{ fontFamily: 'Manrope, sans-serif' }}>
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4" style={{ fontFamily: 'Manrope, sans-serif' }}>
             Visual Speech Training
           </h2>
-          <p className="text-slate-500 text-lg max-w-2xl mx-auto leading-relaxed">
+          <p className="text-blue-200 text-lg max-w-2xl mx-auto leading-relaxed">
             {t('instructions')}
           </p>
         </div>
 
         {/* Practice Input */}
-        <Card className="mb-8 shadow-lg border-slate-100 card-hover">
+        <Card className="mb-8 shadow-lg bg-cobalt-surface card-hover border-blue-500/20">
           <CardContent className="p-6">
             <form onSubmit={handleInputSubmit} className="flex gap-3">
               <Input
@@ -72,12 +72,12 @@ export default function HomePage() {
                 placeholder={t('input_practice')}
                 value={practiceInput}
                 onChange={(e) => setPracticeInput(e.target.value)}
-                className="flex-1 h-12 rounded-xl border-slate-200 bg-slate-50 focus:bg-white text-lg"
+                className="flex-1 h-12 rounded-xl border-blue-500/30 bg-[#0f2847] text-white placeholder:text-blue-300/50 focus:border-blue-400 text-lg"
                 data-testid="practice-input"
               />
               <Button 
                 type="submit" 
-                className="h-12 px-6 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-semibold"
+                className="h-12 px-6 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold"
                 disabled={!practiceInput.trim()}
                 data-testid="practice-submit-btn"
               >
@@ -90,7 +90,7 @@ export default function HomePage() {
 
         {/* Quick Practice Words */}
         <div className="mb-8">
-          <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">
+          <h3 className="text-sm font-semibold text-blue-300 uppercase tracking-wider mb-4">
             Quick Practice
           </h3>
           <div className="flex flex-wrap gap-3">
@@ -99,7 +99,7 @@ export default function HomePage() {
                 key={index}
                 variant="outline"
                 onClick={() => handlePractice(word)}
-                className="rounded-full px-5 py-2 bg-white border-slate-200 hover:border-sky-300 hover:bg-sky-50 text-slate-700 hover:text-sky-700 font-medium card-hover"
+                className="rounded-full px-5 py-2 bg-[#1e4976]/50 border-blue-500/30 hover:border-blue-400 hover:bg-blue-600/30 text-blue-200 hover:text-white font-medium card-hover"
                 data-testid={`quick-word-${index}`}
               >
                 {word}
@@ -111,7 +111,7 @@ export default function HomePage() {
         {/* Phrase Practice */}
         {phrases.length > 0 && (
           <div className="mb-12">
-            <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">
+            <h3 className="text-sm font-semibold text-blue-300 uppercase tracking-wider mb-4">
               Phrases
             </h3>
             <div className="flex flex-wrap gap-3">
@@ -120,7 +120,7 @@ export default function HomePage() {
                   key={index}
                   variant="outline"
                   onClick={() => handlePractice(phrase)}
-                  className="rounded-full px-6 py-2 bg-gradient-to-r from-sky-50 to-white border-sky-200 hover:border-sky-300 text-sky-700 font-medium card-hover"
+                  className="rounded-full px-6 py-2 bg-blue-600/20 border-blue-400/40 hover:border-blue-300 text-blue-200 hover:text-white font-medium card-hover"
                   data-testid={`phrase-${index}`}
                 >
                   {phrase}
@@ -133,56 +133,56 @@ export default function HomePage() {
         {/* Navigation Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card 
-            className="cursor-pointer card-hover border-slate-100 group"
+            className="cursor-pointer card-hover bg-cobalt-surface border-blue-500/20 group"
             onClick={() => navigate('/letter-practice')}
             data-testid="nav-letter-practice"
           >
             <CardContent className="p-6 flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-sky-100 flex items-center justify-center group-hover:bg-sky-600 transition-colors">
-                <Type className="w-6 h-6 text-sky-600 group-hover:text-white transition-colors" />
+              <div className="w-12 h-12 rounded-xl bg-blue-600/30 flex items-center justify-center group-hover:bg-blue-600 transition-colors">
+                <Type className="w-6 h-6 text-blue-300 group-hover:text-white transition-colors" />
               </div>
               <div>
-                <h4 className="font-semibold text-slate-800">{t('letter_practice')}</h4>
-                <p className="text-sm text-slate-500">Practice individual sounds</p>
+                <h4 className="font-semibold text-white">{t('letter_practice')}</h4>
+                <p className="text-sm text-blue-300">Practice individual sounds</p>
               </div>
             </CardContent>
           </Card>
 
           <Card 
-            className="cursor-pointer card-hover border-slate-100 group"
+            className="cursor-pointer card-hover bg-cobalt-surface border-blue-500/20 group"
             onClick={() => navigate('/history')}
             data-testid="nav-history"
           >
             <CardContent className="p-6 flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center group-hover:bg-slate-600 transition-colors">
-                <History className="w-6 h-6 text-slate-600 group-hover:text-white transition-colors" />
+              <div className="w-12 h-12 rounded-xl bg-slate-600/30 flex items-center justify-center group-hover:bg-slate-500 transition-colors">
+                <History className="w-6 h-6 text-slate-300 group-hover:text-white transition-colors" />
               </div>
               <div>
-                <h4 className="font-semibold text-slate-800">{t('history')}</h4>
-                <p className="text-sm text-slate-500">View past sessions</p>
+                <h4 className="font-semibold text-white">{t('history')}</h4>
+                <p className="text-sm text-blue-300">View past sessions</p>
               </div>
             </CardContent>
           </Card>
 
           <Card 
-            className="cursor-pointer card-hover border-slate-100 group"
+            className="cursor-pointer card-hover bg-cobalt-surface border-blue-500/20 group"
             onClick={() => navigate('/bug-report')}
             data-testid="nav-bug-report"
           >
             <CardContent className="p-6 flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center group-hover:bg-red-500 transition-colors">
-                <Bug className="w-6 h-6 text-red-500 group-hover:text-white transition-colors" />
+              <div className="w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center group-hover:bg-red-500 transition-colors">
+                <Bug className="w-6 h-6 text-red-400 group-hover:text-white transition-colors" />
               </div>
               <div>
-                <h4 className="font-semibold text-slate-800">{t('bug_report')}</h4>
-                <p className="text-sm text-slate-500">Report an issue</p>
+                <h4 className="font-semibold text-white">{t('bug_report')}</h4>
+                <p className="text-sm text-blue-300">Report an issue</p>
               </div>
             </CardContent>
           </Card>
         </div>
 
         {/* Footer Info */}
-        <div className="mt-16 text-center text-slate-400 text-sm">
+        <div className="mt-16 text-center text-blue-400/60 text-sm">
           <p>SoundMirror - Visual Speech Articulation Training</p>
           <p className="mt-1">For deaf education, speech therapy, and language learning</p>
         </div>
