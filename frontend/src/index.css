@@ -5,12 +5,19 @@
 @tailwind utilities;
 
 :root {
-  --mirror-blue: #0284C7;
-  --mirror-blue-dark: #0369a1;
+  /* Cobalt Blue Theme */
+  --cobalt-900: #0a1628;
+  --cobalt-800: #0f2847;
+  --cobalt-700: #1a3a5c;
+  --cobalt-600: #1e4976;
+  --cobalt-500: #2563eb;
+  --cobalt-400: #3b82f6;
+  --cobalt-300: #60a5fa;
+  --cobalt-200: #93c5fd;
+  --cobalt-100: #dbeafe;
+  
   --silver-lining: #94A3B8;
   --silver-light: #CBD5E1;
-  --background-light: #F8FAFC;
-  --surface-light: #FFFFFF;
   --recording-red: #EF4444;
 }
 
@@ -19,7 +26,7 @@ body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: var(--background-light);
+  background: var(--cobalt-900);
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -201,39 +208,46 @@ button, a, input, select, textarea {
 
 .card-hover:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
 }
 
-/* Glass morphism */
+/* Glass morphism for cobalt theme */
 .glass {
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(15, 40, 71, 0.8);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(59, 130, 246, 0.2);
 }
 
-/* Shadcn theme variables */
+.glass-light {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Shadcn theme variables - Cobalt Blue Theme */
 @layer base {
   :root {
-    --background: 210 40% 98%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 199 89% 48%;
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+    --card: 222 47% 15%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 15%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217 91% 60%;
     --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217 33% 25%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217 33% 20%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 217 33% 25%;
+    --accent-foreground: 210 40% 98%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 199 89% 48%;
+    --border: 217 33% 25%;
+    --input: 217 33% 25%;
+    --ring: 217 91% 60%;
     --radius: 0.75rem;
   }
 }
@@ -247,14 +261,19 @@ button, a, input, select, textarea {
   }
 }
 
-/* Keyboard button styles */
+/* Keyboard button styles - Cobalt Theme */
 .keyboard-key {
-  @apply flex items-center justify-center min-w-[40px] h-12 px-3 rounded-lg bg-white border border-slate-200 font-semibold text-slate-700 cursor-pointer select-none;
+  @apply flex items-center justify-center min-w-[40px] h-12 px-3 rounded-lg font-semibold cursor-pointer select-none;
+  background: rgba(30, 73, 118, 0.6);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #93c5fd;
   transition: background-color 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
 }
 
 .keyboard-key:hover {
-  @apply bg-sky-50 border-sky-300 text-sky-700;
+  background: rgba(37, 99, 235, 0.5);
+  border-color: rgba(59, 130, 246, 0.6);
+  color: white;
 }
 
 .keyboard-key:active {
@@ -262,30 +281,43 @@ button, a, input, select, textarea {
 }
 
 .keyboard-key.active {
-  @apply bg-sky-600 text-white border-sky-600;
+  background: #2563eb;
+  color: white;
+  border-color: #3b82f6;
+  box-shadow: 0 0 20px rgba(37, 99, 235, 0.4);
 }
 
-/* Scrollbar styling */
+/* Scrollbar styling - Cobalt Theme */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: rgba(15, 40, 71, 0.5);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: rgba(59, 130, 246, 0.4);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: rgba(59, 130, 246, 0.6);
 }
 
 /* RTL support for Arabic */
 [dir="rtl"] {
   text-align: right;
+}
+
+/* Custom cobalt background classes */
+.bg-cobalt-gradient {
+  background: linear-gradient(180deg, #0a1628 0%, #0f2847 50%, #1a3a5c 100%);
+}
+
+.bg-cobalt-surface {
+  background: rgba(15, 40, 71, 0.6);
+  border: 1px solid rgba(59, 130, 246, 0.2);
 }
