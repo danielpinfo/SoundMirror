@@ -113,17 +113,17 @@ export default function HistoryPage() {
   return (
     <div 
       data-testid="history-page" 
-      className="min-h-screen bg-gradient-to-b from-slate-50 to-white"
+      className="min-h-screen bg-cobalt-gradient"
     >
       {/* Header */}
-      <header className="sticky top-0 z-40 glass border-b border-white/20">
+      <header className="sticky top-0 z-40 glass border-b border-blue-500/20">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => navigate('/')}
-              className="rounded-full"
+              className="rounded-full text-blue-200 hover:text-white hover:bg-blue-600/30"
               data-testid="nav-home-btn"
             >
               <Home className="w-4 h-4 mr-1" />
@@ -133,7 +133,7 @@ export default function HistoryPage() {
               variant="ghost"
               size="sm"
               onClick={() => navigate('/letter-practice')}
-              className="rounded-full"
+              className="rounded-full text-blue-200 hover:text-white hover:bg-blue-600/30"
               data-testid="nav-letter-practice-btn"
             >
               <Type className="w-4 h-4 mr-1" />
@@ -143,7 +143,7 @@ export default function HistoryPage() {
               variant="ghost"
               size="sm"
               onClick={() => navigate('/word-practice')}
-              className="rounded-full"
+              className="rounded-full text-blue-200 hover:text-white hover:bg-blue-600/30"
               data-testid="nav-word-practice-btn"
             >
               <BookOpen className="w-4 h-4 mr-1" />
@@ -155,49 +155,49 @@ export default function HistoryPage() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-6 max-w-6xl">
-        <h1 className="text-2xl md:text-3xl font-bold text-slate-800 mb-6" style={{ fontFamily: 'Manrope, sans-serif' }}>
+        <h1 className="text-2xl md:text-3xl font-bold text-white mb-6" style={{ fontFamily: 'Manrope, sans-serif' }}>
           {t('history')}
         </h1>
 
         {/* Statistics Cards */}
         {statistics && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <Card className="border-slate-100">
+            <Card className="bg-cobalt-surface border-blue-500/20">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-sky-100 flex items-center justify-center">
-                    <TrendingUp className="w-5 h-5 text-sky-600" />
+                  <div className="w-10 h-10 rounded-xl bg-blue-600/30 flex items-center justify-center">
+                    <TrendingUp className="w-5 h-5 text-blue-300" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-slate-800">{statistics.totalSessions}</p>
-                    <p className="text-xs text-slate-500">Total Sessions</p>
+                    <p className="text-2xl font-bold text-white">{statistics.totalSessions}</p>
+                    <p className="text-xs text-blue-300">Total Sessions</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
             
-            <Card className="border-slate-100">
+            <Card className="bg-cobalt-surface border-blue-500/20">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center">
-                    <Video className="w-5 h-5 text-green-600" />
+                  <div className="w-10 h-10 rounded-xl bg-green-600/30 flex items-center justify-center">
+                    <Video className="w-5 h-5 text-green-400" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-slate-800">{statistics.avgVisualScore}%</p>
-                    <p className="text-xs text-slate-500">Avg Visual Score</p>
+                    <p className="text-2xl font-bold text-white">{statistics.avgVisualScore}%</p>
+                    <p className="text-xs text-blue-300">Avg Visual Score</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
             
-            <Card className="border-slate-100">
+            <Card className="bg-cobalt-surface border-blue-500/20">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center">
-                    <Mic className="w-5 h-5 text-purple-600" />
+                  <div className="w-10 h-10 rounded-xl bg-purple-600/30 flex items-center justify-center">
+                    <Mic className="w-5 h-5 text-purple-400" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-slate-800">{statistics.avgAudioScore}%</p>
+                    <p className="text-2xl font-bold text-white">{statistics.avgAudioScore}%</p>
                     <p className="text-xs text-slate-500">Avg Audio Score</p>
                   </div>
                 </div>
