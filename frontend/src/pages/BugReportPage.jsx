@@ -81,17 +81,17 @@ export default function BugReportPage() {
   return (
     <div 
       data-testid="bug-report-page" 
-      className="min-h-screen bg-gradient-to-b from-slate-50 to-white"
+      className="min-h-screen bg-cobalt-gradient"
     >
       {/* Header */}
-      <header className="sticky top-0 z-40 glass border-b border-white/20">
+      <header className="sticky top-0 z-40 glass border-b border-blue-500/20">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => navigate('/')}
-              className="rounded-full"
+              className="rounded-full text-blue-200 hover:text-white hover:bg-blue-600/30"
               data-testid="nav-home-btn"
             >
               <Home className="w-4 h-4 mr-1" />
@@ -101,7 +101,7 @@ export default function BugReportPage() {
               variant="ghost"
               size="sm"
               onClick={() => navigate('/letter-practice')}
-              className="rounded-full"
+              className="rounded-full text-blue-200 hover:text-white hover:bg-blue-600/30"
               data-testid="nav-letter-practice-btn"
             >
               <Type className="w-4 h-4 mr-1" />
@@ -111,7 +111,7 @@ export default function BugReportPage() {
               variant="ghost"
               size="sm"
               onClick={() => navigate('/word-practice')}
-              className="rounded-full"
+              className="rounded-full text-blue-200 hover:text-white hover:bg-blue-600/30"
               data-testid="nav-word-practice-btn"
             >
               <BookOpen className="w-4 h-4 mr-1" />
@@ -123,27 +123,27 @@ export default function BugReportPage() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-6 max-w-2xl">
-        <h1 className="text-2xl md:text-3xl font-bold text-slate-800 mb-6" style={{ fontFamily: 'Manrope, sans-serif' }}>
+        <h1 className="text-2xl md:text-3xl font-bold text-white mb-6" style={{ fontFamily: 'Manrope, sans-serif' }}>
           {t('bug_report')}
         </h1>
 
         {submitted ? (
-          <Card className="border-green-200 bg-green-50">
+          <Card className="border-green-500/30 bg-green-900/30">
             <CardContent className="p-8 text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle className="w-8 h-8 text-green-600" />
+              <div className="w-16 h-16 bg-green-600/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CheckCircle className="w-8 h-8 text-green-400" />
               </div>
-              <h2 className="text-xl font-semibold text-green-800 mb-2">
+              <h2 className="text-xl font-semibold text-green-300 mb-2">
                 Thank You!
               </h2>
-              <p className="text-green-700 mb-6">
+              <p className="text-green-400 mb-6">
                 Your bug report has been submitted successfully. We appreciate your feedback!
               </p>
               <div className="flex justify-center gap-3">
                 <Button
                   variant="outline"
                   onClick={resetForm}
-                  className="rounded-full"
+                  className="rounded-full border-green-500/30 text-green-300 hover:bg-green-600/20"
                   data-testid="report-another-btn"
                 >
                   Report Another Issue
