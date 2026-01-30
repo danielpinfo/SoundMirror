@@ -279,7 +279,7 @@ export default function HistoryPage() {
             {filteredSessions.map((session) => (
               <Card 
                 key={session.id} 
-                className="border-slate-100 card-hover"
+                className="bg-cobalt-surface border-blue-500/20 card-hover"
                 data-testid={`session-${session.id}`}
               >
                 <CardContent className="p-4">
@@ -287,8 +287,8 @@ export default function HistoryPage() {
                     <div className="flex items-center gap-4 flex-1">
                       <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
                         session.sessionType === 'letter' 
-                          ? 'bg-sky-100 text-sky-600' 
-                          : 'bg-purple-100 text-purple-600'
+                          ? 'bg-blue-600/30 text-blue-300' 
+                          : 'bg-purple-600/30 text-purple-300'
                       }`}>
                         {session.sessionType === 'letter' ? (
                           <Type className="w-6 h-6" />
@@ -299,30 +299,30 @@ export default function HistoryPage() {
                       
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="font-semibold text-slate-800 truncate">
+                          <span className="font-semibold text-white truncate">
                             {session.target}
                           </span>
                           <span className={`px-2 py-0.5 text-xs rounded-full ${
                             session.sessionType === 'letter'
-                              ? 'bg-sky-100 text-sky-700'
-                              : 'bg-purple-100 text-purple-700'
+                              ? 'bg-blue-600/30 text-blue-200'
+                              : 'bg-purple-600/30 text-purple-200'
                           }`}>
                             {session.sessionType}
                           </span>
                         </div>
-                        <p className="text-sm text-slate-500">
+                        <p className="text-sm text-blue-300">
                           {formatDate(session.timestamp)}
                         </p>
                       </div>
                       
                       <div className="hidden sm:flex items-center gap-6">
                         <div className="text-center">
-                          <p className="text-lg font-bold text-sky-600">{session.visualScore || 0}%</p>
-                          <p className="text-xs text-slate-400">Visual</p>
+                          <p className="text-lg font-bold text-blue-300">{session.visualScore || 0}%</p>
+                          <p className="text-xs text-blue-400">Visual</p>
                         </div>
                         <div className="text-center">
-                          <p className="text-lg font-bold text-purple-600">{session.audioScore || 0}%</p>
-                          <p className="text-xs text-slate-400">Audio</p>
+                          <p className="text-lg font-bold text-purple-300">{session.audioScore || 0}%</p>
+                          <p className="text-xs text-blue-400">Audio</p>
                         </div>
                       </div>
                     </div>
