@@ -150,7 +150,7 @@ export default function BugReportPage() {
                 </Button>
                 <Button
                   onClick={() => navigate('/')}
-                  className="rounded-full bg-green-600 hover:bg-green-700"
+                  className="rounded-full bg-green-600 hover:bg-green-500"
                   data-testid="back-home-btn"
                 >
                   Back to Home
@@ -159,19 +159,19 @@ export default function BugReportPage() {
             </CardContent>
           </Card>
         ) : (
-          <Card className="border-slate-100 shadow-sm">
+          <Card className="bg-cobalt-surface border-blue-500/20 shadow-sm">
             <CardContent className="p-6">
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Platform */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label className="block text-sm font-medium text-blue-200 mb-2">
                     Platform *
                   </label>
                   <Select 
                     value={formData.platform} 
                     onValueChange={(value) => handleChange('platform', value)}
                   >
-                    <SelectTrigger className="rounded-xl" data-testid="platform-select">
+                    <SelectTrigger className="rounded-xl border-blue-500/30 bg-[#0f2847] text-white" data-testid="platform-select">
                       <SelectValue placeholder="Select your platform" />
                     </SelectTrigger>
                     <SelectContent>
@@ -186,14 +186,14 @@ export default function BugReportPage() {
 
                 {/* Page */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label className="block text-sm font-medium text-blue-200 mb-2">
                     Page *
                   </label>
                   <Select 
                     value={formData.page} 
                     onValueChange={(value) => handleChange('page', value)}
                   >
-                    <SelectTrigger className="rounded-xl" data-testid="page-select">
+                    <SelectTrigger className="rounded-xl border-blue-500/30 bg-[#0f2847] text-white" data-testid="page-select">
                       <SelectValue placeholder="Select the affected page" />
                     </SelectTrigger>
                     <SelectContent>
@@ -208,14 +208,14 @@ export default function BugReportPage() {
 
                 {/* Severity */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label className="block text-sm font-medium text-blue-200 mb-2">
                     Severity *
                   </label>
                   <Select 
                     value={formData.severity} 
                     onValueChange={(value) => handleChange('severity', value)}
                   >
-                    <SelectTrigger className="rounded-xl" data-testid="severity-select">
+                    <SelectTrigger className="rounded-xl border-blue-500/30 bg-[#0f2847] text-white" data-testid="severity-select">
                       <SelectValue placeholder="Select severity level" />
                     </SelectTrigger>
                     <SelectContent>
