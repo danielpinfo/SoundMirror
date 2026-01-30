@@ -238,14 +238,14 @@ export default function BugReportPage() {
 
                 {/* Feature Area */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label className="block text-sm font-medium text-blue-200 mb-2">
                     Feature Area *
                   </label>
                   <Select 
                     value={formData.feature_area} 
                     onValueChange={(value) => handleChange('feature_area', value)}
                   >
-                    <SelectTrigger className="rounded-xl" data-testid="feature-area-select">
+                    <SelectTrigger className="rounded-xl border-blue-500/30 bg-[#0f2847] text-white" data-testid="feature-area-select">
                       <SelectValue placeholder="Select the feature area" />
                     </SelectTrigger>
                     <SelectContent>
@@ -260,7 +260,7 @@ export default function BugReportPage() {
 
                 {/* Description */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label className="block text-sm font-medium text-blue-200 mb-2">
                     Description *
                   </label>
                   <Textarea
@@ -268,10 +268,10 @@ export default function BugReportPage() {
                     onChange={(e) => handleChange('description', e.target.value)}
                     placeholder="Please describe the issue in detail. Include steps to reproduce if possible..."
                     rows={5}
-                    className="rounded-xl resize-none"
+                    className="rounded-xl resize-none border-blue-500/30 bg-[#0f2847] text-white placeholder:text-blue-300/50"
                     data-testid="description-textarea"
                   />
-                  <p className="text-xs text-slate-400 mt-1">
+                  <p className="text-xs text-blue-400 mt-1">
                     Minimum 10 characters required
                   </p>
                 </div>
@@ -280,7 +280,7 @@ export default function BugReportPage() {
                 <Button
                   type="submit"
                   disabled={!isFormValid() || submitting}
-                  className="w-full h-12 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-semibold"
+                  className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold"
                   data-testid="submit-bug-report-btn"
                 >
                   {submitting ? (
