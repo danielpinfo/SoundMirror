@@ -268,77 +268,77 @@ export const RecordingPanel = ({
       {isGrading && (
         <div className="p-6 bg-[#0f2847] rounded-2xl border border-blue-500/20 text-center">
           <div className="animate-spin w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full mx-auto mb-3" />
-          <p className="text-slate-600">Analyzing your attempt...</p>
+          <p className="text-blue-300">Analyzing your attempt...</p>
         </div>
       )}
 
       {grading && !isGrading && (
         <div data-testid="grading-results" className="space-y-6">
           {/* Visual Grade */}
-          <div className="p-5 bg-white rounded-2xl border border-slate-200 shadow-sm">
-            <h4 className="font-semibold text-slate-800 mb-4 flex items-center gap-2">
-              <Video className="w-5 h-5 text-sky-600" />
+          <div className="p-5 bg-[#0f2847] rounded-2xl border border-blue-500/20 shadow-sm">
+            <h4 className="font-semibold text-white mb-4 flex items-center gap-2">
+              <Video className="w-5 h-5 text-blue-400" />
               {t('visual_grade')}
             </h4>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-slate-600">Score</span>
-                <span className="text-2xl font-bold text-sky-600">{grading.visualScore}%</span>
+                <span className="text-blue-300">Score</span>
+                <span className="text-2xl font-bold text-blue-400">{grading.visualScore}%</span>
               </div>
               <Progress value={grading.visualScore} className="h-3" data-testid="visual-score-progress" />
               <div className="grid grid-cols-2 gap-3 mt-4 text-sm">
-                <div className="p-3 bg-slate-50 rounded-lg">
-                  <p className="text-slate-500 mb-1">Lip Position</p>
-                  <p className="text-slate-700">{grading.lipFeedback}</p>
+                <div className="p-3 bg-[#0a1628] rounded-lg border border-blue-500/10">
+                  <p className="text-blue-400 mb-1">Lip Position</p>
+                  <p className="text-blue-200">{grading.lipFeedback}</p>
                 </div>
-                <div className="p-3 bg-slate-50 rounded-lg">
-                  <p className="text-slate-500 mb-1">Jaw Opening</p>
-                  <p className="text-slate-700">{grading.jawFeedback}</p>
+                <div className="p-3 bg-[#0a1628] rounded-lg border border-blue-500/10">
+                  <p className="text-blue-400 mb-1">Jaw Opening</p>
+                  <p className="text-blue-200">{grading.jawFeedback}</p>
                 </div>
-                <div className="p-3 bg-slate-50 rounded-lg">
-                  <p className="text-slate-500 mb-1">Tongue Position</p>
-                  <p className="text-slate-700">{grading.tongueFeedback}</p>
+                <div className="p-3 bg-[#0a1628] rounded-lg border border-blue-500/10">
+                  <p className="text-blue-400 mb-1">Tongue Position</p>
+                  <p className="text-blue-200">{grading.tongueFeedback}</p>
                 </div>
-                <div className="p-3 bg-slate-50 rounded-lg">
-                  <p className="text-slate-500 mb-1">Timing</p>
-                  <p className="text-slate-700">{grading.timingFeedback}</p>
+                <div className="p-3 bg-[#0a1628] rounded-lg border border-blue-500/10">
+                  <p className="text-blue-400 mb-1">Timing</p>
+                  <p className="text-blue-200">{grading.timingFeedback}</p>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Audio Grade */}
-          <div className="p-5 bg-white rounded-2xl border border-slate-200 shadow-sm">
-            <h4 className="font-semibold text-slate-800 mb-4 flex items-center gap-2">
-              <Mic className="w-5 h-5 text-sky-600" />
+          <div className="p-5 bg-[#0f2847] rounded-2xl border border-blue-500/20 shadow-sm">
+            <h4 className="font-semibold text-white mb-4 flex items-center gap-2">
+              <Mic className="w-5 h-5 text-blue-400" />
               {t('audio_grade')}
             </h4>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-slate-600">Score</span>
-                <span className="text-2xl font-bold text-sky-600">{grading.audioScore}%</span>
+                <span className="text-blue-300">Score</span>
+                <span className="text-2xl font-bold text-blue-400">{grading.audioScore}%</span>
               </div>
               <Progress value={grading.audioScore} className="h-3" data-testid="audio-score-progress" />
               <div className="grid grid-cols-2 gap-4 mt-4">
-                <div className="p-4 bg-sky-50 rounded-xl border border-sky-100">
-                  <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">{t('target')}</p>
-                  <p className="text-xl font-bold text-sky-700">{target}</p>
+                <div className="p-4 bg-blue-600/20 rounded-xl border border-blue-500/30">
+                  <p className="text-xs text-blue-400 uppercase tracking-wide mb-1">{t('target')}</p>
+                  <p className="text-xl font-bold text-white">{target}</p>
                 </div>
-                <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
-                  <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">{t('detected')}</p>
-                  <p className="text-xl font-bold text-slate-700">{grading.phonemeDetected}</p>
+                <div className="p-4 bg-[#0a1628] rounded-xl border border-blue-500/20">
+                  <p className="text-xs text-blue-400 uppercase tracking-wide mb-1">{t('detected')}</p>
+                  <p className="text-xl font-bold text-blue-200">{grading.phonemeDetected}</p>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Suggestions */}
-          <div className="p-5 bg-gradient-to-br from-sky-50 to-white rounded-2xl border border-sky-100">
-            <h4 className="font-semibold text-slate-800 mb-3">{t('suggestions')}</h4>
+          <div className="p-5 bg-blue-600/10 rounded-2xl border border-blue-500/20">
+            <h4 className="font-semibold text-white mb-3">{t('suggestions')}</h4>
             <ul className="space-y-2">
               {grading.suggestions.map((suggestion, index) => (
-                <li key={index} className="flex items-start gap-2 text-slate-600">
-                  <span className="w-5 h-5 rounded-full bg-sky-100 text-sky-600 flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5">
+                <li key={index} className="flex items-start gap-2 text-blue-200">
+                  <span className="w-5 h-5 rounded-full bg-blue-600/30 text-blue-300 flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5">
                     {index + 1}
                   </span>
                   {suggestion}
