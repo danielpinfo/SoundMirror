@@ -178,13 +178,13 @@ export const RecordingPanel = ({
       <div className="relative">
         {!cameraEnabled ? (
           <div 
-            className="aspect-video bg-slate-900 rounded-2xl flex flex-col items-center justify-center gap-4 border border-slate-700"
+            className="aspect-video bg-[#0a1628] rounded-2xl flex flex-col items-center justify-center gap-4 border border-blue-500/20"
             data-testid="camera-placeholder"
           >
-            <CameraOff className="w-12 h-12 text-slate-500" />
+            <CameraOff className="w-12 h-12 text-blue-400" />
             <Button
               onClick={enableCamera}
-              className="rounded-full px-6 py-3 bg-sky-600 hover:bg-sky-700 text-white"
+              className="rounded-full px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white"
               data-testid="enable-camera-btn"
             >
               <Camera className="w-5 h-5 mr-2" />
@@ -195,7 +195,7 @@ export const RecordingPanel = ({
             )}
           </div>
         ) : (
-          <div className="relative aspect-video bg-slate-900 rounded-2xl overflow-hidden border border-slate-700">
+          <div className="relative aspect-video bg-[#0a1628] rounded-2xl overflow-hidden border border-blue-500/20">
             <Webcam
               ref={webcamRef}
               audio={false}
@@ -243,12 +243,12 @@ export const RecordingPanel = ({
       {recordedVideo && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h4 className="font-semibold text-slate-700">{t('replay_attempt')}</h4>
+            <h4 className="font-semibold text-white">{t('replay_attempt')}</h4>
             <Button
               variant="outline"
               size="sm"
               onClick={resetRecording}
-              className="rounded-full"
+              className="rounded-full border-blue-500/30 text-blue-300 hover:bg-blue-600/20"
               data-testid="reset-recording-btn"
             >
               <RotateCcw className="w-4 h-4 mr-1" />
@@ -258,7 +258,7 @@ export const RecordingPanel = ({
           <video
             src={recordedVideo}
             controls
-            className="w-full rounded-xl border border-slate-200"
+            className="w-full rounded-xl border border-blue-500/20"
             data-testid="recorded-video-playback"
           />
         </div>
@@ -266,8 +266,8 @@ export const RecordingPanel = ({
 
       {/* Grading Results */}
       {isGrading && (
-        <div className="p-6 bg-slate-50 rounded-2xl border border-slate-200 text-center">
-          <div className="animate-spin w-8 h-8 border-2 border-sky-600 border-t-transparent rounded-full mx-auto mb-3" />
+        <div className="p-6 bg-[#0f2847] rounded-2xl border border-blue-500/20 text-center">
+          <div className="animate-spin w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full mx-auto mb-3" />
           <p className="text-slate-600">Analyzing your attempt...</p>
         </div>
       )}
