@@ -1,53 +1,63 @@
-import { useEffect } from "react";
-import "@/App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import axios from "axios";
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { LanguageProvider } from './context/LanguageContext';
+import SplashScreen from './components/SplashScreen';
+import HomePage from './pages/HomePage';
+import LetterPracticePage from './pages/LetterPracticePage';
+import WordPracticePage from './pages/WordPracticePage';
+import HistoryPage from './pages/HistoryPage';
+import BugReportPage from './pages/BugReportPage';
+import { Toaster } from './components/ui/sonner';
+import './index.css';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+function App() {
+  const [showSplash, setShowSplash] = useState(true);
+  const [appReady, setAppReady] = useState(false);
 
-const Home = () => {
-  const helloWorldApi = async () => {
-    try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
+  // Preload resources while splash is showing
+  useEffect(() => {
+    const preloadResources = async () => {
+      // Simulate resource loading
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      setAppReady(true);
+    };
+    preloadResources();
+  }, []);
+
+  const handleSplashComplete = () => {
+    if (appReady) {
+      setShowSplash(false);
+    } else {
+      // Wait for app to be ready
+      const checkReady = setInterval(() => {
+        if (appReady) {
+          clearInterval(checkReady);
+          setShowSplash(false);
+        }
+      }, 100);
     }
   };
 
-  useEffect(() => {
-    helloWorldApi();
-  }, []);
-
   return (
-    <div>
-      <header className="App-header">
-        <a
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
-    </div>
-  );
-};
-
-function App() {
-  return (
-    <div className="App">
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
-    </div>
+    <LanguageProvider>
+      <div className="App">
+        {showSplash && (
+          <SplashScreen onComplete={handleSplashComplete} />
+        )}
+        
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/letter-practice" element={<LetterPracticePage />} />
+            <Route path="/word-practice" element={<WordPracticePage />} />
+            <Route path="/history" element={<HistoryPage />} />
+            <Route path="/bug-report" element={<BugReportPage />} />
+          </Routes>
+        </BrowserRouter>
+        
+        <Toaster position="top-right" />
+      </div>
+    </LanguageProvider>
   );
 }
 
