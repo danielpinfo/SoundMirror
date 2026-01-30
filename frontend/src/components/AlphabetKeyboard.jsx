@@ -18,7 +18,7 @@ export const AlphabetKeyboard = ({
 
   return (
     <div 
-      className={`p-4 bg-slate-50 rounded-2xl border border-slate-200 ${className}`}
+      className={`p-4 bg-cobalt-surface rounded-2xl border border-blue-500/20 ${className}`}
       data-testid="alphabet-keyboard"
     >
       <div className="flex flex-wrap gap-2 justify-center">
