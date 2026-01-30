@@ -198,23 +198,23 @@ export default function HistoryPage() {
                   </div>
                   <div>
                     <p className="text-2xl font-bold text-white">{statistics.avgAudioScore}%</p>
-                    <p className="text-xs text-slate-500">Avg Audio Score</p>
+                    <p className="text-xs text-blue-300">Avg Audio Score</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
             
-            <Card className="border-slate-100">
+            <Card className="bg-cobalt-surface border-blue-500/20">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center">
-                    <Calendar className="w-5 h-5 text-orange-600" />
+                  <div className="w-10 h-10 rounded-xl bg-orange-600/30 flex items-center justify-center">
+                    <Calendar className="w-5 h-5 text-orange-400" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-slate-800">
+                    <p className="text-2xl font-bold text-white">
                       {Object.keys(statistics.sessionsByDate).length}
                     </p>
-                    <p className="text-xs text-slate-500">Practice Days</p>
+                    <p className="text-xs text-blue-300">Practice Days</p>
                   </div>
                 </div>
               </CardContent>
@@ -225,19 +225,19 @@ export default function HistoryPage() {
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-blue-400" />
             <Input
               type="text"
               placeholder="Search by word or letter..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 h-11 rounded-xl border-slate-200"
+              className="pl-10 h-11 rounded-xl border-blue-500/30 bg-[#0f2847] text-white placeholder:text-blue-300/50"
               data-testid="search-input"
             />
           </div>
           
           <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger className="w-[180px] h-11 rounded-xl" data-testid="type-filter">
+            <SelectTrigger className="w-[180px] h-11 rounded-xl border-blue-500/30 bg-[#0f2847] text-white" data-testid="type-filter">
               <SelectValue placeholder="Filter by type" />
             </SelectTrigger>
             <SelectContent>
@@ -251,24 +251,24 @@ export default function HistoryPage() {
         {/* Sessions List */}
         {loading ? (
           <div className="text-center py-12">
-            <div className="animate-spin w-8 h-8 border-2 border-sky-600 border-t-transparent rounded-full mx-auto mb-3" />
-            <p className="text-slate-500">Loading sessions...</p>
+            <div className="animate-spin w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full mx-auto mb-3" />
+            <p className="text-blue-300">Loading sessions...</p>
           </div>
         ) : filteredSessions.length === 0 ? (
-          <Card className="border-slate-100">
+          <Card className="bg-cobalt-surface border-blue-500/20">
             <CardContent className="p-12 text-center">
-              <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Calendar className="w-8 h-8 text-slate-400" />
+              <div className="w-16 h-16 bg-blue-600/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Calendar className="w-8 h-8 text-blue-300" />
               </div>
-              <h3 className="text-lg font-semibold text-slate-700 mb-2">No Sessions Found</h3>
-              <p className="text-slate-500 mb-4">
+              <h3 className="text-lg font-semibold text-white mb-2">No Sessions Found</h3>
+              <p className="text-blue-300 mb-4">
                 {sessions.length === 0 
                   ? "Start practicing to build your history!"
                   : "No sessions match your filters."}
               </p>
               <Button
                 onClick={() => navigate('/letter-practice')}
-                className="rounded-full bg-sky-600 hover:bg-sky-700"
+                className="rounded-full bg-blue-600 hover:bg-blue-500"
               >
                 Start Practice
               </Button>
