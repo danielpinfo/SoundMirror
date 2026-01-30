@@ -338,7 +338,7 @@ export default function HistoryPage() {
                             navigate(`/word-practice?word=${encodeURIComponent(session.target)}`);
                           }
                         }}
-                        className="rounded-full"
+                        className="rounded-full text-blue-300 hover:text-white hover:bg-blue-600/30"
                         title="Practice again"
                         data-testid={`replay-${session.id}`}
                       >
@@ -348,7 +348,7 @@ export default function HistoryPage() {
                         variant="ghost"
                         size="icon"
                         onClick={() => handleExport(session)}
-                        className="rounded-full"
+                        className="rounded-full text-blue-300 hover:text-white hover:bg-blue-600/30"
                         title="Export"
                         data-testid={`export-${session.id}`}
                       >
@@ -358,7 +358,7 @@ export default function HistoryPage() {
                         variant="ghost"
                         size="icon"
                         onClick={() => handleDelete(session.id)}
-                        className="rounded-full text-red-500 hover:text-red-600 hover:bg-red-50"
+                        className="rounded-full text-red-400 hover:text-red-300 hover:bg-red-500/20"
                         title="Delete"
                         data-testid={`delete-${session.id}`}
                       >
