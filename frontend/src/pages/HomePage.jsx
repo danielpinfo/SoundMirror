@@ -8,6 +8,8 @@ import { Input } from '../components/ui/input';
 import { Card, CardContent } from '../components/ui/card';
 import { BookOpen, History, Bug, Type, ArrowRight } from 'lucide-react';
 
+const LOGO_URL = 'https://customer-assets.emergentagent.com/job_articlearn/artifacts/q4s66aiu_LOGO.png';
+
 export default function HomePage() {
   const navigate = useNavigate();
   const { language, t } = useLanguage();
@@ -36,17 +38,11 @@ export default function HomePage() {
       {/* Header */}
       <header className="sticky top-0 z-40 glass border-b border-blue-500/20">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 
-            className="text-2xl font-bold tracking-tight"
-            style={{
-              fontFamily: 'Manrope, sans-serif',
-              background: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-            }}
-          >
-            SoundMirror
-          </h1>
+          <img 
+            src={LOGO_URL}
+            alt="SoundMirror"
+            className="h-10 md:h-12"
+          />
           <LanguageSelector />
         </div>
       </header>
