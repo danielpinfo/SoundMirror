@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 
+const LOGO_URL = 'https://customer-assets.emergentagent.com/job_articlearn/artifacts/q4s66aiu_LOGO.png';
+
 export const SplashScreen = ({ onComplete }) => {
   const [show, setShow] = useState(true);
 
@@ -67,22 +69,18 @@ export const SplashScreen = ({ onComplete }) => {
         }}
       />
       
-      {/* Logo */}
+      {/* Logo Image */}
       <div className="logo-fade relative z-10 text-center">
-        <h1 
-          className="text-5xl md:text-7xl font-bold tracking-tight"
+        <img 
+          src={LOGO_URL}
+          alt="SoundMirror"
+          className="h-32 md:h-40 mx-auto mb-4 drop-shadow-2xl"
           style={{
-            fontFamily: 'Manrope, sans-serif',
-            background: 'linear-gradient(135deg, #e2e8f0 0%, #94a3b8 50%, #64748b 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            textShadow: '0 0 60px rgba(148, 163, 184, 0.3)',
+            filter: 'drop-shadow(0 0 30px rgba(148, 163, 184, 0.4))',
           }}
-        >
-          SoundMirror
-        </h1>
+        />
         <p 
-          className="mt-4 text-slate-400 text-lg tracking-widest uppercase"
+          className="text-slate-400 text-lg tracking-widest uppercase"
           style={{ fontFamily: 'Inter, sans-serif' }}
         >
           Visual Speech Training
