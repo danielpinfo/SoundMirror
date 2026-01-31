@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useCallback, useRef, forwardRef, useImperativeHandle } from 'react';
 import { SPRITE_URLS, PHONEME_FRAME_MAP } from '../lib/constants';
+import { getLetterAudio, getWordAudio, playAudio } from '../lib/audio';
+import { useLanguage } from '../context/LanguageContext';
 import { Slider } from '../components/ui/slider';
 import { Button } from '../components/ui/button';
-import { Play, Pause, RotateCcw } from 'lucide-react';
+import { Play, Pause, RotateCcw, Volume2, VolumeX } from 'lucide-react';
 
-// Frame duration in milliseconds - slower for better visibility
+// Frame duration in milliseconds
 const FRAME_DURATION = 300;
 
 // Preload images
@@ -28,12 +30,11 @@ const preloadImages = () => {
 
 // Convert text to frame sequence with better phoneme mapping
 const textToFrameSequence = (text) => {
-  const frames = [0]; // Start with neutral
+  const frames = [0];
   const lowerText = text.toLowerCase();
   
   let i = 0;
   while (i < lowerText.length) {
-    // Check for digraphs first (2 characters)
     if (i + 1 < lowerText.length) {
       const digraph = lowerText.slice(i, i + 2);
       if (PHONEME_FRAME_MAP[digraph] !== undefined) {
@@ -43,30 +44,25 @@ const textToFrameSequence = (text) => {
       }
     }
     
-    // Single character
     const char = lowerText[i];
     if (char === ' ' || char === ',' || char === '.') {
-      frames.push(0); // Pause for spaces/punctuation
+      frames.push(0);
     } else if (PHONEME_FRAME_MAP[char] !== undefined) {
       frames.push(PHONEME_FRAME_MAP[char]);
     } else if (char.match(/[a-z]/)) {
-      // Default vowel sound for unknown letters
       frames.push(1);
     }
     i++;
   }
   
-  frames.push(0); // End with neutral
+  frames.push(0);
   return frames;
 };
 
 // Generate a demo sequence showing various mouth positions
 const generateDemoSequence = (letter) => {
-  // For single letters, show a more dramatic animation
   const phoneme = letter.toLowerCase();
   const mainFrame = PHONEME_FRAME_MAP[phoneme] || 1;
-  
-  // Create a sequence: neutral -> build up -> main phoneme -> hold -> release -> neutral
   return [0, 0, mainFrame, mainFrame, mainFrame, 0, 0];
 };
 
@@ -76,12 +72,17 @@ export const DualHeadAnimation = forwardRef(({
   showControls = true,
   autoPlay = false,
 }, ref) => {
+  const { language } = useLanguage();
   const [currentFrame, setCurrentFrame] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [frameSequence, setFrameSequence] = useState([0]);
   const [imagesLoaded, setImagesLoaded] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [audioEnabled, setAudioEnabled] = useState(true);
+  const [audioData, setAudioData] = useState(null);
+  const [isLoadingAudio, setIsLoadingAudio] = useState(false);
   const animationRef = useRef(null);
+  const audioRef = useRef(null);
 
   // Preload images on mount
   useEffect(() => {
@@ -89,30 +90,90 @@ export const DualHeadAnimation = forwardRef(({
     setImagesLoaded(true);
   }, []);
 
-  // Update frame sequence when target changes
+  // Update frame sequence and fetch audio when target changes
   useEffect(() => {
     if (target) {
       let sequence;
       if (target.length <= 2) {
-        // For single letters or short digraphs, use demo sequence
         sequence = generateDemoSequence(target);
       } else {
-        // For words, use text to frame conversion
         sequence = textToFrameSequence(target);
       }
-      console.log('Frame sequence for', target, ':', sequence);
       setFrameSequence(sequence);
       setCurrentFrame(sequence[0]);
       setCurrentIndex(0);
+      
+      // Fetch audio data
+      fetchAudioData(target);
     }
-  }, [target]);
+  }, [target, language]);
 
-  // Animation loop using requestAnimationFrame for smoother animation
+  // Fetch audio data from API
+  const fetchAudioData = async (text) => {
+    setIsLoadingAudio(true);
+    try {
+      if (text.length <= 2) {
+        // Single letter - get letter audio
+        const data = await getLetterAudio(text, language);
+        setAudioData(data);
+      } else {
+        // Word - get word audio sequence
+        const data = await getWordAudio(text, language);
+        setAudioData(data);
+      }
+    } catch (error) {
+      console.error('Error fetching audio:', error);
+      setAudioData(null);
+    } finally {
+      setIsLoadingAudio(false);
+    }
+  };
+
+  // Play audio for single letter
+  const playLetterAudio = useCallback(async () => {
+    if (!audioEnabled || !audioData?.audio_url) return;
+    
+    try {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      audioRef.current = new Audio(audioData.audio_url);
+      await audioRef.current.play();
+    } catch (error) {
+      console.error('Error playing audio:', error);
+    }
+  }, [audioEnabled, audioData]);
+
+  // Play audio sequence for word
+  const playWordAudioSequence = useCallback(async (index) => {
+    if (!audioEnabled || !audioData?.audio_sequence) return;
+    
+    const item = audioData.audio_sequence[index];
+    if (item?.audio_url) {
+      try {
+        if (audioRef.current) {
+          audioRef.current.pause();
+        }
+        audioRef.current = new Audio(item.audio_url);
+        await audioRef.current.play();
+      } catch (error) {
+        console.error('Error playing audio:', error);
+      }
+    }
+  }, [audioEnabled, audioData]);
+
+  // Animation loop
   const animate = useCallback(() => {
     setCurrentIndex(prevIndex => {
       const nextIndex = prevIndex + 1;
       if (nextIndex < frameSequence.length) {
         setCurrentFrame(frameSequence[nextIndex]);
+        
+        // Play audio for this frame (word mode)
+        if (audioData?.audio_sequence && nextIndex < audioData.audio_sequence.length) {
+          playWordAudioSequence(nextIndex);
+        }
+        
         animationRef.current = setTimeout(() => animate(), FRAME_DURATION);
         return nextIndex;
       } else {
@@ -121,20 +182,24 @@ export const DualHeadAnimation = forwardRef(({
         return prevIndex;
       }
     });
-  }, [frameSequence, onAnimationComplete]);
+  }, [frameSequence, audioData, playWordAudioSequence, onAnimationComplete]);
 
   // Play control
   const play = useCallback(() => {
     if (isPlaying) return;
     
-    // Reset to start
     setCurrentIndex(0);
     setCurrentFrame(frameSequence[0]);
     setIsPlaying(true);
     
-    // Start animation after a small delay
-    animationRef.current = setTimeout(() => animate(), FRAME_DURATION);
-  }, [isPlaying, frameSequence, animate]);
+    // Play audio for single letter
+    if (target.length <= 2 && audioData?.audio_url) {
+      playLetterAudio();
+    }
+    
+    // Start animation after a delay (to sync with audio)
+    animationRef.current = setTimeout(() => animate(), audioEnabled ? 500 : FRAME_DURATION);
+  }, [isPlaying, frameSequence, target, audioData, audioEnabled, playLetterAudio, animate]);
 
   // Pause control
   const pause = useCallback(() => {
@@ -142,6 +207,9 @@ export const DualHeadAnimation = forwardRef(({
     if (animationRef.current) {
       clearTimeout(animationRef.current);
       animationRef.current = null;
+    }
+    if (audioRef.current) {
+      audioRef.current.pause();
     }
   }, []);
 
@@ -160,6 +228,11 @@ export const DualHeadAnimation = forwardRef(({
       play();
     }
   }, [isPlaying, play, pause]);
+
+  // Toggle audio
+  const toggleAudio = useCallback(() => {
+    setAudioEnabled(prev => !prev);
+  }, []);
 
   // Expose methods to parent
   useImperativeHandle(ref, () => ({
@@ -185,12 +258,15 @@ export const DualHeadAnimation = forwardRef(({
       if (animationRef.current) {
         clearTimeout(animationRef.current);
       }
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
     };
   }, []);
 
   // Handle slider change
   const handleSliderChange = (value) => {
-    if (isPlaying) return; // Don't allow slider during playback
+    if (isPlaying) return;
     const frameIndex = Math.round((value[0] / 100) * (frameSequence.length - 1));
     setCurrentIndex(frameIndex);
     setCurrentFrame(frameSequence[frameIndex]);
@@ -252,13 +328,13 @@ export const DualHeadAnimation = forwardRef(({
       {/* Controls */}
       {showControls && (
         <div className="mt-6 space-y-4">
-          {/* Play/Pause/Reset buttons */}
+          {/* Play/Pause/Reset/Audio buttons */}
           <div className="flex items-center justify-center gap-3">
             <Button
               variant="outline"
               size="icon"
               onClick={reset}
-              className="rounded-full w-10 h-10 bg-white"
+              className="rounded-full w-10 h-10 bg-white/10 border-blue-500/30 text-blue-300 hover:bg-blue-600/20"
               data-testid="reset-animation-btn"
             >
               <RotateCcw className="w-4 h-4" />
@@ -266,7 +342,8 @@ export const DualHeadAnimation = forwardRef(({
             
             <Button
               onClick={togglePlay}
-              className="rounded-full w-14 h-14 bg-sky-600 hover:bg-sky-700 text-white shadow-lg"
+              disabled={isLoadingAudio}
+              className="rounded-full w-14 h-14 bg-blue-600 hover:bg-blue-500 text-white shadow-lg"
               data-testid="play-pause-btn"
             >
               {isPlaying ? (
@@ -276,13 +353,39 @@ export const DualHeadAnimation = forwardRef(({
               )}
             </Button>
             
-            <div className="w-10" /> {/* Spacer for symmetry */}
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={toggleAudio}
+              className={`rounded-full w-10 h-10 border-blue-500/30 ${
+                audioEnabled 
+                  ? 'bg-blue-600/20 text-blue-300' 
+                  : 'bg-white/10 text-blue-400/50'
+              }`}
+              data-testid="toggle-audio-btn"
+            >
+              {audioEnabled ? (
+                <Volume2 className="w-4 h-4" />
+              ) : (
+                <VolumeX className="w-4 h-4" />
+              )}
+            </Button>
           </div>
+
+          {/* Audio status indicator */}
+          {isLoadingAudio && (
+            <p className="text-center text-xs text-blue-400">Loading audio...</p>
+          )}
+          {audioData && !isLoadingAudio && (
+            <p className="text-center text-xs text-blue-400">
+              {audioEnabled ? '🔊 Audio ready' : '🔇 Audio muted'}
+            </p>
+          )}
 
           {/* Frame scrubber */}
           <div className="px-4">
             <div className="flex items-center gap-4">
-              <span className="text-xs text-slate-400 w-8">0</span>
+              <span className="text-xs text-blue-400 w-8">0</span>
               <Slider
                 value={sliderValue}
                 onValueChange={handleSliderChange}
@@ -292,9 +395,9 @@ export const DualHeadAnimation = forwardRef(({
                 className="flex-1"
                 data-testid="frame-scrubber"
               />
-              <span className="text-xs text-slate-400 w-8 text-right">{frameSequence.length - 1}</span>
+              <span className="text-xs text-blue-400 w-8 text-right">{frameSequence.length - 1}</span>
             </div>
-            <p className="text-center text-xs text-slate-400 mt-2">
+            <p className="text-center text-xs text-blue-400 mt-2">
               Frame {currentIndex + 1} of {frameSequence.length}
             </p>
           </div>
