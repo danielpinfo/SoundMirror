@@ -59,9 +59,9 @@ const generatePhonemeSequence = (letter) => {
   return frames;
 };
 
-// Convert text to frame sequence for words (TTS mode)
+// Convert text to frame sequence for words (TTS mode) - with frame cloning for slower animation
 const textToFrameSequence = (text) => {
-  const frames = [0];
+  const frames = [0, 0]; // Start with neutral (doubled)
   const lowerText = text.toLowerCase();
   
   let i = 0;
@@ -69,7 +69,9 @@ const textToFrameSequence = (text) => {
     if (i + 1 < lowerText.length) {
       const digraph = lowerText.slice(i, i + 2);
       if (PHONEME_FRAME_MAP[digraph] !== undefined) {
-        frames.push(PHONEME_FRAME_MAP[digraph]);
+        const frame = PHONEME_FRAME_MAP[digraph];
+        // Clone frame 3 times for longer display
+        frames.push(frame, frame, frame);
         i += 2;
         continue;
       }
@@ -77,16 +79,20 @@ const textToFrameSequence = (text) => {
     
     const char = lowerText[i];
     if (char === ' ' || char === ',' || char === '.') {
-      frames.push(0);
+      // Longer pause for spaces/punctuation
+      frames.push(0, 0, 0);
     } else if (PHONEME_FRAME_MAP[char] !== undefined) {
-      frames.push(PHONEME_FRAME_MAP[char]);
+      const frame = PHONEME_FRAME_MAP[char];
+      // Clone frame 3 times for longer display
+      frames.push(frame, frame, frame);
     } else if (char.match(/[a-z]/)) {
-      frames.push(1);
+      // Default frame cloned
+      frames.push(1, 1, 1);
     }
     i++;
   }
   
-  frames.push(0);
+  frames.push(0, 0); // End with neutral (doubled)
   return frames;
 };
 
