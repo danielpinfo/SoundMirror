@@ -97,7 +97,8 @@ export default function LetterPracticePage() {
           <div className="max-w-4xl mx-auto">
             <DualHeadAnimation
               ref={animationRef}
-              target={selectedLetter ? `${selectedLetter.toLowerCase()}a` : ''}
+              target={selectedLetter}
+              mode="letter"
               showControls={true}
               autoPlay={false}
             />
