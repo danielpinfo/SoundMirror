@@ -193,7 +193,7 @@ export const DualHeadAnimation = forwardRef(({
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(target);
-      utterance.rate = 0.8;
+      utterance.rate = 0.5; // Slower rate for clearer pronunciation
       utterance.pitch = 1;
       
       // Try to match language
