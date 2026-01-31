@@ -498,6 +498,197 @@ async def word_to_frames(data: Dict[str, str]):
     
     return {"word": word, "frames": frames}
 
+# ============ AUDIO ENDPOINTS ============
+
+# Language code mapping for S3 files
+LANG_CODE_MAP = {
+    "english": "en",
+    "spanish": "es", 
+    "italian": "it",
+    "portuguese": "pt",
+    "german": "de",
+    "french": "fr",
+    "japanese": "ja",
+    "chinese": "zh",
+    "hindi": "hi",
+    "arabic": "ar",
+}
+
+# Letter to phoneme mapping for audio files
+LETTER_TO_PHONEME = {
+    'a': 'ah', 'b': 'ba', 'c': 'ca', 'd': 'da', 'e': 'eh', 'f': 'fa', 'g': 'ga',
+    'h': 'ha', 'i': 'ee', 'j': 'ja', 'k': 'ka', 'l': 'la', 'm': 'ma', 'n': 'na',
+    'o': 'oh', 'p': 'pa', 'q': 'ka', 'r': 'ra', 's': 'sa', 't': 'ta', 'u': 'oo',
+    'v': 'va', 'w': 'wa', 'x': 'za', 'y': 'ya', 'z': 'za',
+    'ch': 'cha', 'sh': 'sha', 'th': 'tha', 'll': 'ya', 'ñ': 'nya',
+}
+
+@api_router.get("/audio/letter/{letter}")
+async def get_letter_audio(letter: str, language: str = "english"):
+    """Get presigned URL for a letter's phoneme audio"""
+    lang_code = LANG_CODE_MAP.get(language, "en")
+    letter_lower = letter.lower()
+    
+    # Get phoneme for letter
+    phoneme = LETTER_TO_PHONEME.get(letter_lower, f"{letter_lower}a")
+    
+    # Construct S3 key
+    s3_key = f"{lang_code}-{phoneme}.mp3"
+    
+    try:
+        # Check if file exists
+        s3_client.head_object(Bucket=S3_BUCKET, Key=s3_key)
+        
+        # Generate presigned URL
+        url = s3_client.generate_presigned_url(
+            'get_object',
+            Params={'Bucket': S3_BUCKET, 'Key': s3_key},
+            ExpiresIn=3600  # URL valid for 1 hour
+        )
+        
+        return {
+            "letter": letter,
+            "phoneme": phoneme,
+            "language": language,
+            "audio_url": url,
+            "s3_key": s3_key
+        }
+    except ClientError as e:
+        if e.response['Error']['Code'] == '404':
+            raise HTTPException(status_code=404, detail=f"Audio file not found: {s3_key}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/audio/phoneme/{phoneme}")
+async def get_phoneme_audio(phoneme: str, language: str = "english"):
+    """Get presigned URL for a specific phoneme audio"""
+    lang_code = LANG_CODE_MAP.get(language, "en")
+    
+    # Construct S3 key
+    s3_key = f"{lang_code}-{phoneme.lower()}.mp3"
+    
+    try:
+        s3_client.head_object(Bucket=S3_BUCKET, Key=s3_key)
+        
+        url = s3_client.generate_presigned_url(
+            'get_object',
+            Params={'Bucket': S3_BUCKET, 'Key': s3_key},
+            ExpiresIn=3600
+        )
+        
+        return {
+            "phoneme": phoneme,
+            "language": language,
+            "audio_url": url,
+            "s3_key": s3_key
+        }
+    except ClientError as e:
+        if e.response['Error']['Code'] == '404':
+            raise HTTPException(status_code=404, detail=f"Audio file not found: {s3_key}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/audio/word")
+async def get_word_audio(data: Dict[str, str]):
+    """Get audio URLs for each phoneme in a word"""
+    word = data.get("word", "").lower()
+    language = data.get("language", "english")
+    lang_code = LANG_CODE_MAP.get(language, "en")
+    
+    audio_sequence = []
+    
+    i = 0
+    while i < len(word):
+        # Check for digraphs first
+        if i + 1 < len(word):
+            digraph = word[i:i+2]
+            if digraph in LETTER_TO_PHONEME:
+                phoneme = LETTER_TO_PHONEME[digraph]
+                s3_key = f"{lang_code}-{phoneme}.mp3"
+                try:
+                    s3_client.head_object(Bucket=S3_BUCKET, Key=s3_key)
+                    url = s3_client.generate_presigned_url(
+                        'get_object',
+                        Params={'Bucket': S3_BUCKET, 'Key': s3_key},
+                        ExpiresIn=3600
+                    )
+                    audio_sequence.append({
+                        "char": digraph,
+                        "phoneme": phoneme,
+                        "audio_url": url,
+                        "frame": PHONEME_FRAME_MAP.get(digraph[0], 0)
+                    })
+                except:
+                    audio_sequence.append({
+                        "char": digraph,
+                        "phoneme": phoneme,
+                        "audio_url": None,
+                        "frame": PHONEME_FRAME_MAP.get(digraph[0], 0)
+                    })
+                i += 2
+                continue
+        
+        char = word[i]
+        if char.isalpha():
+            phoneme = LETTER_TO_PHONEME.get(char, f"{char}a")
+            s3_key = f"{lang_code}-{phoneme}.mp3"
+            try:
+                s3_client.head_object(Bucket=S3_BUCKET, Key=s3_key)
+                url = s3_client.generate_presigned_url(
+                    'get_object',
+                    Params={'Bucket': S3_BUCKET, 'Key': s3_key},
+                    ExpiresIn=3600
+                )
+                audio_sequence.append({
+                    "char": char,
+                    "phoneme": phoneme,
+                    "audio_url": url,
+                    "frame": PHONEME_FRAME_MAP.get(char, 0)
+                })
+            except:
+                audio_sequence.append({
+                    "char": char,
+                    "phoneme": phoneme,
+                    "audio_url": None,
+                    "frame": PHONEME_FRAME_MAP.get(char, 0)
+                })
+        elif char == ' ':
+            audio_sequence.append({
+                "char": " ",
+                "phoneme": "pause",
+                "audio_url": None,
+                "frame": 0
+            })
+        i += 1
+    
+    return {
+        "word": word,
+        "language": language,
+        "audio_sequence": audio_sequence
+    }
+
+@api_router.get("/audio/available/{language}")
+async def get_available_audio(language: str):
+    """List available phoneme audio files for a language"""
+    lang_code = LANG_CODE_MAP.get(language, "en")
+    
+    available_phonemes = []
+    test_phonemes = ['ah', 'ba', 'ca', 'da', 'ee', 'eh', 'fa', 'ga', 'ha', 'ja', 'ka', 
+                     'la', 'ma', 'na', 'oh', 'oo', 'pa', 'ra', 'sa', 'ta', 'wa', 'ya', 'za']
+    
+    for phoneme in test_phonemes:
+        s3_key = f"{lang_code}-{phoneme}.mp3"
+        try:
+            s3_client.head_object(Bucket=S3_BUCKET, Key=s3_key)
+            available_phonemes.append(phoneme)
+        except:
+            pass
+    
+    return {
+        "language": language,
+        "lang_code": lang_code,
+        "available_phonemes": available_phonemes,
+        "count": len(available_phonemes)
+    }
+
 # Practice session endpoints
 @api_router.post("/sessions", response_model=PracticeSession)
 async def create_session(session_data: PracticeSessionCreate):
