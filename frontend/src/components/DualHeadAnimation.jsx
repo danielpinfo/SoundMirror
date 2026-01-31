@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useCallback, useRef, forwardRef, useImperativeHandle } from 'react';
 import { SPRITE_URLS, PHONEME_FRAME_MAP } from '../lib/constants';
-import { getLetterAudio, getWordAudio, playAudio } from '../lib/audio';
+import { getLetterAudio } from '../lib/audio';
 import { useLanguage } from '../context/LanguageContext';
 import { Slider } from '../components/ui/slider';
 import { Button } from '../components/ui/button';
 import { Play, Pause, RotateCcw, Volume2, VolumeX } from 'lucide-react';
 
 // Frame duration in milliseconds
-const FRAME_DURATION = 300;
+const FRAME_DURATION = 250;
 
 // Preload images
 const preloadImages = () => {
@@ -28,7 +28,38 @@ const preloadImages = () => {
   return images;
 };
 
-// Convert text to frame sequence with better phoneme mapping
+// Letter to phoneme mapping (what sound each letter makes)
+const LETTER_PHONEME_MAP = {
+  'a': 'ah', 'b': 'ba', 'c': 'ca', 'd': 'da', 'e': 'eh', 'f': 'fa', 'g': 'ga',
+  'h': 'ha', 'i': 'ee', 'j': 'ja', 'k': 'ka', 'l': 'la', 'm': 'ma', 'n': 'na',
+  'o': 'oh', 'p': 'pa', 'q': 'ka', 'r': 'ra', 's': 'sa', 't': 'ta', 'u': 'oo',
+  'v': 'va', 'w': 'wa', 'x': 'za', 'y': 'ya', 'z': 'za',
+  'ch': 'cha', 'sh': 'sha', 'th': 'tha',
+};
+
+// Generate frame sequence for a phoneme (e.g., "ba" -> [0, b_frame, a_frame, 0])
+const generatePhonemeSequence = (letter) => {
+  const letterLower = letter.toLowerCase();
+  const phoneme = LETTER_PHONEME_MAP[letterLower] || `${letterLower}a`;
+  
+  const frames = [0]; // Start neutral
+  
+  // Parse phoneme into individual sounds and get frames
+  for (let i = 0; i < phoneme.length; i++) {
+    const char = phoneme[i];
+    const frame = PHONEME_FRAME_MAP[char];
+    if (frame !== undefined) {
+      // Add frame multiple times for longer display
+      frames.push(frame);
+      frames.push(frame);
+    }
+  }
+  
+  frames.push(0); // End neutral
+  return frames;
+};
+
+// Convert text to frame sequence for words (TTS mode)
 const textToFrameSequence = (text) => {
   const frames = [0];
   const lowerText = text.toLowerCase();
@@ -59,15 +90,9 @@ const textToFrameSequence = (text) => {
   return frames;
 };
 
-// Generate a demo sequence showing various mouth positions
-const generateDemoSequence = (letter) => {
-  const phoneme = letter.toLowerCase();
-  const mainFrame = PHONEME_FRAME_MAP[phoneme] || 1;
-  return [0, 0, mainFrame, mainFrame, mainFrame, 0, 0];
-};
-
 export const DualHeadAnimation = forwardRef(({ 
   target = '', 
+  mode = 'letter', // 'letter' for Letter Practice (S3 audio), 'word' for Word Practice (TTS)
   onAnimationComplete,
   showControls = true,
   autoPlay = false,
@@ -79,8 +104,9 @@ export const DualHeadAnimation = forwardRef(({
   const [imagesLoaded, setImagesLoaded] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [audioEnabled, setAudioEnabled] = useState(true);
-  const [audioData, setAudioData] = useState(null);
+  const [audioUrl, setAudioUrl] = useState(null);
   const [isLoadingAudio, setIsLoadingAudio] = useState(false);
+  const [phonemeDisplay, setPhonemeDisplay] = useState('');
   const animationRef = useRef(null);
   const audioRef = useRef(null);
 
@@ -93,74 +119,88 @@ export const DualHeadAnimation = forwardRef(({
   // Update frame sequence and fetch audio when target changes
   useEffect(() => {
     if (target) {
-      let sequence;
-      if (target.length <= 2) {
-        sequence = generateDemoSequence(target);
+      if (mode === 'letter') {
+        // Letter Practice mode - use S3 audio and phoneme animation
+        const sequence = generatePhonemeSequence(target);
+        setFrameSequence(sequence);
+        setCurrentFrame(sequence[0]);
+        setCurrentIndex(0);
+        
+        // Set phoneme display
+        const letterLower = target.toLowerCase();
+        const phoneme = LETTER_PHONEME_MAP[letterLower] || `${letterLower}a`;
+        setPhonemeDisplay(phoneme);
+        
+        // Fetch S3 audio
+        fetchLetterAudio(target);
       } else {
-        sequence = textToFrameSequence(target);
+        // Word Practice mode - use TTS and text-based animation
+        const sequence = textToFrameSequence(target);
+        setFrameSequence(sequence);
+        setCurrentFrame(sequence[0]);
+        setCurrentIndex(0);
+        setPhonemeDisplay(target);
+        setAudioUrl(null); // TTS will be handled separately
       }
-      setFrameSequence(sequence);
-      setCurrentFrame(sequence[0]);
-      setCurrentIndex(0);
-      
-      // Fetch audio data
-      fetchAudioData(target);
     }
-  }, [target, language]);
+  }, [target, mode, language]);
 
-  // Fetch audio data from API
-  const fetchAudioData = async (text) => {
+  // Fetch S3 audio for letter
+  const fetchLetterAudio = async (letter) => {
     setIsLoadingAudio(true);
     try {
-      if (text.length <= 2) {
-        // Single letter - get letter audio
-        const data = await getLetterAudio(text, language);
-        setAudioData(data);
-      } else {
-        // Word - get word audio sequence
-        const data = await getWordAudio(text, language);
-        setAudioData(data);
+      const data = await getLetterAudio(letter, language);
+      if (data?.audio_url) {
+        setAudioUrl(data.audio_url);
+        // Preload the audio
+        const audio = new Audio(data.audio_url);
+        audio.preload = 'auto';
       }
     } catch (error) {
-      console.error('Error fetching audio:', error);
-      setAudioData(null);
+      console.error('Error fetching letter audio:', error);
+      setAudioUrl(null);
     } finally {
       setIsLoadingAudio(false);
     }
   };
 
-  // Play audio for single letter
-  const playLetterAudio = useCallback(async () => {
-    if (!audioEnabled || !audioData?.audio_url) return;
+  // Play S3 audio
+  const playAudio = useCallback(() => {
+    if (!audioEnabled || !audioUrl) return;
     
     try {
       if (audioRef.current) {
         audioRef.current.pause();
+        audioRef.current.currentTime = 0;
       }
-      audioRef.current = new Audio(audioData.audio_url);
-      await audioRef.current.play();
+      audioRef.current = new Audio(audioUrl);
+      audioRef.current.play().catch(e => console.error('Audio play error:', e));
     } catch (error) {
       console.error('Error playing audio:', error);
     }
-  }, [audioEnabled, audioData]);
+  }, [audioEnabled, audioUrl]);
 
-  // Play audio sequence for word
-  const playWordAudioSequence = useCallback(async (index) => {
-    if (!audioEnabled || !audioData?.audio_sequence) return;
+  // Play TTS for word mode
+  const playTTS = useCallback(() => {
+    if (!audioEnabled || mode !== 'word' || !target) return;
     
-    const item = audioData.audio_sequence[index];
-    if (item?.audio_url) {
-      try {
-        if (audioRef.current) {
-          audioRef.current.pause();
-        }
-        audioRef.current = new Audio(item.audio_url);
-        await audioRef.current.play();
-      } catch (error) {
-        console.error('Error playing audio:', error);
-      }
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(target);
+      utterance.rate = 0.8;
+      utterance.pitch = 1;
+      
+      // Try to match language
+      const langMap = {
+        'english': 'en-US', 'spanish': 'es-ES', 'italian': 'it-IT',
+        'portuguese': 'pt-BR', 'german': 'de-DE', 'french': 'fr-FR',
+        'japanese': 'ja-JP', 'chinese': 'zh-CN', 'hindi': 'hi-IN', 'arabic': 'ar-SA'
+      };
+      utterance.lang = langMap[language] || 'en-US';
+      
+      window.speechSynthesis.speak(utterance);
     }
-  }, [audioEnabled, audioData]);
+  }, [audioEnabled, mode, target, language]);
 
   // Animation loop
   const animate = useCallback(() => {
@@ -168,12 +208,6 @@ export const DualHeadAnimation = forwardRef(({
       const nextIndex = prevIndex + 1;
       if (nextIndex < frameSequence.length) {
         setCurrentFrame(frameSequence[nextIndex]);
-        
-        // Play audio for this frame (word mode)
-        if (audioData?.audio_sequence && nextIndex < audioData.audio_sequence.length) {
-          playWordAudioSequence(nextIndex);
-        }
-        
         animationRef.current = setTimeout(() => animate(), FRAME_DURATION);
         return nextIndex;
       } else {
@@ -182,7 +216,7 @@ export const DualHeadAnimation = forwardRef(({
         return prevIndex;
       }
     });
-  }, [frameSequence, audioData, playWordAudioSequence, onAnimationComplete]);
+  }, [frameSequence, onAnimationComplete]);
 
   // Play control
   const play = useCallback(() => {
@@ -192,14 +226,16 @@ export const DualHeadAnimation = forwardRef(({
     setCurrentFrame(frameSequence[0]);
     setIsPlaying(true);
     
-    // Play audio for single letter
-    if (target.length <= 2 && audioData?.audio_url) {
-      playLetterAudio();
+    // Play audio based on mode
+    if (mode === 'letter') {
+      playAudio();
+    } else {
+      playTTS();
     }
     
-    // Start animation after a delay (to sync with audio)
-    animationRef.current = setTimeout(() => animate(), audioEnabled ? 500 : FRAME_DURATION);
-  }, [isPlaying, frameSequence, target, audioData, audioEnabled, playLetterAudio, animate]);
+    // Start animation with delay to sync with audio
+    animationRef.current = setTimeout(() => animate(), 300);
+  }, [isPlaying, frameSequence, mode, playAudio, playTTS, animate]);
 
   // Pause control
   const pause = useCallback(() => {
@@ -211,7 +247,10 @@ export const DualHeadAnimation = forwardRef(({
     if (audioRef.current) {
       audioRef.current.pause();
     }
-  }, []);
+    if (mode === 'word' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+  }, [mode]);
 
   // Reset control
   const reset = useCallback(() => {
@@ -261,6 +300,9 @@ export const DualHeadAnimation = forwardRef(({
       if (audioRef.current) {
         audioRef.current.pause();
       }
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
     };
   }, []);
 
@@ -278,6 +320,16 @@ export const DualHeadAnimation = forwardRef(({
 
   return (
     <div data-testid="dual-head-animation" className="w-full">
+      {/* Phoneme Display */}
+      {phonemeDisplay && (
+        <div className="text-center mb-4">
+          <span className="text-sm text-blue-400 uppercase tracking-wider">
+            {mode === 'letter' ? 'Phoneme: ' : 'Word: '}
+          </span>
+          <span className="text-2xl font-bold text-white ml-2">{phonemeDisplay}</span>
+        </div>
+      )}
+
       {/* Dual Head Display */}
       <div className="grid grid-cols-2 gap-4 md:gap-6">
         {/* Front View (Master) */}
@@ -342,7 +394,7 @@ export const DualHeadAnimation = forwardRef(({
             
             <Button
               onClick={togglePlay}
-              disabled={isLoadingAudio}
+              disabled={isLoadingAudio && mode === 'letter'}
               className="rounded-full w-14 h-14 bg-blue-600 hover:bg-blue-500 text-white shadow-lg"
               data-testid="play-pause-btn"
             >
@@ -373,12 +425,16 @@ export const DualHeadAnimation = forwardRef(({
           </div>
 
           {/* Audio status indicator */}
-          {isLoadingAudio && (
-            <p className="text-center text-xs text-blue-400">Loading audio...</p>
-          )}
-          {audioData && !isLoadingAudio && (
+          {mode === 'letter' && (
             <p className="text-center text-xs text-blue-400">
-              {audioEnabled ? '🔊 Audio ready' : '🔇 Audio muted'}
+              {isLoadingAudio ? 'Loading audio...' : 
+               audioUrl ? (audioEnabled ? '🔊 S3 Audio ready' : '🔇 Audio muted') : 
+               '⚠️ No audio available'}
+            </p>
+          )}
+          {mode === 'word' && (
+            <p className="text-center text-xs text-blue-400">
+              {audioEnabled ? '🔊 TTS enabled' : '🔇 Audio muted'}
             </p>
           )}
 
