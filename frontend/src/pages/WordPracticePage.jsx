@@ -138,6 +138,7 @@ export default function WordPracticePage() {
             <DualHeadAnimation
               ref={animationRef}
               target={practiceWord}
+              mode="word"
               showControls={true}
               autoPlay={false}
             />
