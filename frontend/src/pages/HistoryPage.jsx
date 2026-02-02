@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { getPracticeSessions, deletePracticeSession, getStatistics } from '../lib/db';
 import { Button } from '../components/ui/button';
-import { Card, CardContent } from '../components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Input } from '../components/ui/input';
+import { Progress } from '../components/ui/progress';
 import {
   Select,
   SelectContent,
@@ -24,6 +25,14 @@ import {
   TrendingUp,
   Video,
   Mic,
+  Flame,
+  Trophy,
+  Target,
+  Star,
+  CheckCircle,
+  Circle,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 
 export default function HistoryPage() {
@@ -35,7 +44,9 @@ export default function HistoryPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
-  const [selectedSession, setSelectedSession] = useState(null);
+  const [showAchievements, setShowAchievements] = useState(true);
+  const [showPhonemes, setShowPhonemes] = useState(true);
+  const [activeTab, setActiveTab] = useState('progress'); // 'progress' or 'history'
 
   // Load sessions
   const loadSessions = useCallback(async () => {
@@ -110,6 +121,66 @@ export default function HistoryPage() {
     });
   };
 
+  // Render progress bar for phoneme
+  const PhonemeProgressBar = ({ phoneme, avgScore, attempts, colorClass }) => (
+    <div className="flex items-center gap-3 py-2">
+      <div className={`w-10 h-10 rounded-lg ${colorClass} flex items-center justify-center font-bold text-sm`}>
+        {phoneme}
+      </div>
+      <div className="flex-1">
+        <div className="flex justify-between text-xs mb-1">
+          <span className="text-blue-200">{attempts} attempts</span>
+          <span className="text-white font-medium">{avgScore}%</span>
+        </div>
+        <div className="h-2 bg-blue-900/50 rounded-full overflow-hidden">
+          <div 
+            className={`h-full rounded-full transition-all duration-500 ${
+              avgScore >= 80 ? 'bg-green-500' : avgScore >= 60 ? 'bg-yellow-500' : 'bg-red-400'
+            }`}
+            style={{ width: `${avgScore}%` }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+
+  // Render achievement card
+  const AchievementCard = ({ achievement }) => (
+    <div 
+      className={`p-3 rounded-xl border transition-all ${
+        achievement.unlocked 
+          ? 'bg-gradient-to-br from-yellow-600/20 to-orange-600/20 border-yellow-500/30' 
+          : 'bg-blue-900/20 border-blue-500/20 opacity-60'
+      }`}
+    >
+      <div className="flex items-center gap-3">
+        <div className={`text-2xl ${achievement.unlocked ? '' : 'grayscale'}`}>
+          {achievement.icon}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className={`font-semibold text-sm ${achievement.unlocked ? 'text-yellow-200' : 'text-blue-300'}`}>
+              {achievement.name}
+            </span>
+            {achievement.unlocked && <CheckCircle className="w-4 h-4 text-green-400" />}
+          </div>
+          <p className="text-xs text-blue-300/80 truncate">{achievement.desc}</p>
+          {!achievement.unlocked && achievement.progress !== undefined && (
+            <div className="mt-1">
+              <div className="h-1.5 bg-blue-900/50 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-blue-500 rounded-full"
+                  style={{ width: `${Math.min(100, (achievement.progress / achievement.target) * 100)}%` }}
+                />
+              </div>
+              <p className="text-xs text-blue-400 mt-0.5">{achievement.progress}/{achievement.target}</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div 
       data-testid="history-page" 
@@ -155,220 +226,434 @@ export default function HistoryPage() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-6 max-w-6xl">
-        <h1 className="text-2xl md:text-3xl font-bold text-white mb-6" style={{ fontFamily: 'Manrope, sans-serif' }}>
-          {t('history')}
-        </h1>
-
-        {/* Statistics Cards */}
-        {statistics && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <Card className="bg-cobalt-surface border-blue-500/20">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-blue-600/30 flex items-center justify-center">
-                    <TrendingUp className="w-5 h-5 text-blue-300" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-white">{statistics.totalSessions}</p>
-                    <p className="text-xs text-blue-300">Total Sessions</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-cobalt-surface border-blue-500/20">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-green-600/30 flex items-center justify-center">
-                    <Video className="w-5 h-5 text-green-400" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-white">{statistics.avgVisualScore}%</p>
-                    <p className="text-xs text-blue-300">Avg Visual Score</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-cobalt-surface border-blue-500/20">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-purple-600/30 flex items-center justify-center">
-                    <Mic className="w-5 h-5 text-purple-400" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-white">{statistics.avgAudioScore}%</p>
-                    <p className="text-xs text-blue-300">Avg Audio Score</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-cobalt-surface border-blue-500/20">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-orange-600/30 flex items-center justify-center">
-                    <Calendar className="w-5 h-5 text-orange-400" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-white">
-                      {Object.keys(statistics.sessionsByDate).length}
-                    </p>
-                    <p className="text-xs text-blue-300">Practice Days</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-blue-400" />
-            <Input
-              type="text"
-              placeholder="Search by word or letter..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 h-11 rounded-xl border-blue-500/30 bg-[#0f2847] text-white placeholder:text-blue-300/50"
-              data-testid="search-input"
-            />
-          </div>
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl md:text-3xl font-bold text-white" style={{ fontFamily: 'Manrope, sans-serif' }}>
+            {t('history')}
+          </h1>
           
-          <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger className="w-[180px] h-11 rounded-xl border-blue-500/30 bg-[#0f2847] text-white" data-testid="type-filter">
-              <SelectValue placeholder="Filter by type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="letter">Letters Only</SelectItem>
-              <SelectItem value="word">Words Only</SelectItem>
-            </SelectContent>
-          </Select>
+          {/* Tab Switcher */}
+          <div className="flex bg-blue-900/30 rounded-full p-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setActiveTab('progress')}
+              className={`rounded-full px-4 ${
+                activeTab === 'progress' 
+                  ? 'bg-blue-600 text-white' 
+                  : 'text-blue-300 hover:text-white'
+              }`}
+              data-testid="tab-progress"
+            >
+              <TrendingUp className="w-4 h-4 mr-1" />
+              Progress
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setActiveTab('history')}
+              className={`rounded-full px-4 ${
+                activeTab === 'history' 
+                  ? 'bg-blue-600 text-white' 
+                  : 'text-blue-300 hover:text-white'
+              }`}
+              data-testid="tab-history"
+            >
+              <Calendar className="w-4 h-4 mr-1" />
+              Sessions
+            </Button>
+          </div>
         </div>
 
-        {/* Sessions List */}
         {loading ? (
           <div className="text-center py-12">
             <div className="animate-spin w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full mx-auto mb-3" />
-            <p className="text-blue-300">Loading sessions...</p>
+            <p className="text-blue-300">Loading your progress...</p>
           </div>
-        ) : filteredSessions.length === 0 ? (
-          <Card className="bg-cobalt-surface border-blue-500/20">
-            <CardContent className="p-12 text-center">
-              <div className="w-16 h-16 bg-blue-600/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Calendar className="w-8 h-8 text-blue-300" />
+        ) : activeTab === 'progress' ? (
+          /* Progress Tracker Tab */
+          <div className="space-y-6">
+            {/* Top Stats Row */}
+            {statistics && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {/* Current Streak */}
+                <Card className="bg-gradient-to-br from-orange-600/20 to-red-600/20 border-orange-500/30">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl bg-orange-500/30 flex items-center justify-center">
+                        <Flame className="w-6 h-6 text-orange-400" />
+                      </div>
+                      <div>
+                        <p className="text-3xl font-bold text-white">{statistics.currentStreak}</p>
+                        <p className="text-xs text-orange-300">Day Streak</p>
+                      </div>
+                    </div>
+                    {statistics.longestStreak > 0 && (
+                      <p className="text-xs text-orange-400/70 mt-2">Best: {statistics.longestStreak} days</p>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Total Sessions */}
+                <Card className="bg-cobalt-surface border-blue-500/20">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl bg-blue-600/30 flex items-center justify-center">
+                        <Target className="w-6 h-6 text-blue-300" />
+                      </div>
+                      <div>
+                        <p className="text-3xl font-bold text-white">{statistics.totalSessions}</p>
+                        <p className="text-xs text-blue-300">Total Sessions</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                {/* Average Visual */}
+                <Card className="bg-cobalt-surface border-blue-500/20">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl bg-green-600/30 flex items-center justify-center">
+                        <Video className="w-6 h-6 text-green-400" />
+                      </div>
+                      <div>
+                        <p className="text-3xl font-bold text-white">{statistics.avgVisualScore}%</p>
+                        <p className="text-xs text-blue-300">Avg Visual</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                {/* Average Audio */}
+                <Card className="bg-cobalt-surface border-blue-500/20">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl bg-purple-600/30 flex items-center justify-center">
+                        <Mic className="w-6 h-6 text-purple-400" />
+                      </div>
+                      <div>
+                        <p className="text-3xl font-bold text-white">{statistics.avgAudioScore}%</p>
+                        <p className="text-xs text-blue-300">Avg Audio</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
-              <h3 className="text-lg font-semibold text-white mb-2">No Sessions Found</h3>
-              <p className="text-blue-300 mb-4">
-                {sessions.length === 0 
-                  ? "Start practicing to build your history!"
-                  : "No sessions match your filters."}
-              </p>
-              <Button
-                onClick={() => navigate('/letter-practice')}
-                className="rounded-full bg-blue-600 hover:bg-blue-500"
-              >
-                Start Practice
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-3">
-            {filteredSessions.map((session) => (
-              <Card 
-                key={session.id} 
-                className="bg-cobalt-surface border-blue-500/20 card-hover"
-                data-testid={`session-${session.id}`}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-4 flex-1">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                        session.sessionType === 'letter' 
-                          ? 'bg-blue-600/30 text-blue-300' 
-                          : 'bg-purple-600/30 text-purple-300'
-                      }`}>
-                        {session.sessionType === 'letter' ? (
-                          <Type className="w-6 h-6" />
-                        ) : (
-                          <BookOpen className="w-6 h-6" />
-                        )}
-                      </div>
-                      
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-semibold text-white truncate">
-                            {session.target}
-                          </span>
-                          <span className={`px-2 py-0.5 text-xs rounded-full ${
-                            session.sessionType === 'letter'
-                              ? 'bg-blue-600/30 text-blue-200'
-                              : 'bg-purple-600/30 text-purple-200'
-                          }`}>
-                            {session.sessionType}
-                          </span>
+            )}
+
+            {/* Weekly Activity Chart */}
+            {statistics && statistics.weeklyProgress && (
+              <Card className="bg-cobalt-surface border-blue-500/20">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg text-white flex items-center gap-2">
+                    <Calendar className="w-5 h-5 text-blue-400" />
+                    This Week's Activity
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-end justify-between gap-2 h-32">
+                    {statistics.weeklyProgress.map((day, idx) => (
+                      <div key={idx} className="flex-1 flex flex-col items-center gap-1">
+                        <div 
+                          className="w-full bg-blue-600/30 rounded-t-lg transition-all hover:bg-blue-600/50"
+                          style={{ 
+                            height: `${Math.max(8, (day.sessions / Math.max(...statistics.weeklyProgress.map(d => d.sessions), 1)) * 100)}%`,
+                            minHeight: day.sessions > 0 ? '20px' : '8px'
+                          }}
+                        >
+                          {day.sessions > 0 && (
+                            <div className="text-center text-xs text-white font-medium pt-1">
+                              {day.sessions}
+                            </div>
+                          )}
                         </div>
-                        <p className="text-sm text-blue-300">
-                          {formatDate(session.timestamp)}
-                        </p>
+                        <span className="text-xs text-blue-300">{day.day}</span>
                       </div>
-                      
-                      <div className="hidden sm:flex items-center gap-6">
-                        <div className="text-center">
-                          <p className="text-lg font-bold text-blue-300">{session.visualScore || 0}%</p>
-                          <p className="text-xs text-blue-400">Visual</p>
-                        </div>
-                        <div className="text-center">
-                          <p className="text-lg font-bold text-purple-300">{session.audioScore || 0}%</p>
-                          <p className="text-xs text-blue-400">Audio</p>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => {
-                          if (session.sessionType === 'letter') {
-                            navigate(`/letter-practice`);
-                          } else {
-                            navigate(`/word-practice?word=${encodeURIComponent(session.target)}`);
-                          }
-                        }}
-                        className="rounded-full text-blue-300 hover:text-white hover:bg-blue-600/30"
-                        title="Practice again"
-                        data-testid={`replay-${session.id}`}
-                      >
-                        <Play className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleExport(session)}
-                        className="rounded-full text-blue-300 hover:text-white hover:bg-blue-600/30"
-                        title="Export"
-                        data-testid={`export-${session.id}`}
-                      >
-                        <Download className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDelete(session.id)}
-                        className="rounded-full text-red-400 hover:text-red-300 hover:bg-red-500/20"
-                        title="Delete"
-                        data-testid={`delete-${session.id}`}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
-            ))}
+            )}
+
+            {/* Achievements Section */}
+            {statistics && statistics.achievements && (
+              <Card className="bg-cobalt-surface border-blue-500/20">
+                <CardHeader className="pb-2">
+                  <button 
+                    onClick={() => setShowAchievements(!showAchievements)}
+                    className="w-full flex items-center justify-between"
+                  >
+                    <CardTitle className="text-lg text-white flex items-center gap-2">
+                      <Trophy className="w-5 h-5 text-yellow-400" />
+                      Achievements
+                      <span className="text-sm text-blue-400 font-normal">
+                        ({statistics.achievements.filter(a => a.unlocked).length}/{statistics.achievements.length} unlocked)
+                      </span>
+                    </CardTitle>
+                    {showAchievements ? <ChevronUp className="w-5 h-5 text-blue-400" /> : <ChevronDown className="w-5 h-5 text-blue-400" />}
+                  </button>
+                </CardHeader>
+                {showAchievements && (
+                  <CardContent>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                      {statistics.achievements.map((achievement) => (
+                        <AchievementCard key={achievement.id} achievement={achievement} />
+                      ))}
+                    </div>
+                  </CardContent>
+                )}
+              </Card>
+            )}
+
+            {/* Phoneme Mastery Section */}
+            {statistics && (
+              <Card className="bg-cobalt-surface border-blue-500/20">
+                <CardHeader className="pb-2">
+                  <button 
+                    onClick={() => setShowPhonemes(!showPhonemes)}
+                    className="w-full flex items-center justify-between"
+                  >
+                    <CardTitle className="text-lg text-white flex items-center gap-2">
+                      <Star className="w-5 h-5 text-blue-400" />
+                      Phoneme Mastery
+                      <span className="text-sm text-green-400 font-normal">
+                        ({statistics.masteredPhonemes?.length || 0} mastered)
+                      </span>
+                    </CardTitle>
+                    {showPhonemes ? <ChevronUp className="w-5 h-5 text-blue-400" /> : <ChevronDown className="w-5 h-5 text-blue-400" />}
+                  </button>
+                </CardHeader>
+                {showPhonemes && (
+                  <CardContent>
+                    {statistics.masteredPhonemes?.length === 0 && 
+                     statistics.inProgressPhonemes?.length === 0 && 
+                     statistics.needsPracticePhonemes?.length === 0 ? (
+                      <div className="text-center py-8">
+                        <p className="text-blue-300 mb-2">No phoneme data yet</p>
+                        <Button
+                          onClick={() => navigate('/letter-practice')}
+                          className="rounded-full bg-blue-600 hover:bg-blue-500"
+                        >
+                          Start Practicing Letters
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {/* Mastered */}
+                        <div>
+                          <div className="flex items-center gap-2 mb-3">
+                            <CheckCircle className="w-4 h-4 text-green-400" />
+                            <span className="text-sm font-medium text-green-400">Mastered (80%+)</span>
+                          </div>
+                          {statistics.masteredPhonemes?.length > 0 ? (
+                            <div className="space-y-1">
+                              {statistics.masteredPhonemes.map(p => (
+                                <PhonemeProgressBar 
+                                  key={p.phoneme} 
+                                  {...p} 
+                                  colorClass="bg-green-600/30 text-green-300"
+                                />
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-xs text-blue-400">Keep practicing to master phonemes!</p>
+                          )}
+                        </div>
+
+                        {/* In Progress */}
+                        <div>
+                          <div className="flex items-center gap-2 mb-3">
+                            <TrendingUp className="w-4 h-4 text-yellow-400" />
+                            <span className="text-sm font-medium text-yellow-400">In Progress (60-79%)</span>
+                          </div>
+                          {statistics.inProgressPhonemes?.length > 0 ? (
+                            <div className="space-y-1">
+                              {statistics.inProgressPhonemes.map(p => (
+                                <PhonemeProgressBar 
+                                  key={p.phoneme} 
+                                  {...p} 
+                                  colorClass="bg-yellow-600/30 text-yellow-300"
+                                />
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-xs text-blue-400">No phonemes in progress</p>
+                          )}
+                        </div>
+
+                        {/* Needs Practice */}
+                        <div>
+                          <div className="flex items-center gap-2 mb-3">
+                            <Target className="w-4 h-4 text-red-400" />
+                            <span className="text-sm font-medium text-red-400">Needs Practice (&lt;60%)</span>
+                          </div>
+                          {statistics.needsPracticePhonemes?.length > 0 ? (
+                            <div className="space-y-1">
+                              {statistics.needsPracticePhonemes.map(p => (
+                                <PhonemeProgressBar 
+                                  key={p.phoneme} 
+                                  {...p} 
+                                  colorClass="bg-red-600/30 text-red-300"
+                                />
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-xs text-blue-400">Great job! No struggling phonemes</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                )}
+              </Card>
+            )}
+          </div>
+        ) : (
+          /* Sessions History Tab */
+          <div className="space-y-4">
+            {/* Filters */}
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-blue-400" />
+                <Input
+                  type="text"
+                  placeholder="Search by word or letter..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 h-11 rounded-xl border-blue-500/30 bg-[#0f2847] text-white placeholder:text-blue-300/50"
+                  data-testid="search-input"
+                />
+              </div>
+              
+              <Select value={typeFilter} onValueChange={setTypeFilter}>
+                <SelectTrigger className="w-[180px] h-11 rounded-xl border-blue-500/30 bg-[#0f2847] text-white" data-testid="type-filter">
+                  <SelectValue placeholder="Filter by type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Types</SelectItem>
+                  <SelectItem value="letter">Letters Only</SelectItem>
+                  <SelectItem value="word">Words Only</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Sessions List */}
+            {filteredSessions.length === 0 ? (
+              <Card className="bg-cobalt-surface border-blue-500/20">
+                <CardContent className="p-12 text-center">
+                  <div className="w-16 h-16 bg-blue-600/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Calendar className="w-8 h-8 text-blue-300" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-white mb-2">No Sessions Found</h3>
+                  <p className="text-blue-300 mb-4">
+                    {sessions.length === 0 
+                      ? "Start practicing to build your history!"
+                      : "No sessions match your filters."}
+                  </p>
+                  <Button
+                    onClick={() => navigate('/letter-practice')}
+                    className="rounded-full bg-blue-600 hover:bg-blue-500"
+                  >
+                    Start Practice
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-3">
+                {filteredSessions.map((session) => (
+                  <Card 
+                    key={session.id} 
+                    className="bg-cobalt-surface border-blue-500/20 card-hover"
+                    data-testid={`session-${session.id}`}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-4 flex-1">
+                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                            session.sessionType === 'letter' 
+                              ? 'bg-blue-600/30 text-blue-300' 
+                              : 'bg-purple-600/30 text-purple-300'
+                          }`}>
+                            {session.sessionType === 'letter' ? (
+                              <Type className="w-6 h-6" />
+                            ) : (
+                              <BookOpen className="w-6 h-6" />
+                            )}
+                          </div>
+                          
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-semibold text-white truncate">
+                                {session.target}
+                              </span>
+                              <span className={`px-2 py-0.5 text-xs rounded-full ${
+                                session.sessionType === 'letter'
+                                  ? 'bg-blue-600/30 text-blue-200'
+                                  : 'bg-purple-600/30 text-purple-200'
+                              }`}>
+                                {session.sessionType}
+                              </span>
+                            </div>
+                            <p className="text-sm text-blue-300">
+                              {formatDate(session.timestamp)}
+                            </p>
+                          </div>
+                          
+                          <div className="hidden sm:flex items-center gap-6">
+                            <div className="text-center">
+                              <p className="text-lg font-bold text-blue-300">{session.visualScore || 0}%</p>
+                              <p className="text-xs text-blue-400">Visual</p>
+                            </div>
+                            <div className="text-center">
+                              <p className="text-lg font-bold text-purple-300">{session.audioScore || 0}%</p>
+                              <p className="text-xs text-blue-400">Audio</p>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                              if (session.sessionType === 'letter') {
+                                navigate(`/letter-practice`);
+                              } else {
+                                navigate(`/word-practice?word=${encodeURIComponent(session.target)}`);
+                              }
+                            }}
+                            className="rounded-full text-blue-300 hover:text-white hover:bg-blue-600/30"
+                            title="Practice again"
+                            data-testid={`replay-${session.id}`}
+                          >
+                            <Play className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleExport(session)}
+                            className="rounded-full text-blue-300 hover:text-white hover:bg-blue-600/30"
+                            title="Export"
+                            data-testid={`export-${session.id}`}
+                          >
+                            <Download className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDelete(session.id)}
+                            className="rounded-full text-red-400 hover:text-red-300 hover:bg-red-500/20"
+                            title="Delete"
+                            data-testid={`delete-${session.id}`}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </main>
