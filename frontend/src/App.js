@@ -8,7 +8,6 @@ import WordPracticePage from './pages/WordPracticePage';
 import HistoryPage from './pages/HistoryPage';
 import BugReportPage from './pages/BugReportPage';
 import PathologistPage from './pages/PathologistPage';
-import ClientsPage from './pages/ClientsPage';
 import { Toaster } from './components/ui/sonner';
 import './index.css';
 
