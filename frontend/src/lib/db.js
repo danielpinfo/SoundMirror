@@ -288,3 +288,166 @@ export const getStatistics = async () => {
     practiceDays: Object.keys(sessionsByDate).length,
   };
 };
+
+// ============ CLIENT MANAGEMENT ============
+
+// Create a new client
+export const createClient = async (clientData) => {
+  const db = await getDB();
+  const client = {
+    id: crypto.randomUUID(),
+    name: clientData.name || 'Unnamed Client',
+    dateOfBirth: clientData.dateOfBirth || null,
+    diagnosis: clientData.diagnosis || '',
+    goals: clientData.goals || '',
+    notes: clientData.notes || '',
+    contactInfo: clientData.contactInfo || '',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  await db.put('clients', client);
+  return client;
+};
+
+// Get all clients
+export const getClients = async () => {
+  const db = await getDB();
+  const clients = await db.getAll('clients');
+  return clients.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+};
+
+// Get a single client by ID
+export const getClient = async (clientId) => {
+  const db = await getDB();
+  return await db.get('clients', clientId);
+};
+
+// Update a client
+export const updateClient = async (clientId, updates) => {
+  const db = await getDB();
+  const existing = await db.get('clients', clientId);
+  if (!existing) throw new Error('Client not found');
+  
+  const updated = {
+    ...existing,
+    ...updates,
+    updatedAt: new Date().toISOString(),
+  };
+  await db.put('clients', updated);
+  return updated;
+};
+
+// Delete a client
+export const deleteClient = async (clientId) => {
+  const db = await getDB();
+  await db.delete('clients', clientId);
+  // Also delete associated notes
+  const notes = await db.getAllFromIndex('notes', 'clientId', clientId);
+  for (const note of notes) {
+    await db.delete('notes', note.id);
+  }
+};
+
+// Get client statistics
+export const getClientStatistics = async (clientId) => {
+  const db = await getDB();
+  const sessions = await db.getAll('sessions');
+  const clientSessions = sessions.filter(s => s.clientId === clientId);
+  
+  if (clientSessions.length === 0) {
+    return {
+      totalSessions: 0,
+      avgVisualScore: 0,
+      avgAudioScore: 0,
+      lastSession: null,
+      phonemeProgress: {},
+    };
+  }
+  
+  const avgVisualScore = clientSessions.reduce((sum, s) => sum + (s.visualScore || 0), 0) / clientSessions.length;
+  const avgAudioScore = clientSessions.reduce((sum, s) => sum + (s.audioScore || 0), 0) / clientSessions.length;
+  
+  // Phoneme progress
+  const phonemeProgress = {};
+  clientSessions.filter(s => s.sessionType === 'letter').forEach(s => {
+    const target = s.target.toUpperCase();
+    if (!phonemeProgress[target]) {
+      phonemeProgress[target] = { attempts: 0, totalScore: 0 };
+    }
+    phonemeProgress[target].attempts++;
+    phonemeProgress[target].totalScore += ((s.visualScore || 0) + (s.audioScore || 0)) / 2;
+  });
+  
+  Object.keys(phonemeProgress).forEach(key => {
+    phonemeProgress[key].avgScore = Math.round(phonemeProgress[key].totalScore / phonemeProgress[key].attempts);
+  });
+  
+  const sortedSessions = [...clientSessions].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+  
+  return {
+    totalSessions: clientSessions.length,
+    avgVisualScore: Math.round(avgVisualScore * 10) / 10,
+    avgAudioScore: Math.round(avgAudioScore * 10) / 10,
+    lastSession: sortedSessions[0]?.timestamp || null,
+    phonemeProgress,
+  };
+};
+
+// ============ SESSION NOTES ============
+
+// Create a session note
+export const createNote = async (noteData) => {
+  const db = await getDB();
+  const note = {
+    id: crypto.randomUUID(),
+    sessionId: noteData.sessionId || null,
+    clientId: noteData.clientId || null,
+    content: noteData.content || '',
+    type: noteData.type || 'general', // 'general', 'observation', 'goal', 'recommendation'
+    timestamp: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  await db.put('notes', note);
+  return note;
+};
+
+// Get notes for a client
+export const getClientNotes = async (clientId) => {
+  const db = await getDB();
+  const notes = await db.getAllFromIndex('notes', 'clientId', clientId);
+  return notes.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+};
+
+// Get notes for a session
+export const getSessionNotes = async (sessionId) => {
+  const db = await getDB();
+  const notes = await db.getAllFromIndex('notes', 'sessionId', sessionId);
+  return notes.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+};
+
+// Update a note
+export const updateNote = async (noteId, updates) => {
+  const db = await getDB();
+  const existing = await db.get('notes', noteId);
+  if (!existing) throw new Error('Note not found');
+  
+  const updated = {
+    ...existing,
+    ...updates,
+    updatedAt: new Date().toISOString(),
+  };
+  await db.put('notes', updated);
+  return updated;
+};
+
+// Delete a note
+export const deleteNote = async (noteId) => {
+  const db = await getDB();
+  await db.delete('notes', noteId);
+};
+
+// Get all notes (for export)
+export const getAllNotes = async () => {
+  const db = await getDB();
+  return await db.getAll('notes');
+};
