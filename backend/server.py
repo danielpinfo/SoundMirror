@@ -814,14 +814,11 @@ Respond in JSON format:
     "suggestions": ["suggestion 1", "suggestion 2"]
 }}"""
             
-            # Use Gemini for analysis
-            response = await gemini_client.chat_async(
-                messages=[{"role": "user", "content": prompt}],
-                model="gemini-1.5-flash"
-            )
+            # Use Gemini for analysis - use send_message method
+            response = await gemini_client.send_message_async(prompt)
             
             # Parse AI response
-            response_text = response.content if hasattr(response, 'content') else str(response)
+            response_text = str(response)
             # Extract JSON from response
             json_start = response_text.find('{')
             json_end = response_text.rfind('}') + 1
