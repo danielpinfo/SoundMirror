@@ -121,6 +121,7 @@ export default function LetterPracticePage() {
             {selectedLetter ? (
               <RecordingPanel
                 target={selectedLetter}
+                language={language}
                 onGradingComplete={handleGradingComplete}
               />
             ) : (
