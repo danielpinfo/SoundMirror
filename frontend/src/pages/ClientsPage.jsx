@@ -96,13 +96,16 @@ export default function ClientsPage() {
     if (!newClient.name.trim()) return;
     
     try {
+      console.log('Creating client:', newClient);
       const client = await createClient(newClient);
+      console.log('Client created:', client);
       setClients([client, ...clients]);
       setNewClient({ name: '', dateOfBirth: '', diagnosis: '', goals: '', contactInfo: '' });
       setShowAddClient(false);
       selectClient(client);
     } catch (error) {
       console.error('Error creating client:', error);
+      alert('Failed to create client. Please try again.');
     }
   };
 
