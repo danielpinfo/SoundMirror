@@ -139,6 +139,122 @@ export const getStatistics = async () => {
     sessionsByDate[date] = (sessionsByDate[date] || 0) + 1;
   });
   
+  // Calculate practice streak
+  const sortedDates = Object.keys(sessionsByDate).sort((a, b) => new Date(b) - new Date(a));
+  let currentStreak = 0;
+  let longestStreak = 0;
+  let tempStreak = 0;
+  
+  if (sortedDates.length > 0) {
+    const today = new Date().toLocaleDateString();
+    const yesterday = new Date(Date.now() - 86400000).toLocaleDateString();
+    
+    // Check if practiced today or yesterday to continue streak
+    if (sortedDates[0] === today || sortedDates[0] === yesterday) {
+      for (let i = 0; i < sortedDates.length; i++) {
+        const currentDate = new Date(sortedDates[i]);
+        const expectedDate = new Date(sortedDates[0]);
+        expectedDate.setDate(expectedDate.getDate() - i);
+        
+        if (currentDate.toLocaleDateString() === expectedDate.toLocaleDateString()) {
+          tempStreak++;
+        } else {
+          break;
+        }
+      }
+      currentStreak = tempStreak;
+    }
+    
+    // Calculate longest streak
+    tempStreak = 1;
+    for (let i = 1; i < sortedDates.length; i++) {
+      const prevDate = new Date(sortedDates[i - 1]);
+      const currDate = new Date(sortedDates[i]);
+      const dayDiff = (prevDate - currDate) / 86400000;
+      
+      if (dayDiff <= 1.5) {
+        tempStreak++;
+      } else {
+        longestStreak = Math.max(longestStreak, tempStreak);
+        tempStreak = 1;
+      }
+    }
+    longestStreak = Math.max(longestStreak, tempStreak);
+  }
+  
+  // Calculate phoneme mastery (letters with avg score > 80%)
+  const phonemeMastery = {};
+  const phonemeAttempts = {};
+  
+  sessions.filter(s => s.sessionType === 'letter').forEach(s => {
+    const target = s.target.toUpperCase();
+    const avgScore = ((s.visualScore || 0) + (s.audioScore || 0)) / 2;
+    
+    if (!phonemeMastery[target]) {
+      phonemeMastery[target] = { total: 0, count: 0, best: 0 };
+    }
+    phonemeMastery[target].total += avgScore;
+    phonemeMastery[target].count++;
+    phonemeMastery[target].best = Math.max(phonemeMastery[target].best, avgScore);
+  });
+  
+  // Calculate mastery percentage for each phoneme
+  const masteredPhonemes = [];
+  const inProgressPhonemes = [];
+  const needsPracticePhonemes = [];
+  
+  Object.entries(phonemeMastery).forEach(([phoneme, data]) => {
+    const avgScore = data.total / data.count;
+    if (avgScore >= 80) {
+      masteredPhonemes.push({ phoneme, avgScore: Math.round(avgScore), attempts: data.count });
+    } else if (avgScore >= 60) {
+      inProgressPhonemes.push({ phoneme, avgScore: Math.round(avgScore), attempts: data.count });
+    } else {
+      needsPracticePhonemes.push({ phoneme, avgScore: Math.round(avgScore), attempts: data.count });
+    }
+  });
+  
+  // Calculate achievements/milestones
+  const achievements = [];
+  
+  if (totalSessions >= 1) achievements.push({ id: 'first_step', name: 'First Step', desc: 'Complete your first practice session', icon: '🎯', unlocked: true });
+  else achievements.push({ id: 'first_step', name: 'First Step', desc: 'Complete your first practice session', icon: '🎯', unlocked: false });
+  
+  if (totalSessions >= 10) achievements.push({ id: 'dedicated', name: 'Dedicated Learner', desc: 'Complete 10 practice sessions', icon: '📚', unlocked: true });
+  else achievements.push({ id: 'dedicated', name: 'Dedicated Learner', desc: 'Complete 10 practice sessions', icon: '📚', unlocked: false, progress: totalSessions, target: 10 });
+  
+  if (totalSessions >= 50) achievements.push({ id: 'committed', name: 'Committed', desc: 'Complete 50 practice sessions', icon: '💪', unlocked: true });
+  else achievements.push({ id: 'committed', name: 'Committed', desc: 'Complete 50 practice sessions', icon: '💪', unlocked: false, progress: totalSessions, target: 50 });
+  
+  if (currentStreak >= 3) achievements.push({ id: 'streak3', name: '3 Day Streak', desc: 'Practice 3 days in a row', icon: '🔥', unlocked: true });
+  else achievements.push({ id: 'streak3', name: '3 Day Streak', desc: 'Practice 3 days in a row', icon: '🔥', unlocked: false, progress: currentStreak, target: 3 });
+  
+  if (currentStreak >= 7) achievements.push({ id: 'streak7', name: 'Weekly Warrior', desc: 'Practice 7 days in a row', icon: '⭐', unlocked: true });
+  else achievements.push({ id: 'streak7', name: 'Weekly Warrior', desc: 'Practice 7 days in a row', icon: '⭐', unlocked: false, progress: currentStreak, target: 7 });
+  
+  if (masteredPhonemes.length >= 5) achievements.push({ id: 'master5', name: 'Sound Master', desc: 'Master 5 phonemes (80%+ score)', icon: '🏆', unlocked: true });
+  else achievements.push({ id: 'master5', name: 'Sound Master', desc: 'Master 5 phonemes (80%+ score)', icon: '🏆', unlocked: false, progress: masteredPhonemes.length, target: 5 });
+  
+  if (avgVisualScore >= 85) achievements.push({ id: 'visual_pro', name: 'Visual Pro', desc: 'Achieve 85%+ average visual score', icon: '👀', unlocked: true });
+  else achievements.push({ id: 'visual_pro', name: 'Visual Pro', desc: 'Achieve 85%+ average visual score', icon: '👀', unlocked: false, progress: Math.round(avgVisualScore), target: 85 });
+  
+  if (avgAudioScore >= 85) achievements.push({ id: 'audio_ace', name: 'Audio Ace', desc: 'Achieve 85%+ average audio score', icon: '🎵', unlocked: true });
+  else achievements.push({ id: 'audio_ace', name: 'Audio Ace', desc: 'Achieve 85%+ average audio score', icon: '🎵', unlocked: false, progress: Math.round(avgAudioScore), target: 85 });
+  
+  // Weekly progress (last 7 days)
+  const weeklyProgress = [];
+  for (let i = 6; i >= 0; i--) {
+    const date = new Date();
+    date.setDate(date.getDate() - i);
+    const dateStr = date.toLocaleDateString();
+    const dayName = date.toLocaleDateString('en', { weekday: 'short' });
+    weeklyProgress.push({
+      day: dayName,
+      date: dateStr,
+      sessions: sessionsByDate[dateStr] || 0,
+    });
+  }
+  
   return {
     totalSessions,
     avgVisualScore: Math.round(avgVisualScore * 10) / 10,
@@ -146,5 +262,13 @@ export const getStatistics = async () => {
     letterSessions,
     wordSessions,
     sessionsByDate,
+    currentStreak,
+    longestStreak,
+    masteredPhonemes,
+    inProgressPhonemes,
+    needsPracticePhonemes,
+    achievements,
+    weeklyProgress,
+    practiceDays: Object.keys(sessionsByDate).length,
   };
 };
