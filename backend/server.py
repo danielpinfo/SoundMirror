@@ -811,8 +811,8 @@ Respond in JSON format:
             
             # Use Gemini for analysis
             response = await gemini_client.chat_async(
-                user_prompt=prompt,
-                system_prompt="You are an expert speech therapist specializing in phoneme analysis. Always respond with valid JSON."
+                messages=[{"role": "user", "content": prompt}],
+                model="gemini-1.5-flash"
             )
             
             # Parse AI response
