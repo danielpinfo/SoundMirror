@@ -279,45 +279,68 @@ export const RecordingPanel = ({
 
   return (
     <div data-testid="recording-panel" className="space-y-6">
-      {/* Camera View / Recording */}
-      <div className="relative">
-        {!cameraEnabled ? (
-          <div 
-            className="aspect-video bg-[#0a1628] rounded-2xl flex flex-col items-center justify-center gap-4 border border-blue-500/20"
-            data-testid="camera-placeholder"
-          >
-            <CameraOff className="w-12 h-12 text-blue-400" />
-            <p className="text-blue-300 text-center px-4">
-              Enable your camera to record your practice attempt
-            </p>
-            <Button
-              onClick={enableCamera}
-              className="rounded-full px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white"
-              data-testid="enable-camera-btn"
-            >
-              <Camera className="w-5 h-5 mr-2" />
-              Begin Practice
-            </Button>
-            {cameraError && (
-              <p className="text-red-400 text-sm">{cameraError}</p>
-            )}
-          </div>
-        ) : (
-          <div className="relative aspect-video bg-[#0a1628] rounded-2xl overflow-hidden border border-blue-500/20">
-            <Webcam
-              ref={webcamRef}
-              audio={false}
-              mirrored={true}
-              className="w-full h-full object-cover"
-              onUserMediaError={handleCameraError}
-              data-testid="webcam-feed"
-            />
+      {/* Mode Toggle */}
+      <div className="flex items-center gap-2 justify-end">
+        <Button
+          variant={showMouthTracker ? "default" : "outline"}
+          size="sm"
+          onClick={() => setShowMouthTracker(!showMouthTracker)}
+          className={`rounded-full ${showMouthTracker ? 'bg-green-600 hover:bg-green-500' : 'border-blue-500/30 text-blue-300 hover:bg-blue-600/20'}`}
+          data-testid="toggle-mouth-tracker"
+        >
+          <Eye className="w-4 h-4 mr-1" />
+          {showMouthTracker ? 'Mouth Tracking ON' : 'Enable Mouth Tracking'}
+        </Button>
+      </div>
+
+      {/* Mouth Tracker Mode */}
+      {showMouthTracker ? (
+        <MouthTracker 
+          targetPhoneme={target}
+          onMouthData={setMouthMetrics}
+          showOverlay={true}
+        />
+      ) : (
+        <>
+          {/* Camera View / Recording */}
+          <div className="relative">
+            {!cameraEnabled ? (
+              <div 
+                className="aspect-video bg-[#0a1628] rounded-2xl flex flex-col items-center justify-center gap-4 border border-blue-500/20"
+                data-testid="camera-placeholder"
+              >
+                <CameraOff className="w-12 h-12 text-blue-400" />
+                <p className="text-blue-300 text-center px-4">
+                  Enable your camera to record your practice attempt
+                </p>
+                <Button
+                  onClick={enableCamera}
+                  className="rounded-full px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white"
+                  data-testid="enable-camera-btn"
+                >
+                  <Camera className="w-5 h-5 mr-2" />
+                  Begin Practice
+                </Button>
+                {cameraError && (
+                  <p className="text-red-400 text-sm">{cameraError}</p>
+                )}
+              </div>
+            ) : (
+              <div className="relative aspect-video bg-[#0a1628] rounded-2xl overflow-hidden border border-blue-500/20">
+                <Webcam
+                  ref={webcamRef}
+                  audio={false}
+                  mirrored={true}
+                  className="w-full h-full object-cover"
+                  onUserMediaError={handleCameraError}
+                  data-testid="webcam-feed"
+                />
             
-            {/* Recording indicator */}
-            {isRecording && (
-              <div className="absolute top-4 left-4 flex items-center gap-3">
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-red-500 rounded-full recording-pulse">
-                  <div className="w-3 h-3 bg-white rounded-full animate-pulse" />
+                {/* Recording indicator */}
+                {isRecording && (
+                  <div className="absolute top-4 left-4 flex items-center gap-3">
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-red-500 rounded-full recording-pulse">
+                      <div className="w-3 h-3 bg-white rounded-full animate-pulse" />
                   <span className="text-white text-sm font-medium">REC</span>
                 </div>
                 <div className="px-3 py-1.5 bg-black/50 backdrop-blur rounded-full">
