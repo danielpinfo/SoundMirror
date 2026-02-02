@@ -531,6 +531,8 @@ export const RecordingPanel = ({
           </div>
         </div>
       )}
+        </>
+      )}
     </div>
   );
 };
