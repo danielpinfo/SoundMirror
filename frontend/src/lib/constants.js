@@ -118,7 +118,7 @@ export const LANGUAGES = [
   { code: 'arabic', name: 'Arabic', native: 'العربية', dir: 'rtl' },
 ];
 
-// Default practice words
+// Default practice words - expanded with more options
 export const DEFAULT_PRACTICE_WORDS = {
   english: ['Hello', 'Goodbye', 'Please', 'Thank You', 'Yes', 'No', 'Water', 'Friend', 'Happy', 'Love'],
   spanish: ['Hola', 'Adiós', 'Por favor', 'Gracias', 'Sí', 'No', 'Agua', 'Amigo', 'Feliz', 'Amor'],
@@ -130,6 +130,68 @@ export const DEFAULT_PRACTICE_WORDS = {
   chinese: ['你好', '再见', '请', '谢谢', '是', '不', '水', '朋友', '快乐', '爱'],
   hindi: ['नमस्ते', 'अलविदा', 'कृपया', 'धन्यवाद', 'हाँ', 'नहीं', 'पानी', 'दोस्त', 'खुश', 'प्यार'],
   arabic: ['مرحبا', 'وداعا', 'من فضلك', 'شكرا', 'نعم', 'لا', 'ماء', 'صديق', 'سعيد', 'حب'],
+};
+
+// Extended practice words - organized by category for speech therapy
+export const PRACTICE_WORDS_BY_CATEGORY = {
+  english: {
+    greetings: ['Hello', 'Hi', 'Good Morning', 'Good Night', 'Goodbye', 'See You', 'Nice to meet you'],
+    basics: ['Yes', 'No', 'Please', 'Thank You', 'Sorry', 'Excuse Me', 'Help'],
+    family: ['Mother', 'Father', 'Sister', 'Brother', 'Baby', 'Family', 'Grandma', 'Grandpa'],
+    food: ['Water', 'Milk', 'Bread', 'Apple', 'Banana', 'Hungry', 'Thirsty', 'Eat', 'Drink'],
+    emotions: ['Happy', 'Sad', 'Angry', 'Scared', 'Tired', 'Love', 'Like', 'Want'],
+    actions: ['Go', 'Stop', 'Run', 'Walk', 'Sit', 'Stand', 'Sleep', 'Play', 'Read', 'Write'],
+    colors: ['Red', 'Blue', 'Green', 'Yellow', 'Orange', 'Purple', 'Black', 'White'],
+    numbers: ['One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten'],
+    body: ['Head', 'Hand', 'Foot', 'Eye', 'Ear', 'Nose', 'Mouth', 'Teeth', 'Tongue'],
+    difficult_sounds: ['Squirrel', 'Strawberry', 'Spaghetti', 'Refrigerator', 'Thermometer', 'Chrysanthemum'],
+  },
+  spanish: {
+    greetings: ['Hola', 'Buenos días', 'Buenas noches', 'Adiós', 'Hasta luego'],
+    basics: ['Sí', 'No', 'Por favor', 'Gracias', 'Lo siento', 'Ayuda'],
+    family: ['Madre', 'Padre', 'Hermana', 'Hermano', 'Bebé', 'Familia', 'Abuela', 'Abuelo'],
+    food: ['Agua', 'Leche', 'Pan', 'Manzana', 'Plátano', 'Hambre', 'Sed', 'Comer', 'Beber'],
+    emotions: ['Feliz', 'Triste', 'Enojado', 'Asustado', 'Cansado', 'Amor', 'Querer'],
+    actions: ['Ir', 'Parar', 'Correr', 'Caminar', 'Sentar', 'Dormir', 'Jugar', 'Leer', 'Escribir'],
+    colors: ['Rojo', 'Azul', 'Verde', 'Amarillo', 'Naranja', 'Morado', 'Negro', 'Blanco'],
+    numbers: ['Uno', 'Dos', 'Tres', 'Cuatro', 'Cinco', 'Seis', 'Siete', 'Ocho', 'Nueve', 'Diez'],
+  },
+  french: {
+    greetings: ['Bonjour', 'Bonsoir', 'Bonne nuit', 'Au revoir', 'Salut'],
+    basics: ['Oui', 'Non', "S'il vous plaît", 'Merci', 'Pardon', 'Aide'],
+    family: ['Mère', 'Père', 'Sœur', 'Frère', 'Bébé', 'Famille', 'Grand-mère', 'Grand-père'],
+    food: ['Eau', 'Lait', 'Pain', 'Pomme', 'Banane', 'Faim', 'Soif', 'Manger', 'Boire'],
+    emotions: ['Heureux', 'Triste', 'Fâché', 'Effrayé', 'Fatigué', 'Amour', 'Aimer'],
+    colors: ['Rouge', 'Bleu', 'Vert', 'Jaune', 'Orange', 'Violet', 'Noir', 'Blanc'],
+    numbers: ['Un', 'Deux', 'Trois', 'Quatre', 'Cinq', 'Six', 'Sept', 'Huit', 'Neuf', 'Dix'],
+  },
+  german: {
+    greetings: ['Hallo', 'Guten Morgen', 'Gute Nacht', 'Auf Wiedersehen', 'Tschüss'],
+    basics: ['Ja', 'Nein', 'Bitte', 'Danke', 'Entschuldigung', 'Hilfe'],
+    family: ['Mutter', 'Vater', 'Schwester', 'Bruder', 'Baby', 'Familie', 'Oma', 'Opa'],
+    food: ['Wasser', 'Milch', 'Brot', 'Apfel', 'Banane', 'Hunger', 'Durst', 'Essen', 'Trinken'],
+    emotions: ['Glücklich', 'Traurig', 'Wütend', 'Angst', 'Müde', 'Liebe', 'Mögen'],
+    colors: ['Rot', 'Blau', 'Grün', 'Gelb', 'Orange', 'Lila', 'Schwarz', 'Weiß'],
+    numbers: ['Eins', 'Zwei', 'Drei', 'Vier', 'Fünf', 'Sechs', 'Sieben', 'Acht', 'Neun', 'Zehn'],
+  },
+};
+
+// Phoneme-focused practice sentences for speech therapy
+export const PHONEME_PRACTICE_SENTENCES = {
+  's': ['Sally sells seashells', 'Six slippery snails', 'The sun sets slowly'],
+  'r': ['Red roses are rare', 'Robert ran rapidly', 'Around the rugged rock'],
+  'l': ['Little lambs leap lightly', 'Lovely lilies bloom', 'Look at the lake'],
+  'th': ['The three brothers think', 'This is that thing', 'Through thick and thin'],
+  'sh': ['She sells shiny shoes', 'Shelly should share', 'Show me the ship'],
+  'ch': ['Charlie chose chocolate', 'Children cheer cheerfully', 'Chop the cherries'],
+  'f': ['Five funny frogs', 'Fresh fish for Friday', 'Feel the fluffy fabric'],
+  'v': ['Very vivid violets', 'Victor visits Venice', 'Vivian loves vegetables'],
+  'k': ['Kate kicks the can', 'Keep the kite flying', 'Quick! Catch the cat'],
+  'g': ['Good green grapes', 'Go get the gold', 'Gabby giggles gladly'],
+  'b': ['Big blue balloons', 'Bobby bought bananas', 'Beautiful butterflies'],
+  'p': ['Peter picked peppers', 'Pretty pink poppies', 'Please pass the plate'],
+  'm': ['Many merry men', 'Mom made muffins', 'Marching music plays'],
+  'n': ['Nine nice knights', 'Nancy needs napkins', 'No noise at night'],
 };
 
 // Default alphabets
