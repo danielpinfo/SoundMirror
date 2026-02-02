@@ -33,6 +33,13 @@ s3_client = boto3.client(
 )
 S3_BUCKET = os.environ.get('S3_BUCKET', 'soundmirror-phoneme-audio')
 
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
 # Gemini AI client for grading
 EMERGENT_API_KEY = os.environ.get('EMERGENT_API_KEY', '')
 gemini_client = None
@@ -49,13 +56,6 @@ app = FastAPI(title="SoundMirror API")
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
 
 # ============ MODELS ============
 
