@@ -430,6 +430,15 @@ export default function PathologistPage() {
                 <BarChart3 className="w-4 h-4 mr-1" />
                 Progress
               </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/clients')}
+                className="rounded-full text-blue-200 hover:text-white hover:bg-blue-600/30"
+              >
+                <User className="w-4 h-4 mr-1" />
+                Clients
+              </Button>
             </div>
             
             <div className="flex items-center gap-2">
