@@ -153,6 +153,7 @@ export default function WordPracticePage() {
             {practiceWord ? (
               <RecordingPanel
                 target={practiceWord}
+                language={language}
                 onGradingComplete={handleGradingComplete}
               />
             ) : (
