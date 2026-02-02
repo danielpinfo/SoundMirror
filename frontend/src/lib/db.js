@@ -1,23 +1,39 @@
 import { openDB } from 'idb';
 
 const DB_NAME = 'soundmirror-db';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // Upgraded for new features
 
 // Initialize the database
 export const initDB = async () => {
   const db = await openDB(DB_NAME, DB_VERSION, {
-    upgrade(db) {
+    upgrade(db, oldVersion, newVersion) {
       // Practice sessions store
       if (!db.objectStoreNames.contains('sessions')) {
         const sessionsStore = db.createObjectStore('sessions', { keyPath: 'id' });
         sessionsStore.createIndex('timestamp', 'timestamp');
         sessionsStore.createIndex('type', 'sessionType');
         sessionsStore.createIndex('language', 'language');
+        sessionsStore.createIndex('clientId', 'clientId');
       }
       
       // Settings store
       if (!db.objectStoreNames.contains('settings')) {
         db.createObjectStore('settings', { keyPath: 'key' });
+      }
+      
+      // Clients store (new in v2)
+      if (!db.objectStoreNames.contains('clients')) {
+        const clientsStore = db.createObjectStore('clients', { keyPath: 'id' });
+        clientsStore.createIndex('name', 'name');
+        clientsStore.createIndex('createdAt', 'createdAt');
+      }
+      
+      // Session notes store (new in v2)
+      if (!db.objectStoreNames.contains('notes')) {
+        const notesStore = db.createObjectStore('notes', { keyPath: 'id' });
+        notesStore.createIndex('sessionId', 'sessionId');
+        notesStore.createIndex('clientId', 'clientId');
+        notesStore.createIndex('timestamp', 'timestamp');
       }
     },
   });
