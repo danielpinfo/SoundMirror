@@ -71,16 +71,20 @@ Build a visual speech articulation training platform that:
 - [x] Gemini AI integration for grading (with fallback mock grading)
 - [x] Practice session storage in MongoDB
 - [x] Animation controls (play, pause, scrubber)
+- [x] Enhanced RecordingPanel with video/audio recording
+- [x] Recording timer display
+- [x] Real API grading integration sending audio to Gemini AI
+- [x] Color-coded score feedback (green 80%+, yellow 60-79%, red <60%)
+- [x] Audio playback of recordings
+- [x] Target vs Detected phoneme comparison display
 
 ### 🔄 In Progress / Partial
-- [ ] Splash screen water drop animation (needs refinement)
-- [ ] Video recording and visual grading (mock implementation)
+- [ ] Splash screen water drop animation (basic version working)
 - [ ] Frame interpolation for smoother animations
 
 ### 📋 Not Yet Implemented
-- [ ] Real-time phoneme detection from audio
-- [ ] Visual mouth analysis from camera feed
-- [ ] AI-powered video grading (lip position, jaw opening, tongue placement)
+- [ ] Real-time phoneme detection from audio (Gemini can analyze but needs audio file upload)
+- [ ] Visual mouth analysis from camera feed (requires ML model)
 - [ ] Desktop/mobile native app builds
 
 ## Prioritized Backlog
