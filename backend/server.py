@@ -816,7 +816,7 @@ Respond in JSON format:
             )
             
             # Parse AI response
-            response_text = response.strip()
+            response_text = response.content if hasattr(response, 'content') else str(response)
             # Extract JSON from response
             json_start = response_text.find('{')
             json_end = response_text.rfind('}') + 1
