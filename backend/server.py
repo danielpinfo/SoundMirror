@@ -14,7 +14,7 @@ import base64
 import boto3
 from botocore.exceptions import ClientError
 import json
-from emergentintegrations.llm.gemeni import GeminiClient, GeminiConfig
+from emergentintegrations.llm.chat import LlmChat
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
