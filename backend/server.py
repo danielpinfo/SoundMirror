@@ -38,8 +38,7 @@ EMERGENT_API_KEY = os.environ.get('EMERGENT_API_KEY', '')
 gemini_client = None
 if EMERGENT_API_KEY:
     try:
-        gemini_config = GeminiConfig(api_key=EMERGENT_API_KEY)
-        gemini_client = GeminiClient(config=gemini_config)
+        gemini_client = LlmChat(api_key=EMERGENT_API_KEY)
         logger.info("Gemini AI client initialized successfully")
     except Exception as e:
         logger.warning(f"Failed to initialize Gemini client: {e}")
