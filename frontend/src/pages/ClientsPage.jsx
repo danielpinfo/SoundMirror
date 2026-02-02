@@ -492,6 +492,7 @@ export default function ClientsPage() {
                           onClick={handleAddNote}
                           disabled={!newNote.trim()}
                           className="rounded-xl bg-blue-600 hover:bg-blue-500"
+                          data-testid="add-note-btn"
                         >
                           <Plus className="w-4 h-4" />
                         </Button>
