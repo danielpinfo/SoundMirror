@@ -15,23 +15,23 @@ class SoundMirrorAPITester:
         self.session = requests.Session()
         self.session.headers.update({'Content-Type': 'application/json'})
 
-    def run_test(self, name, method, endpoint, expected_status, data=None, headers=None):
+    def run_test(self, name: str, method: str, endpoint: str, expected_status: int, data: Dict[Any, Any] = None, params: Dict[str, str] = None) -> tuple:
         """Run a single API test"""
-        url = f"{self.base_url}/api/{endpoint}"
-        if headers is None:
-            headers = {'Content-Type': 'application/json'}
-
+        url = f"{self.base_url}/api/{endpoint}" if not endpoint.startswith('/') else f"{self.base_url}{endpoint}"
+        
         self.tests_run += 1
         print(f"\n🔍 Testing {name}...")
         print(f"   URL: {url}")
         
         try:
             if method == 'GET':
-                response = requests.get(url, headers=headers, timeout=10)
+                response = self.session.get(url, params=params, timeout=15)
             elif method == 'POST':
-                response = requests.post(url, json=data, headers=headers, timeout=10)
+                response = self.session.post(url, json=data, params=params, timeout=15)
+            elif method == 'PUT':
+                response = self.session.put(url, json=data, params=params, timeout=15)
             elif method == 'DELETE':
-                response = requests.delete(url, headers=headers, timeout=10)
+                response = self.session.delete(url, params=params, timeout=15)
 
             success = response.status_code == expected_status
             if success:
@@ -39,20 +39,27 @@ class SoundMirrorAPITester:
                 print(f"✅ Passed - Status: {response.status_code}")
                 try:
                     response_data = response.json()
-                    print(f"   Response: {json.dumps(response_data, indent=2)[:200]}...")
+                    return True, response_data
                 except:
-                    print(f"   Response: {response.text[:100]}...")
+                    return True, response.text
             else:
                 print(f"❌ Failed - Expected {expected_status}, got {response.status_code}")
-                print(f"   Response: {response.text[:200]}")
+                print(f"   Response: {response.text[:200]}...")
                 self.failed_tests.append({
                     'name': name,
                     'expected': expected_status,
                     'actual': response.status_code,
-                    'response': response.text[:200]
+                    'response': response.text[:500]
                 })
+                return False, {}
 
-            return success, response.json() if success and response.text else {}
+        except Exception as e:
+            print(f"❌ Failed - Error: {str(e)}")
+            self.failed_tests.append({
+                'name': name,
+                'error': str(e)
+            })
+            return False, {}
 
         except Exception as e:
             print(f"❌ Failed - Error: {str(e)}")
