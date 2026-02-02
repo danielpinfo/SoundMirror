@@ -641,6 +641,7 @@ export default function ClientsPage() {
                   variant="outline"
                   onClick={() => setShowAddClient(false)}
                   className="flex-1 rounded-xl border-blue-500/30 text-blue-300"
+                  data-testid="cancel-add-client-btn"
                 >
                   Cancel
                 </Button>
@@ -648,6 +649,7 @@ export default function ClientsPage() {
                   onClick={handleCreateClient}
                   disabled={!newClient.name.trim()}
                   className="flex-1 rounded-xl bg-blue-600 hover:bg-blue-500"
+                  data-testid="submit-add-client-btn"
                 >
                   <UserPlus className="w-4 h-4 mr-2" />
                   Add Client
