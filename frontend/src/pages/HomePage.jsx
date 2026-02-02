@@ -127,7 +127,7 @@ export default function HomePage() {
         )}
 
         {/* Navigation Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card 
             className="cursor-pointer card-hover bg-cobalt-surface border-blue-500/20 group"
             onClick={() => navigate('/letter-practice')}
@@ -156,6 +156,22 @@ export default function HomePage() {
               <div>
                 <h4 className="font-semibold text-white">{t('history')}</h4>
                 <p className="text-sm text-blue-300">View past sessions</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card 
+            className="cursor-pointer card-hover bg-gradient-to-br from-purple-600/20 to-blue-600/20 border-purple-500/30 group"
+            onClick={() => navigate('/pathologist')}
+            data-testid="nav-pathologist"
+          >
+            <CardContent className="p-6 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-purple-600/30 flex items-center justify-center group-hover:bg-purple-600 transition-colors">
+                <Stethoscope className="w-6 h-6 text-purple-300 group-hover:text-white transition-colors" />
+              </div>
+              <div>
+                <h4 className="font-semibold text-white">Pathologist Mode</h4>
+                <p className="text-sm text-purple-300">Clinical reports</p>
               </div>
             </CardContent>
           </Card>
