@@ -162,16 +162,16 @@ export default function HomePage() {
 
           <Card 
             className="cursor-pointer card-hover bg-gradient-to-br from-purple-600/20 to-blue-600/20 border-purple-500/30 group"
-            onClick={() => navigate('/pathologist')}
-            data-testid="nav-pathologist"
+            onClick={() => navigate('/reports')}
+            data-testid="nav-reports"
           >
             <CardContent className="p-6 flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-purple-600/30 flex items-center justify-center group-hover:bg-purple-600 transition-colors">
                 <Stethoscope className="w-6 h-6 text-purple-300 group-hover:text-white transition-colors" />
               </div>
               <div>
-                <h4 className="font-semibold text-white">Pathologist Mode</h4>
-                <p className="text-sm text-purple-300">Clinical reports</p>
+                <h4 className="font-semibold text-white">My Reports</h4>
+                <p className="text-sm text-purple-300">Progress analysis</p>
               </div>
             </CardContent>
           </Card>
