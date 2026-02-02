@@ -345,16 +345,24 @@ export const DualHeadAnimation = forwardRef(({
             FRONT VIEW
           </div>
           <div 
-            className="aspect-square bg-white rounded-2xl overflow-hidden border-2 border-slate-200 shadow-lg"
+            className="aspect-square bg-white rounded-2xl overflow-hidden border-2 border-slate-200 shadow-lg relative"
             data-testid="front-view-container"
           >
-            <img
-              src={SPRITE_URLS.front[currentFrame] || SPRITE_URLS.front[0]}
-              alt={`Front view frame ${currentFrame}`}
-              className="w-full h-full object-cover"
-              style={{ transition: 'opacity 0.1s ease-in-out' }}
-              data-testid="front-view-image"
-            />
+            {/* Render all frames and crossfade between them */}
+            {Object.entries(SPRITE_URLS.front).map(([frame, url]) => (
+              <img
+                key={`front-${frame}`}
+                src={url}
+                alt={`Front view frame ${frame}`}
+                className="absolute inset-0 w-full h-full object-cover"
+                style={{ 
+                  opacity: parseInt(frame) === currentFrame ? 1 : 0,
+                  transition: `opacity ${TRANSITION_DURATION}ms ease-in-out`,
+                  zIndex: parseInt(frame) === currentFrame ? 1 : 0,
+                }}
+                data-testid={parseInt(frame) === currentFrame ? "front-view-image" : undefined}
+              />
+            ))}
           </div>
           <div className="absolute bottom-2 right-2 px-2 py-1 bg-black/50 text-white text-xs rounded">
             Frame: {currentFrame}
@@ -367,16 +375,24 @@ export const DualHeadAnimation = forwardRef(({
             SIDE VIEW
           </div>
           <div 
-            className="aspect-square bg-white rounded-2xl overflow-hidden border-2 border-slate-200 shadow-lg"
+            className="aspect-square bg-white rounded-2xl overflow-hidden border-2 border-slate-200 shadow-lg relative"
             data-testid="side-view-container"
           >
-            <img
-              src={SPRITE_URLS.side[currentFrame] || SPRITE_URLS.side[0]}
-              alt={`Side view frame ${currentFrame}`}
-              className="w-full h-full object-cover"
-              style={{ transition: 'opacity 0.1s ease-in-out' }}
-              data-testid="side-view-image"
-            />
+            {/* Render all frames and crossfade between them */}
+            {Object.entries(SPRITE_URLS.side).map(([frame, url]) => (
+              <img
+                key={`side-${frame}`}
+                src={url}
+                alt={`Side view frame ${frame}`}
+                className="absolute inset-0 w-full h-full object-cover"
+                style={{ 
+                  opacity: parseInt(frame) === currentFrame ? 1 : 0,
+                  transition: `opacity ${TRANSITION_DURATION}ms ease-in-out`,
+                  zIndex: parseInt(frame) === currentFrame ? 1 : 0,
+                }}
+                data-testid={parseInt(frame) === currentFrame ? "side-view-image" : undefined}
+              />
+            ))}
           </div>
           <div className="absolute bottom-2 right-2 px-2 py-1 bg-black/50 text-white text-xs rounded">
             Frame: {currentFrame}
