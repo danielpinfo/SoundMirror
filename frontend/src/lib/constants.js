@@ -1,51 +1,74 @@
-// GitHub raw URLs for sprite images
-const GITHUB_RAW_BASE = 'https://raw.githubusercontent.com/danielpinfo/SoundMirror/main/Newest%20head%20sprites%20front';
+// Local paths for sprite images (stored in /public/assets/heads/)
+const LOCAL_SPRITE_BASE = '/assets/heads';
 
 export const SPRITE_URLS = {
   front: {
-    0: `${GITHUB_RAW_BASE}/front%20head%20PNGs/frame_00_neutral.png`,
-    1: `${GITHUB_RAW_BASE}/front%20head%20PNGs/frame_01_a_u.png`,
-    2: `${GITHUB_RAW_BASE}/front%20head%20PNGs/frame_02_b_p_m.png`,
-    3: `${GITHUB_RAW_BASE}/front%20head%20PNGs/frame_03_ee_z_x.png`,
-    4: `${GITHUB_RAW_BASE}/front%20head%20PNGs/frame_04_oo_o_ou_w.png`,
-    5: `${GITHUB_RAW_BASE}/front%20head%20PNGs/frame_05_e.png`,
-    6: `${GITHUB_RAW_BASE}/front%20head%20PNGs/frame_06_%C3%BC.png`,
-    7: `${GITHUB_RAW_BASE}/front%20head%20PNGs/frame_07_c_k_q_g.png`,
-    8: `${GITHUB_RAW_BASE}/front%20head%20PNGs/frame_08_t_tsk_d_j.png`,
-    9: `${GITHUB_RAW_BASE}/front%20head%20PNGs/frame_09_n.png`,
-    10: `${GITHUB_RAW_BASE}/front%20head%20PNGs/frame_10_ng.png`,
-    11: `${GITHUB_RAW_BASE}/front%20head%20PNGs/frame_11_s.png`,
-    12: `${GITHUB_RAW_BASE}/front%20head%20PNGs/frame_12_sh.png`,
-    13: `${GITHUB_RAW_BASE}/front%20head%20PNGs/frame_13_th.png`,
-    14: `${GITHUB_RAW_BASE}/front%20head%20PNGs/frame_14_f_v.png`,
-    15: `${GITHUB_RAW_BASE}/front%20head%20PNGs/frame_15_h.png`,
-    16: `${GITHUB_RAW_BASE}/front%20head%20PNGs/frame_16_ch.png`,
-    17: `${GITHUB_RAW_BASE}/front%20head%20PNGs/frame_17_r.png`,
-    18: `${GITHUB_RAW_BASE}/front%20head%20PNGs/frame_18_L.png`,
-    19: `${GITHUB_RAW_BASE}/front%20head%20PNGs/frame_18_LL_y.png`,
+    0: `${LOCAL_SPRITE_BASE}/front/frame_00_neutral.png`,
+    1: `${LOCAL_SPRITE_BASE}/front/frame_01_a_u.png`,
+    2: `${LOCAL_SPRITE_BASE}/front/frame_02_b_p_m.png`,
+    3: `${LOCAL_SPRITE_BASE}/front/frame_03_ee_z_x.png`,
+    4: `${LOCAL_SPRITE_BASE}/front/frame_04_oo_o_ou_w.png`,
+    5: `${LOCAL_SPRITE_BASE}/front/frame_05_e.png`,
+    6: `${LOCAL_SPRITE_BASE}/front/frame_06_ü.png`,
+    7: `${LOCAL_SPRITE_BASE}/front/frame_07_c_k_q_g.png`,
+    8: `${LOCAL_SPRITE_BASE}/front/frame_08_t_tsk_d_j.png`,
+    9: `${LOCAL_SPRITE_BASE}/front/frame_09_n.png`,
+    10: `${LOCAL_SPRITE_BASE}/front/frame_10_ng.png`,
+    11: `${LOCAL_SPRITE_BASE}/front/frame_11_s.png`,
+    12: `${LOCAL_SPRITE_BASE}/front/frame_12_sh.png`,
+    13: `${LOCAL_SPRITE_BASE}/front/frame_13_th.png`,
+    14: `${LOCAL_SPRITE_BASE}/front/frame_14_f_v.png`,
+    15: `${LOCAL_SPRITE_BASE}/front/frame_15_h.png`,
+    16: `${LOCAL_SPRITE_BASE}/front/frame_16_ch.png`,
+    17: `${LOCAL_SPRITE_BASE}/front/frame_17_r.png`,
+    18: `${LOCAL_SPRITE_BASE}/front/frame_18_L.png`,
+    19: `${LOCAL_SPRITE_BASE}/front/frame_19_LL_y.png`,
   },
   side: {
-    0: `${GITHUB_RAW_BASE}/side%20head%20PNGs/frame_00_neutral.png`,
-    1: `${GITHUB_RAW_BASE}/side%20head%20PNGs/frame_01_a_u.png`,
-    2: `${GITHUB_RAW_BASE}/side%20head%20PNGs/frame_02_b_p_m.png`,
-    3: `${GITHUB_RAW_BASE}/side%20head%20PNGs/frame_03_ee_z_x.png`,
-    4: `${GITHUB_RAW_BASE}/side%20head%20PNGs/frame_04_oo_o_ou_w.png`,
-    5: `${GITHUB_RAW_BASE}/side%20head%20PNGs/frame_05_e.png`,
-    6: `${GITHUB_RAW_BASE}/side%20head%20PNGs/frame_06_%C3%BC.png`,
-    7: `${GITHUB_RAW_BASE}/side%20head%20PNGs/frame_07_c_k_q_g.png`,
-    8: `${GITHUB_RAW_BASE}/side%20head%20PNGs/frame_08_t_tsk_d_j.png`,
-    9: `${GITHUB_RAW_BASE}/side%20head%20PNGs/frame_09_n.png`,
-    10: `${GITHUB_RAW_BASE}/side%20head%20PNGs/frame_10_ng.png`,
-    11: `${GITHUB_RAW_BASE}/side%20head%20PNGs/frame_11_s.png`,
-    12: `${GITHUB_RAW_BASE}/side%20head%20PNGs/frame_12_sh.png`,
-    13: `${GITHUB_RAW_BASE}/side%20head%20PNGs/frame_13_th.png`,
-    14: `${GITHUB_RAW_BASE}/side%20head%20PNGs/frame_14_f_v.png`,
-    15: `${GITHUB_RAW_BASE}/side%20head%20PNGs/frame_15_ch.png`,
-    16: `${GITHUB_RAW_BASE}/side%20head%20PNGs/frame_16_h.png`,
-    17: `${GITHUB_RAW_BASE}/side%20head%20PNGs/frame_17_r.png`,
-    18: `${GITHUB_RAW_BASE}/side%20head%20PNGs/frame_18_L.png`,
-    19: `${GITHUB_RAW_BASE}/side%20head%20PNGs/frame_19_LL_y.png`,
+    0: `${LOCAL_SPRITE_BASE}/side/frame_00_neutral.png`,
+    1: `${LOCAL_SPRITE_BASE}/side/frame_01_a_u.png`,
+    2: `${LOCAL_SPRITE_BASE}/side/frame_02_b_p_m.png`,
+    3: `${LOCAL_SPRITE_BASE}/side/frame_03_ee_z_x.png`,
+    4: `${LOCAL_SPRITE_BASE}/side/frame_04_oo_o_ou_w.png`,
+    5: `${LOCAL_SPRITE_BASE}/side/frame_05_e.png`,
+    6: `${LOCAL_SPRITE_BASE}/side/frame_06_ü.png`,
+    7: `${LOCAL_SPRITE_BASE}/side/frame_07_c_k_q_g.png`,
+    8: `${LOCAL_SPRITE_BASE}/side/frame_08_t_tsk_d_j.png`,
+    9: `${LOCAL_SPRITE_BASE}/side/frame_09_n.png`,
+    10: `${LOCAL_SPRITE_BASE}/side/frame_10_ng.png`,
+    11: `${LOCAL_SPRITE_BASE}/side/frame_11_s.png`,
+    12: `${LOCAL_SPRITE_BASE}/side/frame_12_sh.png`,
+    13: `${LOCAL_SPRITE_BASE}/side/frame_13_th.png`,
+    14: `${LOCAL_SPRITE_BASE}/side/frame_14_f_v.png`,
+    15: `${LOCAL_SPRITE_BASE}/side/frame_15_h.png`,
+    16: `${LOCAL_SPRITE_BASE}/side/frame_16_ch.png`,
+    17: `${LOCAL_SPRITE_BASE}/side/frame_17_r.png`,
+    18: `${LOCAL_SPRITE_BASE}/side/frame_18_L.png`,
+    19: `${LOCAL_SPRITE_BASE}/side/frame_19_LL_y.png`,
   }
+};
+
+// Local audio paths (stored in /public/assets/audio/)
+export const AUDIO_BASE_PATH = '/assets/audio';
+
+// Language code mapping for audio files
+export const LANGUAGE_AUDIO_CODES = {
+  english: 'en',
+  spanish: 'es',
+  italian: 'it',
+  portuguese: 'pt',
+  german: 'de',
+  french: 'fr',
+  japanese: 'ja',
+  chinese: 'zh',
+  hindi: 'hi',
+  arabic: 'ar',
+};
+
+// Get audio URL for a phoneme in a language
+export const getPhonemeAudioUrl = (phoneme, languageCode) => {
+  const langCode = LANGUAGE_AUDIO_CODES[languageCode] || 'en';
+  return `${AUDIO_BASE_PATH}/${langCode}-${phoneme.toLowerCase()}.mp3`;
 };
 
 // Phoneme to frame mapping
