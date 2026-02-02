@@ -62,7 +62,10 @@ Build a visual speech articulation training platform that:
 - [x] constants.js updated to use local asset paths
 - [x] Alphabet keyboard with special characters (CH, SH, TH, etc.)
 - [x] Word Practice page structure
-- [x] History Library page
+- [x] History Library page with Progress Tracker dashboard
+- [x] Progress Tracker: Day streaks, phoneme mastery, achievements
+- [x] Weekly activity chart visualization
+- [x] 8 gamified achievements (First Step, Dedicated Learner, etc.)
 - [x] Bug Report page with structured form
 - [x] Backend API (28 endpoints - all passing)
 - [x] Gemini AI integration for grading (with fallback mock grading)
