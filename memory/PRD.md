@@ -77,21 +77,21 @@ Build a visual speech articulation training platform that:
 - [x] Color-coded score feedback (green 80%+, yellow 60-79%, red <60%)
 - [x] Audio playback of recordings
 - [x] Target vs Detected phoneme comparison display
-- [x] **Speech Pathologist Mode** - Clinical reports page
-- [x] Phoneme Performance Analysis table with attempts, scores, status
-- [x] Areas Requiring Focus and Mastered Phonemes sections
-- [x] Clinical Recommendations section
-- [x] Export JSON report functionality
-- [x] Print Report for clinical documentation
+- [x] **My Reports Page** - Personal progress analysis with export/print
+- [x] Sound Performance table with mastery status
+- [x] Mastered Sounds and Focus Areas sections
+- [x] Personalized tips based on progress
 - [x] **Enhanced Splash Screen** - Water drop animation with concentric ripples at 45° angle
 - [x] **Smooth Frame Animation** - CSS crossfade transitions (100ms) for flicker-free animation
+- [x] **Extended Practice Content** - Categories: greetings, basics, family, food, emotions, actions, colors, numbers
+- [x] **Phoneme Practice Sentences** - Tongue twisters for each sound (S, R, L, TH, SH, CH, F, V, K, G, B, P, M, N)
 
-### 🔄 In Progress / Partial
-- [ ] Real-time phoneme detection from audio (Gemini can analyze but needs audio file upload)
-
-### 📋 Not Yet Implemented
-- [ ] Visual mouth analysis from camera feed (requires ML model)
+### 📋 Future Features (Backlog)
+- [ ] Visual mouth analysis from camera feed (ML model)
+- [ ] Real-time streaming phoneme detection
 - [ ] Desktop/mobile native app builds (Electron/React Native)
+- [ ] Multi-client management for clinics (enterprise feature)
+- [ ] Session notes and annotations (enterprise feature)
 
 ## Prioritized Backlog
 
