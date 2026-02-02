@@ -703,6 +703,36 @@ async def get_available_audio(language: str):
         "count": len(available_phonemes)
     }
 
+# Local audio file paths for native app use
+@api_router.get("/audio/local/letter/{letter}")
+async def get_local_letter_audio(letter: str, language: str = "english"):
+    """Get local path for a letter's phoneme audio (for native app)"""
+    lang_code = LANG_CODE_MAP.get(language, "en")
+    letter_lower = letter.lower()
+    phoneme = LETTER_TO_PHONEME.get(letter_lower, f"{letter_lower}a")
+    
+    # Return local path for frontend to use
+    local_path = f"/assets/audio/{lang_code}-{phoneme}.mp3"
+    
+    return {
+        "letter": letter,
+        "phoneme": phoneme,
+        "language": language,
+        "local_path": local_path
+    }
+
+@api_router.get("/audio/local/phoneme/{phoneme}")
+async def get_local_phoneme_audio(phoneme: str, language: str = "english"):
+    """Get local path for a phoneme audio (for native app)"""
+    lang_code = LANG_CODE_MAP.get(language, "en")
+    local_path = f"/assets/audio/{lang_code}-{phoneme.lower()}.mp3"
+    
+    return {
+        "phoneme": phoneme,
+        "language": language,
+        "local_path": local_path
+    }
+
 # Practice session endpoints
 @api_router.post("/sessions", response_model=PracticeSession)
 async def create_session(session_data: PracticeSessionCreate):
