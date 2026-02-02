@@ -2,8 +2,9 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import Webcam from 'react-webcam';
 import { Button } from '../components/ui/button';
 import { Progress } from '../components/ui/progress';
-import { Video, Mic, Square, Play, RotateCcw, Camera, CameraOff, Loader2 } from 'lucide-react';
+import { Video, Mic, Square, Play, RotateCcw, Camera, CameraOff, Loader2, Eye } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import MouthTracker from './MouthTracker';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL || '';
 
@@ -28,6 +29,8 @@ export const RecordingPanel = ({
   const [grading, setGrading] = useState(null);
   const [isGrading, setIsGrading] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
+  const [showMouthTracker, setShowMouthTracker] = useState(false);
+  const [mouthMetrics, setMouthMetrics] = useState(null);
   const recordingTimerRef = useRef(null);
 
   // Enable camera
