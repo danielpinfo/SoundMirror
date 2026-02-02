@@ -60,6 +60,7 @@ const AppContent = () => {
         <Route path="/history" element={<HistoryPage />} />
         <Route path="/bug-report" element={<BugReportPage />} />
         <Route path="/pathologist" element={<PathologistPage />} />
+        <Route path="/clients" element={<ClientsPage />} />
       </Routes>
       
       <Toaster position="top-right" />
