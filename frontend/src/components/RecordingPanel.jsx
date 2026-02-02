@@ -284,13 +284,16 @@ export const RecordingPanel = ({
             data-testid="camera-placeholder"
           >
             <CameraOff className="w-12 h-12 text-blue-400" />
+            <p className="text-blue-300 text-center px-4">
+              Enable your camera to record your practice attempt
+            </p>
             <Button
               onClick={enableCamera}
               className="rounded-full px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white"
               data-testid="enable-camera-btn"
             >
               <Camera className="w-5 h-5 mr-2" />
-              Enable Camera
+              Begin Practice
             </Button>
             {cameraError && (
               <p className="text-red-400 text-sm">{cameraError}</p>
@@ -309,9 +312,21 @@ export const RecordingPanel = ({
             
             {/* Recording indicator */}
             {isRecording && (
-              <div className="absolute top-4 left-4 flex items-center gap-2 px-3 py-1.5 bg-red-500 rounded-full recording-pulse">
-                <div className="w-3 h-3 bg-white rounded-full animate-pulse" />
-                <span className="text-white text-sm font-medium">Recording</span>
+              <div className="absolute top-4 left-4 flex items-center gap-3">
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-red-500 rounded-full recording-pulse">
+                  <div className="w-3 h-3 bg-white rounded-full animate-pulse" />
+                  <span className="text-white text-sm font-medium">REC</span>
+                </div>
+                <div className="px-3 py-1.5 bg-black/50 backdrop-blur rounded-full">
+                  <span className="text-white text-sm font-mono">{formatTime(recordingTime)}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Target indicator */}
+            {target && (
+              <div className="absolute top-4 right-4 px-4 py-2 bg-blue-600/80 backdrop-blur rounded-full">
+                <span className="text-white font-medium">Target: {target}</span>
               </div>
             )}
             
@@ -320,7 +335,7 @@ export const RecordingPanel = ({
               {!isRecording && !recordedVideo && (
                 <Button
                   onClick={startRecording}
-                  className="rounded-full w-16 h-16 bg-red-500 hover:bg-red-600 text-white shadow-lg"
+                  className="rounded-full w-16 h-16 bg-red-500 hover:bg-red-600 text-white shadow-lg transition-transform hover:scale-105"
                   data-testid="start-recording-btn"
                 >
                   <Video className="w-7 h-7" />
@@ -337,6 +352,14 @@ export const RecordingPanel = ({
                 </Button>
               )}
             </div>
+
+            {/* Microphone indicator */}
+            {isRecording && (
+              <div className="absolute bottom-4 right-4 flex items-center gap-2 px-3 py-2 bg-green-500/80 backdrop-blur rounded-full">
+                <Mic className="w-4 h-4 text-white animate-pulse" />
+                <span className="text-white text-xs">Audio Recording</span>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -345,7 +368,10 @@ export const RecordingPanel = ({
       {recordedVideo && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h4 className="font-semibold text-white">{t('replay_attempt')}</h4>
+            <h4 className="font-semibold text-white flex items-center gap-2">
+              <Play className="w-4 h-4 text-blue-400" />
+              {t('replay_attempt')}
+            </h4>
             <Button
               variant="outline"
               size="sm"
@@ -363,14 +389,21 @@ export const RecordingPanel = ({
             className="w-full rounded-xl border border-blue-500/20"
             data-testid="recorded-video-playback"
           />
+          {recordedAudio && (
+            <div className="flex items-center gap-3 p-3 bg-[#0f2847] rounded-xl border border-blue-500/20">
+              <Mic className="w-5 h-5 text-blue-400" />
+              <audio src={recordedAudio} controls className="flex-1 h-8" />
+            </div>
+          )}
         </div>
       )}
 
       {/* Grading Results */}
       {isGrading && (
         <div className="p-6 bg-[#0f2847] rounded-2xl border border-blue-500/20 text-center">
-          <div className="animate-spin w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full mx-auto mb-3" />
-          <p className="text-blue-300">Analyzing your attempt...</p>
+          <Loader2 className="w-8 h-8 text-blue-400 animate-spin mx-auto mb-3" />
+          <p className="text-blue-300 font-medium">Analyzing your pronunciation...</p>
+          <p className="text-blue-400/60 text-sm mt-1">Using AI to detect phonemes</p>
         </div>
       )}
 
@@ -385,9 +418,16 @@ export const RecordingPanel = ({
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-blue-300">Score</span>
-                <span className="text-2xl font-bold text-blue-400">{grading.visualScore}%</span>
+                <span className={`text-2xl font-bold ${getScoreColor(grading.visualScore)}`}>
+                  {grading.visualScore}%
+                </span>
               </div>
-              <Progress value={grading.visualScore} className="h-3" data-testid="visual-score-progress" />
+              <div className="h-3 bg-blue-900/50 rounded-full overflow-hidden">
+                <div 
+                  className={`h-full rounded-full transition-all duration-500 ${getScoreBarColor(grading.visualScore)}`}
+                  style={{ width: `${grading.visualScore}%` }}
+                />
+              </div>
               <div className="grid grid-cols-2 gap-3 mt-4 text-sm">
                 <div className="p-3 bg-[#0a1628] rounded-lg border border-blue-500/10">
                   <p className="text-blue-400 mb-1">Lip Position</p>
@@ -412,30 +452,45 @@ export const RecordingPanel = ({
           {/* Audio Grade */}
           <div className="p-5 bg-[#0f2847] rounded-2xl border border-blue-500/20 shadow-sm">
             <h4 className="font-semibold text-white mb-4 flex items-center gap-2">
-              <Mic className="w-5 h-5 text-blue-400" />
+              <Mic className="w-5 h-5 text-purple-400" />
               {t('audio_grade')}
             </h4>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-blue-300">Score</span>
-                <span className="text-2xl font-bold text-blue-400">{grading.audioScore}%</span>
+                <span className={`text-2xl font-bold ${getScoreColor(grading.audioScore)}`}>
+                  {grading.audioScore}%
+                </span>
               </div>
-              <Progress value={grading.audioScore} className="h-3" data-testid="audio-score-progress" />
+              <div className="h-3 bg-blue-900/50 rounded-full overflow-hidden">
+                <div 
+                  className={`h-full rounded-full transition-all duration-500 ${getScoreBarColor(grading.audioScore)}`}
+                  style={{ width: `${grading.audioScore}%` }}
+                />
+              </div>
               <div className="grid grid-cols-2 gap-4 mt-4">
                 <div className="p-4 bg-blue-600/20 rounded-xl border border-blue-500/30">
                   <p className="text-xs text-blue-400 uppercase tracking-wide mb-1">{t('target')}</p>
-                  <p className="text-xl font-bold text-white">{target}</p>
+                  <p className="text-2xl font-bold text-white">{target}</p>
                 </div>
-                <div className="p-4 bg-[#0a1628] rounded-xl border border-blue-500/20">
+                <div className={`p-4 rounded-xl border ${
+                  grading.phonemeDetected.toLowerCase() === target.toLowerCase() 
+                    ? 'bg-green-600/20 border-green-500/30' 
+                    : 'bg-orange-600/20 border-orange-500/30'
+                }`}>
                   <p className="text-xs text-blue-400 uppercase tracking-wide mb-1">{t('detected')}</p>
-                  <p className="text-xl font-bold text-blue-200">{grading.phonemeDetected}</p>
+                  <p className={`text-2xl font-bold ${
+                    grading.phonemeDetected.toLowerCase() === target.toLowerCase() 
+                      ? 'text-green-300' 
+                      : 'text-orange-300'
+                  }`}>{grading.phonemeDetected}</p>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Suggestions */}
-          <div className="p-5 bg-blue-600/10 rounded-2xl border border-blue-500/20">
+          <div className="p-5 bg-gradient-to-br from-blue-600/10 to-purple-600/10 rounded-2xl border border-blue-500/20">
             <h4 className="font-semibold text-white mb-3">{t('suggestions')}</h4>
             <ul className="space-y-2">
               {grading.suggestions.map((suggestion, index) => (
