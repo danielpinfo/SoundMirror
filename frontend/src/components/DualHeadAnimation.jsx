@@ -6,8 +6,9 @@ import { Slider } from '../components/ui/slider';
 import { Button } from '../components/ui/button';
 import { Play, Pause, RotateCcw, Volume2, VolumeX } from 'lucide-react';
 
-// Frame duration in milliseconds
-const FRAME_DURATION = 250;
+// Frame duration in milliseconds - faster for smoother animation
+const FRAME_DURATION = 150; // Reduced from 250ms for smoother playback
+const TRANSITION_DURATION = 100; // CSS transition time in ms
 
 // Preload images
 const preloadImages = () => {
