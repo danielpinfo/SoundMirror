@@ -6,14 +6,23 @@ const DB_VERSION = 2; // Upgraded for new features
 // Initialize the database
 export const initDB = async () => {
   const db = await openDB(DB_NAME, DB_VERSION, {
-    upgrade(db, oldVersion, newVersion) {
+    upgrade(db, oldVersion, newVersion, transaction) {
+      console.log(`Upgrading DB from version ${oldVersion} to ${newVersion}`);
+      
       // Practice sessions store
       if (!db.objectStoreNames.contains('sessions')) {
         const sessionsStore = db.createObjectStore('sessions', { keyPath: 'id' });
         sessionsStore.createIndex('timestamp', 'timestamp');
         sessionsStore.createIndex('type', 'sessionType');
         sessionsStore.createIndex('language', 'language');
-        sessionsStore.createIndex('clientId', 'clientId');
+      }
+      
+      // Add clientId index to sessions if upgrading from v1
+      if (oldVersion < 2 && db.objectStoreNames.contains('sessions')) {
+        const sessionsStore = transaction.objectStore('sessions');
+        if (!sessionsStore.indexNames.contains('clientId')) {
+          sessionsStore.createIndex('clientId', 'clientId');
+        }
       }
       
       // Settings store
