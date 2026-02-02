@@ -33,6 +33,18 @@ s3_client = boto3.client(
 )
 S3_BUCKET = os.environ.get('S3_BUCKET', 'soundmirror-phoneme-audio')
 
+# Gemini AI client for grading
+EMERGENT_API_KEY = os.environ.get('EMERGENT_API_KEY', '')
+gemini_client = None
+if EMERGENT_API_KEY:
+    try:
+        gemini_config = GeminiConfig(api_key=EMERGENT_API_KEY)
+        gemini_client = GeminiClient(config=gemini_config)
+        logger.info("Gemini AI client initialized successfully")
+    except Exception as e:
+        logger.warning(f"Failed to initialize Gemini client: {e}")
+        gemini_client = None
+
 # Create the main app
 app = FastAPI(title="SoundMirror API")
 
