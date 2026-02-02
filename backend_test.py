@@ -61,14 +61,6 @@ class SoundMirrorAPITester:
             })
             return False, {}
 
-        except Exception as e:
-            print(f"❌ Failed - Error: {str(e)}")
-            self.failed_tests.append({
-                'name': name,
-                'error': str(e)
-            })
-            return False, {}
-
     def test_health_endpoints(self):
         """Test basic health endpoints"""
         print("\n=== TESTING HEALTH ENDPOINTS ===")
