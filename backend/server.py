@@ -42,10 +42,15 @@ logger = logging.getLogger(__name__)
 
 # Gemini AI client for grading
 EMERGENT_API_KEY = os.environ.get('EMERGENT_API_KEY', '')
+gemini_session_id = str(uuid.uuid4())
 gemini_client = None
 if EMERGENT_API_KEY:
     try:
-        gemini_client = LlmChat(api_key=EMERGENT_API_KEY)
+        gemini_client = LlmChat(
+            api_key=EMERGENT_API_KEY,
+            session_id=gemini_session_id,
+            system_message="You are an expert speech therapist specializing in phoneme analysis. Always respond with valid JSON."
+        )
         logger.info("Gemini AI client initialized successfully")
     except Exception as e:
         logger.warning(f"Failed to initialize Gemini client: {e}")
