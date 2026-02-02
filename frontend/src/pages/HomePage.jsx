@@ -6,7 +6,7 @@ import LanguageSelector from '../components/LanguageSelector';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardContent } from '../components/ui/card';
-import { BookOpen, History, Bug, Type, ArrowRight } from 'lucide-react';
+import { BookOpen, History, Bug, Type, ArrowRight, FileText, Stethoscope } from 'lucide-react';
 
 const LOGO_URL = 'https://customer-assets.emergentagent.com/job_articlearn/artifacts/q4s66aiu_LOGO.png';
 
