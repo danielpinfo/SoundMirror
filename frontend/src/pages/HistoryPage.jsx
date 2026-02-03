@@ -39,7 +39,7 @@ import {
 
 export default function HistoryPage() {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [sessions, setSessions] = useState([]);
   const [filteredSessions, setFilteredSessions] = useState([]);
   const [statistics, setStatistics] = useState(null);
@@ -48,7 +48,7 @@ export default function HistoryPage() {
   const [typeFilter, setTypeFilter] = useState('all');
   const [showAchievements, setShowAchievements] = useState(true);
   const [showPhonemes, setShowPhonemes] = useState(true);
-  const [activeTab, setActiveTab] = useState('progress'); // 'progress' or 'history'
+  const [activeTab, setActiveTab] = useState('progress'); // 'progress', 'history', or 'reports'
 
   // Load sessions
   const loadSessions = useCallback(async () => {
