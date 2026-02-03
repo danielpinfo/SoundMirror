@@ -78,16 +78,14 @@ Build a visual speech articulation training platform that:
 - [x] Color-coded score feedback (green 80%+, yellow 60-79%, red <60%)
 - [x] Audio playback of recordings
 - [x] Target vs Detected phoneme comparison display
-- [x] **My Reports Page (ReportsPage.jsx)** - Personal progress analysis with export/print
 - [x] Sound Performance table with mastery status
 - [x] Mastered Sounds and Focus Areas sections
 - [x] Personalized tips based on progress
-- [x] **Enhanced Splash Screen** - Water drop animation with concentric ripples at 45° angle
 - [x] **Smooth Frame Animation** - CSS crossfade transitions for flicker-free animation
 - [x] **Extended Practice Content** - Categories: greetings, basics, family, food, emotions, actions, colors, numbers
 - [x] **Phoneme Practice Sentences** - Tongue twisters for each sound (S, R, L, TH, SH, CH, F, V, K, G, B, P, M, N)
 
-### ✅ NEW (Feb 3, 2026)
+### ✅ Animation Improvements (Feb 3, 2026)
 - [x] **Improved Animation System** - Timed frame sequences with prepare/transition-in/hold/transition-out phases
 - [x] **Animation Speed Control** - Slow (600ms), Normal (400ms), Fast (200ms) modes with toggle button
 - [x] **Visual HOLD Indicator** - Green border and "HOLD THIS" banner during hold phases for learning
@@ -97,7 +95,22 @@ Build a visual speech articulation training platform that:
 - [x] **MouthTracker Component** - MediaPipe Face Mesh integration for real-time lip/mouth tracking
 - [x] **MouthTracker Metrics** - Shows opening%, width%, protrusion%, jaw% with shape detection
 - [x] **MouthTracker Feedback** - Real-time feedback based on target phoneme ("Open wider", "Round lips", etc.)
-- [x] **Refactored PathologistPage → ReportsPage** - Cleaner naming for single-user focus
+
+### ✅ UI Corrections (Feb 3, 2026 - User Requested)
+- [x] **6-Second Splash Screen** - Silver raindrop (0-2s), white splash + concentric ripples at 45° (2-4s), logo fade-in (4-6s)
+- [x] **Home Page Large Logo** - 4X larger SoundMirror logo at top center
+- [x] **No Visual Speech Training Header** - Removed per user request
+- [x] **Larger Instructions** - 3X larger text for instructions
+- [x] **Quick Practice = Single Words** - 8 single words (Hello, Yes, No, Please, Water, Food, Good, Help)
+- [x] **Phrases = Multi-Word** - (Thank you, I'm fine, Good morning, How are you, Nice to meet you, See you later)
+- [x] **Cobalt Blue Buttons with Gold Text** - #0047AB background, #FFD700 text
+- [x] **Merged History Library + My Reports** - Single unified page with 3 tabs: Progress, Sessions, Reports
+- [x] **Word Practice Title** - Changed from "Reference Animation" to "Word Practice"
+- [x] **No FRONT/SIDE VIEW Labels** - Removed from animation boxes via hideViewLabels prop
+- [x] **Always-Visible Keyboard** - No toggle needed, keyboard always shown
+- [x] **Quick Practice/Phrases in Word Practice** - Added to Word Practice page for easy access
+- [x] **Auto-Enable Camera** - Camera auto-enabled on Word Practice page
+- [x] **/reports redirects to /history** - Consolidated navigation
 
 ### 📋 Future Features (Backlog)
 - [ ] Real-time streaming phoneme detection via WebSocket
