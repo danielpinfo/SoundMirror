@@ -137,15 +137,22 @@ export const DualHeadAnimation = forwardRef(({
   const { language } = useLanguage();
   const [currentFrame, setCurrentFrame] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [frameSequence, setFrameSequence] = useState([0]);
+  const [frameSequence, setFrameSequence] = useState([]);
   const [imagesLoaded, setImagesLoaded] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [audioUrl, setAudioUrl] = useState(null);
   const [isLoadingAudio, setIsLoadingAudio] = useState(false);
   const [phonemeDisplay, setPhonemeDisplay] = useState('');
+  const [currentStepInfo, setCurrentStepInfo] = useState({ type: '', duration: 0 });
+  const [animationSpeed, setAnimationSpeed] = useState(DEFAULT_SPEED);
+  const [progress, setProgress] = useState(0);
   const animationRef = useRef(null);
   const audioRef = useRef(null);
+  const startTimeRef = useRef(null);
+
+  // Get current speed settings
+  const speedSettings = SPEED_SETTINGS[animationSpeed];
 
   // Preload images on mount
   useEffect(() => {
@@ -157,27 +164,25 @@ export const DualHeadAnimation = forwardRef(({
   useEffect(() => {
     if (target) {
       if (mode === 'letter') {
-        // Letter Practice mode - use S3 audio and phoneme animation
         const sequence = generatePhonemeSequence(target);
         setFrameSequence(sequence);
-        setCurrentFrame(sequence[0]);
+        setCurrentFrame(sequence[0]?.frame || 0);
         setCurrentIndex(0);
+        setCurrentStepInfo(sequence[0] || { type: 'prepare', duration: 1 });
         
-        // Set phoneme display
         const letterLower = target.toLowerCase();
         const phoneme = LETTER_PHONEME_MAP[letterLower] || `${letterLower}a`;
         setPhonemeDisplay(phoneme);
         
-        // Fetch S3 audio
         fetchLetterAudio(target);
       } else {
-        // Word Practice mode - use TTS and text-based animation
         const sequence = textToFrameSequence(target);
         setFrameSequence(sequence);
-        setCurrentFrame(sequence[0]);
+        setCurrentFrame(sequence[0]?.frame || 0);
         setCurrentIndex(0);
+        setCurrentStepInfo(sequence[0] || { type: 'prepare', duration: 1 });
         setPhonemeDisplay(target);
-        setAudioUrl(null); // TTS will be handled separately
+        setAudioUrl(null);
       }
     }
   }, [target, mode, language]);
