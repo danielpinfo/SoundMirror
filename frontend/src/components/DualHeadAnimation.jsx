@@ -75,40 +75,55 @@ const generatePhonemeSequence = (letter) => {
   return frames;
 };
 
-// Convert text to frame sequence for words (TTS mode) - with frame cloning for slower animation
+// Convert text to frame sequence for words (TTS mode) - with extended holds for visual learning
 const textToFrameSequence = (text) => {
-  const frames = [0, 0]; // Start with neutral (doubled)
+  const frames = [];
   const lowerText = text.toLowerCase();
+  
+  // Start with extended neutral - user gets ready
+  frames.push({ frame: 0, type: 'prepare', duration: 1.2 });
   
   let i = 0;
   while (i < lowerText.length) {
+    // Check for digraphs first (ch, sh, th, etc.)
     if (i + 1 < lowerText.length) {
       const digraph = lowerText.slice(i, i + 2);
       if (PHONEME_FRAME_MAP[digraph] !== undefined) {
         const frame = PHONEME_FRAME_MAP[digraph];
-        // Clone frame 3 times for longer display
-        frames.push(frame, frame, frame);
+        // Transition, hold, transition pattern for each sound
+        frames.push({ frame, type: 'transition-in', duration: 0.3 });
+        frames.push({ frame, type: 'hold', duration: 1.2 }); // Longer hold for visibility
+        frames.push({ frame, type: 'transition-out', duration: 0.2 });
         i += 2;
         continue;
       }
     }
     
     const char = lowerText[i];
-    if (char === ' ' || char === ',' || char === '.') {
-      // Longer pause for spaces/punctuation
-      frames.push(0, 0, 0);
+    if (char === ' ') {
+      // Word break - longer neutral pause
+      frames.push({ frame: 0, type: 'word-break', duration: 0.8 });
+    } else if (char === ',' || char === '.') {
+      // Punctuation - sentence pause
+      frames.push({ frame: 0, type: 'pause', duration: 1.0 });
     } else if (PHONEME_FRAME_MAP[char] !== undefined) {
       const frame = PHONEME_FRAME_MAP[char];
-      // Clone frame 3 times for longer display
-      frames.push(frame, frame, frame);
+      // Each character gets transition-hold-transition
+      frames.push({ frame, type: 'transition-in', duration: 0.25 });
+      frames.push({ frame, type: 'hold', duration: 0.9 }); // Main visual hold
+      frames.push({ frame, type: 'transition-out', duration: 0.15 });
     } else if (char.match(/[a-z]/)) {
-      // Default frame cloned
-      frames.push(1, 1, 1);
+      // Unknown letters default to slight mouth opening
+      frames.push({ frame: 1, type: 'transition-in', duration: 0.25 });
+      frames.push({ frame: 1, type: 'hold', duration: 0.7 });
+      frames.push({ frame: 1, type: 'transition-out', duration: 0.15 });
     }
     i++;
   }
   
-  frames.push(0, 0); // End with neutral (doubled)
+  // End with neutral
+  frames.push({ frame: 0, type: 'end', duration: 1.0 });
+  
   return frames;
 };
 
