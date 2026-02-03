@@ -127,10 +127,30 @@ Build a visual speech articulation training platform that:
 - Custom practice list creation
 
 ## Next Tasks
-1. Test Gemini AI grading with real audio input
-2. Implement video recording panel
-3. Refine splash screen water drop animation
-4. Add frame interpolation for smoother animations
+1. Test Electron desktop build (`yarn electron:build`)
+2. Connect MouthTracker metrics to visual grading score
+3. Add comparison between user mouth shape and target phoneme shape
+4. Test real-time audio streaming for faster feedback
+
+## Technical Architecture (Updated)
+
+### Frontend (React + ShadcnUI)
+- `/app/frontend/src/pages/`
+  - HomePage.jsx
+  - LetterPracticePage.jsx
+  - WordPracticePage.jsx
+  - HistoryPage.jsx
+  - BugReportPage.jsx
+  - ReportsPage.jsx (formerly PathologistPage)
+- `/app/frontend/src/components/`
+  - SplashScreen.jsx
+  - DualHeadAnimation.jsx - **Enhanced with speed control, HOLD indicator, timed frames**
+  - RecordingPanel.jsx - **Includes MouthTracker toggle**
+  - MouthTracker.jsx - **NEW: MediaPipe Face Mesh for lip tracking**
+  - NavigationBar.jsx
+- `/app/frontend/electron/`
+  - main.js - Electron main process
+  - preload.js - Electron preload script
 
 ## Credentials & Keys
 - **Emergent LLM Key**: sk-emergent-fF558Af025265A551E
