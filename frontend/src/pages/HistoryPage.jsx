@@ -792,7 +792,100 @@ export default function HistoryPage() {
               </div>
             )}
           </div>
-        )}
+        ) : activeTab === 'reports' ? (
+          /* Reports Tab */
+          <div className="space-y-6">
+            <Card className="bg-cobalt-surface border-blue-500/20">
+              <CardHeader>
+                <CardTitle className="text-lg text-white flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-blue-400" />
+                  Export & Download
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-blue-300">
+                  Download your practice history to replay sessions or share your progress.
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  <Button
+                    onClick={exportAllSessions}
+                    className="rounded-full bg-[#0047AB] hover:bg-[#003d91] text-[#FFD700] font-semibold"
+                    data-testid="export-json-btn"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Download All Sessions (JSON)
+                  </Button>
+                  <Button
+                    onClick={printProgressReport}
+                    className="rounded-full bg-[#0047AB] hover:bg-[#003d91] text-[#FFD700] font-semibold"
+                    data-testid="print-report-btn"
+                  >
+                    <Printer className="w-4 h-4 mr-2" />
+                    Print Progress Report
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Summary Stats for Report */}
+            {statistics && (
+              <Card className="bg-cobalt-surface border-blue-500/20">
+                <CardHeader>
+                  <CardTitle className="text-lg text-white flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5 text-green-400" />
+                    Report Summary
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="p-4 bg-[#0a1628] rounded-xl text-center">
+                      <p className="text-3xl font-bold text-white">{statistics.totalSessions}</p>
+                      <p className="text-sm text-blue-300">Total Sessions</p>
+                    </div>
+                    <div className="p-4 bg-[#0a1628] rounded-xl text-center">
+                      <p className="text-3xl font-bold text-orange-400">{statistics.currentStreak}</p>
+                      <p className="text-sm text-blue-300">Day Streak</p>
+                    </div>
+                    <div className="p-4 bg-[#0a1628] rounded-xl text-center">
+                      <p className="text-3xl font-bold text-green-400">{statistics.avgVisualScore}%</p>
+                      <p className="text-sm text-blue-300">Avg Visual Score</p>
+                    </div>
+                    <div className="p-4 bg-[#0a1628] rounded-xl text-center">
+                      <p className="text-3xl font-bold text-purple-400">{statistics.avgAudioScore}%</p>
+                      <p className="text-sm text-blue-300">Avg Audio Score</p>
+                    </div>
+                  </div>
+                  
+                  {statistics.masteredPhonemes?.length > 0 && (
+                    <div className="mt-6 p-4 bg-green-600/20 rounded-xl border border-green-500/30">
+                      <h4 className="font-semibold text-green-300 mb-2">Mastered Sounds</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {statistics.masteredPhonemes.map(p => (
+                          <span key={p.phoneme} className="px-3 py-1 bg-green-600/30 text-green-200 rounded-full text-sm font-medium">
+                            {p.phoneme} ({p.avgScore}%)
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {statistics.needsPracticePhonemes?.length > 0 && (
+                    <div className="mt-4 p-4 bg-orange-600/20 rounded-xl border border-orange-500/30">
+                      <h4 className="font-semibold text-orange-300 mb-2">Focus Areas</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {statistics.needsPracticePhonemes.map(p => (
+                          <span key={p.phoneme} className="px-3 py-1 bg-orange-600/30 text-orange-200 rounded-full text-sm font-medium">
+                            {p.phoneme} ({p.avgScore}%)
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        ) : null}
       </main>
     </div>
   );
