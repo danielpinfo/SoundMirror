@@ -99,32 +99,32 @@ Build a visual speech articulation training platform that:
 - [x] **Refactored PathologistPage → ReportsPage** - Cleaner naming for single-user focus
 
 ### 📋 Future Features (Backlog)
-- [ ] Visual mouth analysis from camera feed (ML model)
-- [ ] Real-time streaming phoneme detection
-- [ ] Desktop/mobile native app builds (Electron/React Native)
-- [ ] Multi-client management for clinics (enterprise feature)
-- [ ] Session notes and annotations (enterprise feature)
+- [ ] Real-time streaming phoneme detection via WebSocket
+- [ ] Desktop/mobile native app builds (Electron config exists, needs testing)
+- [ ] PDF export for progress reports
+- [ ] Social sharing for achievements
 
 ## Prioritized Backlog
 
-### P0 (Critical)
-- Implement actual audio phoneme detection using Gemini AI with audio input
-- Add video recording for visual grading
+### P0 (Critical) - DONE
+- ✅ Implement actual audio phoneme detection using Gemini AI
+- ✅ Improve animation speed for visual learning
+- ✅ Add MouthTracker for visual feedback
 
-### P1 (High)
-- Improve splash screen animation
-- Add frame interpolation for smoother sprite animations
-- Implement real visual grading from camera feed
+### P1 (High) 
+- Test and finalize Electron desktop build (`yarn electron:build`)
+- Implement visual grading using MouthTracker data comparison
+- Connect MouthTracker metrics to grading score
 
 ### P2 (Medium)
 - Add more practice words per language
 - Export practice history as PDF reports
-- Add progress tracking and achievements
+- Real-time audio streaming to backend (WebSocket)
 
 ### P3 (Low)
-- Native desktop app packaging (Electron/Tauri)
 - Mobile app (React Native/Capacitor)
 - Add more languages
+- Custom practice list creation
 
 ## Next Tasks
 1. Test Gemini AI grading with real audio input
