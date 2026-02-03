@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { LanguageProvider } from './context/LanguageContext';
 import SplashScreen from './components/SplashScreen';
 import HomePage from './pages/HomePage';
@@ -7,7 +7,6 @@ import LetterPracticePage from './pages/LetterPracticePage';
 import WordPracticePage from './pages/WordPracticePage';
 import HistoryPage from './pages/HistoryPage';
 import BugReportPage from './pages/BugReportPage';
-import ReportsPage from './pages/ReportsPage';
 import { Toaster } from './components/ui/sonner';
 import './index.css';
 
@@ -58,7 +57,8 @@ const AppContent = () => {
         <Route path="/word-practice" element={<WordPracticePage />} />
         <Route path="/history" element={<HistoryPage />} />
         <Route path="/bug-report" element={<BugReportPage />} />
-        <Route path="/reports" element={<ReportsPage />} />
+        {/* Redirect old /reports route to /history */}
+        <Route path="/reports" element={<Navigate to="/history" replace />} />
       </Routes>
       
       <Toaster position="top-right" />
