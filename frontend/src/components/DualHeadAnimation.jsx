@@ -345,7 +345,7 @@ export const DualHeadAnimation = forwardRef(({
     setAnimationSpeed(speeds[nextIdx]);
   }, [animationSpeed]);
 
-  // Expose methods to parent
+  // Expose methods to parent - updated
   useImperativeHandle(ref, () => ({
     play,
     pause,
@@ -353,6 +353,8 @@ export const DualHeadAnimation = forwardRef(({
     togglePlay,
     isPlaying,
     getCurrentFrame: () => currentFrame,
+    setSpeed: setAnimationSpeed,
+    getSpeed: () => animationSpeed,
   }));
 
   // Auto-play if enabled
