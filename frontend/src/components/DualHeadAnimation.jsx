@@ -222,17 +222,18 @@ export const DualHeadAnimation = forwardRef(({
     }
   }, [audioEnabled, audioUrl]);
 
-  // Play TTS for word mode
+  // Play TTS for word mode - with slower rate matching animation
   const playTTS = useCallback(() => {
     if (!audioEnabled || mode !== 'word' || !target) return;
     
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(target);
-      utterance.rate = 0.5; // Slower rate for clearer pronunciation
+      // Adjust TTS rate based on animation speed
+      const rateMap = { slow: 0.35, normal: 0.5, fast: 0.7 };
+      utterance.rate = rateMap[animationSpeed] || 0.5;
       utterance.pitch = 1;
       
-      // Try to match language
       const langMap = {
         'english': 'en-US', 'spanish': 'es-ES', 'italian': 'it-IT',
         'portuguese': 'pt-BR', 'german': 'de-DE', 'french': 'fr-FR',
@@ -242,31 +243,44 @@ export const DualHeadAnimation = forwardRef(({
       
       window.speechSynthesis.speak(utterance);
     }
-  }, [audioEnabled, mode, target, language]);
+  }, [audioEnabled, mode, target, language, animationSpeed]);
 
-  // Animation loop
+  // NEW: Animation loop with timed frames
   const animate = useCallback(() => {
     setCurrentIndex(prevIndex => {
       const nextIndex = prevIndex + 1;
       if (nextIndex < frameSequence.length) {
-        setCurrentFrame(frameSequence[nextIndex]);
-        animationRef.current = setTimeout(() => animate(), FRAME_DURATION);
+        const nextStep = frameSequence[nextIndex];
+        setCurrentFrame(nextStep.frame);
+        setCurrentStepInfo(nextStep);
+        
+        // Calculate duration based on step duration multiplied by speed factor
+        const baseDuration = nextStep.duration * speedSettings.frameDuration;
+        setProgress((nextIndex / (frameSequence.length - 1)) * 100);
+        
+        animationRef.current = setTimeout(() => animate(), baseDuration);
         return nextIndex;
       } else {
         setIsPlaying(false);
+        setProgress(100);
         if (onAnimationComplete) onAnimationComplete();
         return prevIndex;
       }
     });
-  }, [frameSequence, onAnimationComplete]);
+  }, [frameSequence, onAnimationComplete, speedSettings.frameDuration]);
 
-  // Play control
+  // Play control - updated
   const play = useCallback(() => {
     if (isPlaying) return;
     
     setCurrentIndex(0);
-    setCurrentFrame(frameSequence[0]);
+    setProgress(0);
+    if (frameSequence.length > 0) {
+      setCurrentFrame(frameSequence[0].frame);
+      setCurrentStepInfo(frameSequence[0]);
+    }
     setIsPlaying(true);
+    startTimeRef.current = Date.now();
     
     // Play audio based on mode
     if (mode === 'letter') {
@@ -275,9 +289,10 @@ export const DualHeadAnimation = forwardRef(({
       playTTS();
     }
     
-    // Start animation with delay to sync with audio
-    animationRef.current = setTimeout(() => animate(), 300);
-  }, [isPlaying, frameSequence, mode, playAudio, playTTS, animate]);
+    // Start animation after brief pause
+    const firstDuration = frameSequence[0]?.duration * speedSettings.frameDuration || 500;
+    animationRef.current = setTimeout(() => animate(), firstDuration);
+  }, [isPlaying, frameSequence, mode, playAudio, playTTS, animate, speedSettings.frameDuration]);
 
   // Pause control
   const pause = useCallback(() => {
