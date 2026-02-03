@@ -33,6 +33,8 @@ import {
   Circle,
   ChevronDown,
   ChevronUp,
+  FileText,
+  Printer,
 } from 'lucide-react';
 
 export default function HistoryPage() {
