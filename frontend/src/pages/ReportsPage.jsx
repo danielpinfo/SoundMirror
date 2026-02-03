@@ -30,7 +30,7 @@ import {
   Type,
 } from 'lucide-react';
 
-export default function PathologistPage() {
+export default function ReportsPage() {
   const navigate = useNavigate();
   const { language } = useLanguage();
   const [sessions, setSessions] = useState([]);
