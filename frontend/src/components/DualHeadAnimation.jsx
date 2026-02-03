@@ -4,11 +4,17 @@ import { getLetterAudio } from '../lib/audio';
 import { useLanguage } from '../context/LanguageContext';
 import { Slider } from '../components/ui/slider';
 import { Button } from '../components/ui/button';
-import { Play, Pause, RotateCcw, Volume2, VolumeX } from 'lucide-react';
+import { Play, Pause, RotateCcw, Volume2, VolumeX, Gauge } from 'lucide-react';
 
-// Frame duration in milliseconds - faster for smoother animation
-const FRAME_DURATION = 150; // Reduced from 250ms for smoother playback
-const TRANSITION_DURATION = 100; // CSS transition time in ms
+// Animation speed settings - MUCH SLOWER for visual learning
+const SPEED_SETTINGS = {
+  slow: { frameDuration: 600, transitionDuration: 200, label: 'Slow' },
+  normal: { frameDuration: 400, transitionDuration: 150, label: 'Normal' },
+  fast: { frameDuration: 200, transitionDuration: 100, label: 'Fast' },
+};
+const DEFAULT_SPEED = 'slow';
+const FRAME_DURATION = SPEED_SETTINGS[DEFAULT_SPEED].frameDuration;
+const TRANSITION_DURATION = SPEED_SETTINGS[DEFAULT_SPEED].transitionDuration;
 
 // Preload images
 const preloadImages = () => {
