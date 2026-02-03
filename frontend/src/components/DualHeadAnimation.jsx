@@ -44,25 +44,34 @@ const LETTER_PHONEME_MAP = {
   'ch': 'cha', 'sh': 'sha', 'th': 'tha',
 };
 
-// Generate frame sequence for a phoneme (e.g., "ba" -> [0, b_frame, a_frame, 0])
+// Generate frame sequence for a phoneme with extended hold times for learning
+// Each phoneme position is held for multiple "beats" so users can see the mouth shape
 const generatePhonemeSequence = (letter) => {
   const letterLower = letter.toLowerCase();
   const phoneme = LETTER_PHONEME_MAP[letterLower] || `${letterLower}a`;
   
-  const frames = [0]; // Start neutral
+  const frames = [];
   
-  // Parse phoneme into individual sounds and get frames
+  // Extended neutral start - helps user prepare
+  frames.push({ frame: 0, type: 'prepare', duration: 1.5 });
+  
+  // Parse phoneme into individual sounds and create extended holds
   for (let i = 0; i < phoneme.length; i++) {
     const char = phoneme[i];
     const frame = PHONEME_FRAME_MAP[char];
     if (frame !== undefined) {
-      // Add frame multiple times for longer display
-      frames.push(frame);
-      frames.push(frame);
+      // Transition IN to the phoneme position
+      frames.push({ frame, type: 'transition-in', duration: 0.5 });
+      // HOLD the position - this is the key learning moment
+      frames.push({ frame, type: 'hold', duration: 2.0 });
+      // Brief transition out before next sound
+      frames.push({ frame, type: 'transition-out', duration: 0.3 });
     }
   }
   
-  frames.push(0); // End neutral
+  // Return to neutral with smooth transition
+  frames.push({ frame: 0, type: 'return', duration: 1.0 });
+  
   return frames;
 };
 
