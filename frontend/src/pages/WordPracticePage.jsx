@@ -6,8 +6,37 @@ import RecordingPanel from '../components/RecordingPanel';
 import AlphabetKeyboard from '../components/AlphabetKeyboard';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
+import { Card, CardContent } from '../components/ui/card';
 import { savePracticeSession } from '../lib/db';
-import { Home, Type, History, ArrowRight, X } from 'lucide-react';
+import { Home, Type, History, ArrowRight } from 'lucide-react';
+
+// Quick Practice - Single words only (8 words)
+const QUICK_PRACTICE_WORDS = {
+  english: ['Hello', 'Yes', 'No', 'Please', 'Water', 'Food', 'Good', 'Help'],
+  spanish: ['Hola', 'Sí', 'No', 'Agua', 'Comida', 'Bien', 'Ayuda', 'Gracias'],
+  italian: ['Ciao', 'Sì', 'No', 'Acqua', 'Cibo', 'Bene', 'Aiuto', 'Grazie'],
+  portuguese: ['Olá', 'Sim', 'Não', 'Água', 'Comida', 'Bem', 'Ajuda', 'Obrigado'],
+  german: ['Hallo', 'Ja', 'Nein', 'Wasser', 'Essen', 'Gut', 'Hilfe', 'Danke'],
+  french: ['Bonjour', 'Oui', 'Non', 'Eau', 'Nourriture', 'Bien', 'Aide', 'Merci'],
+  japanese: ['こんにちは', 'はい', 'いいえ', '水', '食べ物', '良い', '助けて', 'ありがとう'],
+  chinese: ['你好', '是', '不', '水', '食物', '好', '帮助', '谢谢'],
+  hindi: ['नमस्ते', 'हाँ', 'नहीं', 'पानी', 'खाना', 'अच्छा', 'मदद', 'धन्यवाद'],
+  arabic: ['مرحبا', 'نعم', 'لا', 'ماء', 'طعام', 'جيد', 'مساعدة', 'شكرا'],
+};
+
+// Phrases - Multi-word phrases only
+const PRACTICE_PHRASES = {
+  english: ['Thank you', "I'm fine", 'Good morning', 'How are you', 'Nice to meet you', 'See you later'],
+  spanish: ['Muchas gracias', 'Estoy bien', 'Buenos días', 'Cómo estás', 'Mucho gusto', 'Hasta luego'],
+  italian: ['Molte grazie', 'Sto bene', 'Buon giorno', 'Come stai', 'Piacere di conoscerti', 'A dopo'],
+  portuguese: ['Muito obrigado', 'Estou bem', 'Bom dia', 'Como vai', 'Prazer em conhecê-lo', 'Até logo'],
+  german: ['Vielen Dank', 'Mir geht es gut', 'Guten Morgen', 'Wie geht es dir', 'Freut mich', 'Bis später'],
+  french: ['Merci beaucoup', 'Je vais bien', 'Bonjour', 'Comment allez-vous', 'Enchanté', 'À plus tard'],
+  japanese: ['ありがとうございます', '元気です', 'おはようございます', 'お元気ですか', 'はじめまして', 'また後で'],
+  chinese: ['非常感谢', '我很好', '早上好', '你好吗', '很高兴认识你', '回头见'],
+  hindi: ['बहुत धन्यवाद', 'मैं ठीक हूँ', 'सुप्रभात', 'आप कैसे हैं', 'आपसे मिलकर अच्छा लगा', 'फिर मिलेंगे'],
+  arabic: ['شكرا جزيلا', 'أنا بخير', 'صباح الخير', 'كيف حالك', 'سعيد بلقائك', 'أراك لاحقا'],
+};
 
 export default function WordPracticePage() {
   const navigate = useNavigate();
@@ -15,8 +44,13 @@ export default function WordPracticePage() {
   const { language, t } = useLanguage();
   const [practiceWord, setPracticeWord] = useState('');
   const [inputValue, setInputValue] = useState('');
-  const [showKeyboard, setShowKeyboard] = useState(false);
   const animationRef = useRef(null);
+
+  const quickWords = QUICK_PRACTICE_WORDS[language] || QUICK_PRACTICE_WORDS.english;
+  const phrases = PRACTICE_PHRASES[language] || PRACTICE_PHRASES.english;
+
+  // Cobalt blue button style with bright gold text
+  const cobaltButtonStyle = "rounded-full px-4 py-1.5 bg-[#0047AB] hover:bg-[#003d91] border border-[#0047AB] text-[#FFD700] font-medium text-sm shadow-sm hover:shadow transition-all";
 
   useEffect(() => {
     const wordParam = searchParams.get('word');
@@ -33,8 +67,21 @@ export default function WordPracticePage() {
     }
   };
 
+  const handleQuickPractice = (word) => {
+    setPracticeWord(word);
+    setInputValue(word);
+  };
+
   const handleKeySelect = useCallback((key) => {
     setInputValue((prev) => prev + key);
+  }, []);
+
+  // Auto-reset animation to beginning after it completes
+  const handleAnimationComplete = useCallback(() => {
+    // Reset to beginning after animation completes
+    if (animationRef.current) {
+      animationRef.current.reset();
+    }
   }, []);
 
   const handleGradingComplete = useCallback(async (grading) => {
@@ -94,46 +141,87 @@ export default function WordPracticePage() {
                 {t('history')}
               </Button>
             </div>
-
-            {/* Word Input in Header */}
-            <form onSubmit={handleInputSubmit} className="flex gap-2 items-center">
-              <Input
-                type="text"
-                placeholder={t('input_practice')}
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                className="w-64 h-10 rounded-xl border-blue-500/30 bg-[#0f2847] text-white placeholder:text-blue-300/50 focus:border-blue-400"
-                data-testid="word-input"
-              />
-              <Button 
-                type="submit" 
-                size="sm"
-                className="h-10 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold"
-                disabled={!inputValue.trim()}
-                data-testid="word-submit-btn"
-              >
-                <ArrowRight className="w-4 h-4" />
-              </Button>
-            </form>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-4 max-w-7xl">
+        {/* Page Title */}
+        <h1 className="text-2xl md:text-3xl font-bold text-white mb-6 text-center" style={{ fontFamily: 'Manrope, sans-serif' }}>
+          Word Practice
+        </h1>
+
+        {/* Practice Input Section */}
+        <Card className="mb-6 shadow-lg bg-cobalt-surface border-blue-500/20">
+          <CardContent className="p-4">
+            <form onSubmit={handleInputSubmit} className="flex gap-3 mb-4">
+              <Input
+                type="text"
+                placeholder={t('input_practice')}
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                className="flex-1 h-11 rounded-xl border-blue-500/30 bg-[#0f2847] text-white placeholder:text-blue-300/50 focus:border-blue-400"
+                data-testid="word-input"
+              />
+              <Button 
+                type="submit" 
+                className="h-11 px-5 rounded-xl bg-[#0047AB] hover:bg-[#003d91] text-[#FFD700] font-semibold"
+                disabled={!inputValue.trim()}
+                data-testid="word-submit-btn"
+              >
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            </form>
+            
+            {/* Quick Practice Words */}
+            <div className="mb-3">
+              <p className="text-xs text-blue-400 uppercase tracking-wider mb-2">Quick Practice</p>
+              <div className="flex flex-wrap gap-2">
+                {quickWords.map((word, index) => (
+                  <Button
+                    key={index}
+                    onClick={() => handleQuickPractice(word)}
+                    className={cobaltButtonStyle}
+                    data-testid={`quick-word-${index}`}
+                  >
+                    {word}
+                  </Button>
+                ))}
+              </div>
+            </div>
+            
+            {/* Phrases */}
+            <div>
+              <p className="text-xs text-blue-400 uppercase tracking-wider mb-2">Phrases</p>
+              <div className="flex flex-wrap gap-2">
+                {phrases.map((phrase, index) => (
+                  <Button
+                    key={index}
+                    onClick={() => handleQuickPractice(phrase)}
+                    className={cobaltButtonStyle}
+                    data-testid={`phrase-${index}`}
+                  >
+                    {phrase}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Current Word Display */}
         {practiceWord && (
           <div className="text-center mb-4">
             <p className="text-sm text-blue-300 uppercase tracking-wider mb-2">Practicing</p>
-            <div className="inline-block px-8 py-3 bg-blue-600 text-white text-2xl font-bold rounded-2xl shadow-lg shadow-blue-500/30">
+            <div className="inline-block px-8 py-3 bg-[#0047AB] text-[#FFD700] text-2xl font-bold rounded-2xl shadow-lg">
               {practiceWord}
             </div>
           </div>
         )}
 
-        {/* Large Animation Section */}
+        {/* Animation Section - No "Reference Animation" heading, no Front/Side labels */}
         <div className="bg-cobalt-surface rounded-2xl border border-blue-500/20 shadow-sm p-6 mb-6">
-          <h3 className="text-lg font-semibold text-white mb-4">Reference Animation</h3>
           <div className="max-w-4xl mx-auto">
             <DualHeadAnimation
               ref={animationRef}
@@ -141,13 +229,15 @@ export default function WordPracticePage() {
               mode="word"
               showControls={true}
               autoPlay={false}
+              onAnimationComplete={handleAnimationComplete}
+              hideViewLabels={true}
             />
           </div>
         </div>
 
-        {/* Recording Panel and Keyboard Toggle */}
+        {/* Recording Panel and Keyboard - Side by Side */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Recording Panel */}
+          {/* Recording Panel - Camera and Audio enabled for grading */}
           <div className="bg-cobalt-surface rounded-2xl border border-blue-500/20 shadow-sm p-5">
             <h3 className="text-lg font-semibold text-white mb-4">Your Practice</h3>
             {practiceWord ? (
@@ -155,6 +245,7 @@ export default function WordPracticePage() {
                 target={practiceWord}
                 language={language}
                 onGradingComplete={handleGradingComplete}
+                autoEnableCamera={true}
               />
             ) : (
               <div className="aspect-video bg-[#0a1628] rounded-xl flex items-center justify-center border border-blue-500/20">
@@ -165,34 +256,14 @@ export default function WordPracticePage() {
             )}
           </div>
 
-          {/* Keyboard Section */}
+          {/* Keyboard Section - Always visible */}
           <div>
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold text-blue-300 uppercase tracking-wider">
-                On-Screen Keyboard
-              </h3>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowKeyboard(!showKeyboard)}
-                className="text-blue-300 hover:text-white"
-              >
-                {showKeyboard ? <X className="w-4 h-4" /> : 'Show'}
-              </Button>
-            </div>
-            {showKeyboard && (
-              <AlphabetKeyboard
-                onKeySelect={handleKeySelect}
-              />
-            )}
-            {!showKeyboard && (
-              <div 
-                className="bg-cobalt-surface rounded-2xl border border-blue-500/20 p-8 text-center cursor-pointer hover:bg-[#1a3a5c] transition-colors"
-                onClick={() => setShowKeyboard(true)}
-              >
-                <p className="text-blue-300">Click to show on-screen keyboard</p>
-              </div>
-            )}
+            <h3 className="text-sm font-semibold text-blue-300 uppercase tracking-wider mb-3">
+              On-Screen Keyboard
+            </h3>
+            <AlphabetKeyboard
+              onKeySelect={handleKeySelect}
+            />
           </div>
         </div>
       </main>
