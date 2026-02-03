@@ -133,6 +133,7 @@ export const DualHeadAnimation = forwardRef(({
   onAnimationComplete,
   showControls = true,
   autoPlay = false,
+  hideViewLabels = false, // Hide "FRONT VIEW" and "SIDE VIEW" labels
 }, ref) => {
   const { language } = useLanguage();
   const [currentFrame, setCurrentFrame] = useState(0);
