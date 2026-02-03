@@ -351,7 +351,7 @@ export default function HistoryPage() {
       <main className="container mx-auto px-4 py-6 max-w-6xl">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl md:text-3xl font-bold text-white" style={{ fontFamily: 'Manrope, sans-serif' }}>
-            {t('history')}
+            History Library
           </h1>
           
           {/* Tab Switcher */}
@@ -383,6 +383,20 @@ export default function HistoryPage() {
             >
               <Calendar className="w-4 h-4 mr-1" />
               Sessions
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setActiveTab('reports')}
+              className={`rounded-full px-4 ${
+                activeTab === 'reports' 
+                  ? 'bg-blue-600 text-white' 
+                  : 'text-blue-300 hover:text-white'
+              }`}
+              data-testid="tab-reports"
+            >
+              <FileText className="w-4 h-4 mr-1" />
+              Reports
             </Button>
           </div>
         </div>
