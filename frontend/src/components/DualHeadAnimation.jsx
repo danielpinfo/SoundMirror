@@ -441,9 +441,11 @@ export const DualHeadAnimation = forwardRef(({
       <div className="grid grid-cols-2 gap-4 md:gap-6">
         {/* Front View (Master) */}
         <div className="relative">
-          <div className="absolute top-2 left-2 z-10 px-2 py-1 bg-sky-600/90 text-white text-xs font-semibold rounded">
-            FRONT VIEW
-          </div>
+          {!hideViewLabels && (
+            <div className="absolute top-2 left-2 z-10 px-2 py-1 bg-sky-600/90 text-white text-xs font-semibold rounded">
+              FRONT VIEW
+            </div>
+          )}
           {/* HOLD indicator overlay */}
           {isPlaying && currentStepInfo.type === 'hold' && (
             <div className="absolute inset-0 z-20 pointer-events-none">
@@ -479,9 +481,11 @@ export const DualHeadAnimation = forwardRef(({
 
         {/* Side View (Slave) */}
         <div className="relative">
-          <div className="absolute top-2 left-2 z-10 px-2 py-1 bg-slate-600/90 text-white text-xs font-semibold rounded">
-            SIDE VIEW
-          </div>
+          {!hideViewLabels && (
+            <div className="absolute top-2 left-2 z-10 px-2 py-1 bg-slate-600/90 text-white text-xs font-semibold rounded">
+              SIDE VIEW
+            </div>
+          )}
           {/* HOLD indicator overlay */}
           {isPlaying && currentStepInfo.type === 'hold' && (
             <div className="absolute inset-0 z-20 pointer-events-none">
@@ -497,7 +501,7 @@ export const DualHeadAnimation = forwardRef(({
           >
             {Object.entries(SPRITE_URLS.side).map(([frame, url]) => (
               <img
-                key={`side-${frame}`}
+                key={`side-${frame}`}}
                 src={url}
                 alt={`Side view frame ${frame}`}
                 className="absolute inset-0 w-full h-full object-cover"
