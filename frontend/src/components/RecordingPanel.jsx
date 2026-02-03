@@ -13,6 +13,7 @@ export const RecordingPanel = ({
   onGradingComplete,
   target = '',
   language = 'english',
+  autoEnableCamera = false,
 }) => {
   const { t } = useLanguage();
   const webcamRef = useRef(null);
@@ -24,7 +25,7 @@ export const RecordingPanel = ({
   const [audioBlob, setAudioBlob] = useState(null);
   const [videoChunks, setVideoChunks] = useState([]);
   const [audioChunks, setAudioChunks] = useState([]);
-  const [cameraEnabled, setCameraEnabled] = useState(false);
+  const [cameraEnabled, setCameraEnabled] = useState(autoEnableCamera);
   const [cameraError, setCameraError] = useState(null);
   const [grading, setGrading] = useState(null);
   const [isGrading, setIsGrading] = useState(false);
@@ -32,6 +33,14 @@ export const RecordingPanel = ({
   const [showMouthTracker, setShowMouthTracker] = useState(false);
   const [mouthMetrics, setMouthMetrics] = useState(null);
   const recordingTimerRef = useRef(null);
+
+  // Auto-enable camera if prop is set
+  useEffect(() => {
+    if (autoEnableCamera && !cameraEnabled) {
+      setCameraEnabled(true);
+      setCameraError(null);
+    }
+  }, [autoEnableCamera]);
 
   // Enable camera
   const enableCamera = useCallback(() => {
