@@ -309,11 +309,18 @@ export const DualHeadAnimation = forwardRef(({
     }
   }, [mode]);
 
-  // Reset control
+  // Reset control - updated
   const reset = useCallback(() => {
     pause();
     setCurrentIndex(0);
-    setCurrentFrame(frameSequence[0] || 0);
+    setProgress(0);
+    if (frameSequence.length > 0) {
+      setCurrentFrame(frameSequence[0].frame || 0);
+      setCurrentStepInfo(frameSequence[0]);
+    } else {
+      setCurrentFrame(0);
+      setCurrentStepInfo({ type: '', duration: 0 });
+    }
   }, [pause, frameSequence]);
 
   // Toggle play/pause
@@ -329,6 +336,14 @@ export const DualHeadAnimation = forwardRef(({
   const toggleAudio = useCallback(() => {
     setAudioEnabled(prev => !prev);
   }, []);
+
+  // Cycle animation speed
+  const cycleSpeed = useCallback(() => {
+    const speeds = ['slow', 'normal', 'fast'];
+    const currentIdx = speeds.indexOf(animationSpeed);
+    const nextIdx = (currentIdx + 1) % speeds.length;
+    setAnimationSpeed(speeds[nextIdx]);
+  }, [animationSpeed]);
 
   // Expose methods to parent
   useImperativeHandle(ref, () => ({
