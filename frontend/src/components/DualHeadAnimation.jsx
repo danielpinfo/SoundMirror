@@ -501,7 +501,7 @@ export const DualHeadAnimation = forwardRef(({
           >
             {Object.entries(SPRITE_URLS.side).map(([frame, url]) => (
               <img
-                key={`side-${frame}`}}
+                key={`side-${frame}`}
                 src={url}
                 alt={`Side view frame ${frame}`}
                 className="absolute inset-0 w-full h-full object-cover"
