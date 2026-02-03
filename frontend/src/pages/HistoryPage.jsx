@@ -644,7 +644,7 @@ export default function HistoryPage() {
               </Card>
             )}
           </div>
-        ) : (
+        ) : activeTab === 'history' ? (
           /* Sessions History Tab */
           <div className="space-y-4">
             {/* Filters */}
