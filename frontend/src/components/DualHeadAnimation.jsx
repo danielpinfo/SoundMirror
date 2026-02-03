@@ -380,17 +380,34 @@ export const DualHeadAnimation = forwardRef(({
     };
   }, []);
 
-  // Handle slider change
+  // Handle slider change - updated for timed frames
   const handleSliderChange = (value) => {
     if (isPlaying) return;
     const frameIndex = Math.round((value[0] / 100) * (frameSequence.length - 1));
     setCurrentIndex(frameIndex);
-    setCurrentFrame(frameSequence[frameIndex]);
+    if (frameSequence[frameIndex]) {
+      setCurrentFrame(frameSequence[frameIndex].frame);
+      setCurrentStepInfo(frameSequence[frameIndex]);
+    }
+    setProgress(value[0]);
   };
 
-  const sliderValue = frameSequence.length > 1 
-    ? [(currentIndex / (frameSequence.length - 1)) * 100] 
-    : [0];
+  const sliderValue = [progress];
+
+  // Get step type display name
+  const getStepTypeName = (type) => {
+    const names = {
+      'prepare': 'Get Ready',
+      'transition-in': 'Moving',
+      'hold': 'HOLD THIS',
+      'transition-out': 'Transitioning',
+      'word-break': 'Pause',
+      'pause': 'Pause',
+      'return': 'Returning',
+      'end': 'Complete',
+    };
+    return names[type] || type;
+  };
 
   return (
     <div data-testid="dual-head-animation" className="w-full">
