@@ -16,26 +16,27 @@ Build a visual speech articulation training platform that:
 - **Tertiary**: Pronunciation coaches and ESL students
 
 ## Core Requirements
-1. **Splash Screen**: Water drop animation (4 seconds)
-2. **Home Page**: Language selector, instructions, practice word input, quick practice buttons
-3. **Letter Practice**: Dual talking head animation (front/side), alphabet keyboard, recording, grading
-4. **Word Practice**: Same as Letter Practice but for full words/sentences
-5. **History Library**: Store and replay past practice sessions
+1. **Splash Screen**: 6-second water drop animation with silver raindrop, white splash, concentric ripples at 45°, logo fade-in
+2. **Home Page**: Large logo (4X), no "Visual Speech Training" header, larger instructions (3X), Quick Practice (8 single words), Phrases (multi-word), cobalt blue buttons with gold text
+3. **Letter Practice**: Dual talking head animation, alphabet keyboard, recording, grading
+4. **Word Practice**: "Word Practice" title, no FRONT/SIDE VIEW labels, always-visible keyboard, Quick Practice/Phrases, camera recording
+5. **History Library**: Merged Progress, Sessions, and Reports tabs with download/print functionality
 6. **Bug Report**: Structured feedback submission
 
 ## Technical Architecture
 
 ### Frontend (React)
 - `/app/frontend/src/pages/`
-  - HomePage.jsx
+  - HomePage.jsx - Large logo, Quick Practice words, Phrases, cobalt buttons
   - LetterPracticePage.jsx
-  - WordPracticePage.jsx
-  - HistoryPage.jsx
+  - WordPracticePage.jsx - Always-visible keyboard, no view labels
+  - HistoryPage.jsx - Merged with Reports functionality
   - BugReportPage.jsx
 - `/app/frontend/src/components/`
-  - SplashScreen.jsx
-  - DualHeadAnimation.jsx
-  - RecordingPanel.jsx
+  - SplashScreen.jsx - 6-second animation
+  - DualHeadAnimation.jsx - Speed control, HOLD indicator, hideViewLabels prop
+  - RecordingPanel.jsx - Camera/audio recording with autoEnableCamera
+  - MouthTracker.jsx - MediaPipe face tracking
   - NavigationBar.jsx
 
 ### Backend (FastAPI + MongoDB)
@@ -49,7 +50,7 @@ Build a visual speech articulation training platform that:
 
 ### Integrations
 - **Gemini AI** (via Emergent LLM key): Phoneme analysis and grading
-- **AWS S3** (reference): Original audio file storage
+- **MediaPipe**: Real-time visual mouth tracking
 
 ## What's Been Implemented (Feb 3, 2026)
 
