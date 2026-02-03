@@ -421,6 +421,21 @@ export const DualHeadAnimation = forwardRef(({
         </div>
       )}
 
+      {/* Step Indicator - Shows what's happening */}
+      {isPlaying && currentStepInfo.type && (
+        <div className={`text-center mb-3 py-2 px-4 rounded-lg mx-auto max-w-xs ${
+          currentStepInfo.type === 'hold' 
+            ? 'bg-green-500/30 border border-green-500/50' 
+            : 'bg-blue-500/20 border border-blue-500/30'
+        }`}>
+          <span className={`font-bold ${
+            currentStepInfo.type === 'hold' ? 'text-green-300 text-lg' : 'text-blue-300'
+          }`}>
+            {getStepTypeName(currentStepInfo.type)}
+          </span>
+        </div>
+      )}
+
       {/* Dual Head Display */}
       <div className="grid grid-cols-2 gap-4 md:gap-6">
         {/* Front View (Master) */}
@@ -428,11 +443,19 @@ export const DualHeadAnimation = forwardRef(({
           <div className="absolute top-2 left-2 z-10 px-2 py-1 bg-sky-600/90 text-white text-xs font-semibold rounded">
             FRONT VIEW
           </div>
+          {/* HOLD indicator overlay */}
+          {isPlaying && currentStepInfo.type === 'hold' && (
+            <div className="absolute inset-0 z-20 pointer-events-none">
+              <div className="absolute top-2 right-2 px-3 py-1 bg-green-500 text-white text-sm font-bold rounded-full animate-pulse">
+                HOLD
+              </div>
+              <div className="absolute inset-0 border-4 border-green-500/50 rounded-2xl"></div>
+            </div>
+          )}
           <div 
             className="aspect-square bg-white rounded-2xl overflow-hidden border-2 border-slate-200 shadow-lg relative"
             data-testid="front-view-container"
           >
-            {/* Render all frames and crossfade between them */}
             {Object.entries(SPRITE_URLS.front).map(([frame, url]) => (
               <img
                 key={`front-${frame}`}
@@ -441,7 +464,7 @@ export const DualHeadAnimation = forwardRef(({
                 className="absolute inset-0 w-full h-full object-cover"
                 style={{ 
                   opacity: parseInt(frame) === currentFrame ? 1 : 0,
-                  transition: `opacity ${TRANSITION_DURATION}ms ease-in-out`,
+                  transition: `opacity ${speedSettings.transitionDuration}ms ease-in-out`,
                   zIndex: parseInt(frame) === currentFrame ? 1 : 0,
                 }}
                 data-testid={parseInt(frame) === currentFrame ? "front-view-image" : undefined}
@@ -458,11 +481,19 @@ export const DualHeadAnimation = forwardRef(({
           <div className="absolute top-2 left-2 z-10 px-2 py-1 bg-slate-600/90 text-white text-xs font-semibold rounded">
             SIDE VIEW
           </div>
+          {/* HOLD indicator overlay */}
+          {isPlaying && currentStepInfo.type === 'hold' && (
+            <div className="absolute inset-0 z-20 pointer-events-none">
+              <div className="absolute top-2 right-2 px-3 py-1 bg-green-500 text-white text-sm font-bold rounded-full animate-pulse">
+                HOLD
+              </div>
+              <div className="absolute inset-0 border-4 border-green-500/50 rounded-2xl"></div>
+            </div>
+          )}
           <div 
             className="aspect-square bg-white rounded-2xl overflow-hidden border-2 border-slate-200 shadow-lg relative"
             data-testid="side-view-container"
           >
-            {/* Render all frames and crossfade between them */}
             {Object.entries(SPRITE_URLS.side).map(([frame, url]) => (
               <img
                 key={`side-${frame}`}
@@ -471,7 +502,7 @@ export const DualHeadAnimation = forwardRef(({
                 className="absolute inset-0 w-full h-full object-cover"
                 style={{ 
                   opacity: parseInt(frame) === currentFrame ? 1 : 0,
-                  transition: `opacity ${TRANSITION_DURATION}ms ease-in-out`,
+                  transition: `opacity ${speedSettings.transitionDuration}ms ease-in-out`,
                   zIndex: parseInt(frame) === currentFrame ? 1 : 0,
                 }}
                 data-testid={parseInt(frame) === currentFrame ? "side-view-image" : undefined}
@@ -487,7 +518,7 @@ export const DualHeadAnimation = forwardRef(({
       {/* Controls */}
       {showControls && (
         <div className="mt-6 space-y-4">
-          {/* Play/Pause/Reset/Audio buttons */}
+          {/* Play/Pause/Reset/Speed/Audio buttons */}
           <div className="flex items-center justify-center gap-3">
             <Button
               variant="outline"
@@ -495,6 +526,7 @@ export const DualHeadAnimation = forwardRef(({
               onClick={reset}
               className="rounded-full w-10 h-10 bg-white/10 border-blue-500/30 text-blue-300 hover:bg-blue-600/20"
               data-testid="reset-animation-btn"
+              title="Reset"
             >
               <RotateCcw className="w-4 h-4" />
             </Button>
@@ -511,6 +543,23 @@ export const DualHeadAnimation = forwardRef(({
                 <Play className="w-6 h-6 ml-1" />
               )}
             </Button>
+
+            {/* Speed control */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={cycleSpeed}
+              className={`rounded-full px-3 h-10 border-blue-500/30 text-blue-300 hover:bg-blue-600/20 ${
+                animationSpeed === 'slow' ? 'bg-green-600/20 border-green-500/50' : 
+                animationSpeed === 'fast' ? 'bg-orange-600/20 border-orange-500/50' : 
+                'bg-white/10'
+              }`}
+              data-testid="speed-control-btn"
+              title="Change animation speed"
+            >
+              <Gauge className="w-4 h-4 mr-1" />
+              <span className="text-xs font-medium">{SPEED_SETTINGS[animationSpeed].label}</span>
+            </Button>
             
             <Button
               variant="outline"
@@ -522,6 +571,7 @@ export const DualHeadAnimation = forwardRef(({
                   : 'bg-white/10 text-blue-400/50'
               }`}
               data-testid="toggle-audio-btn"
+              title={audioEnabled ? 'Mute audio' : 'Enable audio'}
             >
               {audioEnabled ? (
                 <Volume2 className="w-4 h-4" />
@@ -531,24 +581,30 @@ export const DualHeadAnimation = forwardRef(({
             </Button>
           </div>
 
-          {/* Audio status indicator */}
-          {mode === 'letter' && (
-            <p className="text-center text-xs text-blue-400">
-              {isLoadingAudio ? 'Loading audio...' : 
-               audioUrl ? (audioEnabled ? '🔊 S3 Audio ready' : '🔇 Audio muted') : 
-               '⚠️ No audio available'}
-            </p>
-          )}
-          {mode === 'word' && (
-            <p className="text-center text-xs text-blue-400">
-              {audioEnabled ? '🔊 TTS enabled' : '🔇 Audio muted'}
-            </p>
-          )}
+          {/* Status indicators */}
+          <div className="flex justify-center gap-4 text-xs">
+            {mode === 'letter' && (
+              <span className="text-blue-400">
+                {isLoadingAudio ? 'Loading audio...' : 
+                 audioUrl ? (audioEnabled ? 'Audio ready' : 'Audio muted') : 
+                 'No audio'}
+              </span>
+            )}
+            {mode === 'word' && (
+              <span className="text-blue-400">
+                {audioEnabled ? 'TTS enabled' : 'Audio muted'}
+              </span>
+            )}
+            <span className="text-blue-400/70">|</span>
+            <span className="text-blue-400">
+              Speed: {SPEED_SETTINGS[animationSpeed].label}
+            </span>
+          </div>
 
-          {/* Frame scrubber */}
+          {/* Progress bar */}
           <div className="px-4">
             <div className="flex items-center gap-4">
-              <span className="text-xs text-blue-400 w-8">0</span>
+              <span className="text-xs text-blue-400 w-8">0%</span>
               <Slider
                 value={sliderValue}
                 onValueChange={handleSliderChange}
@@ -558,10 +614,10 @@ export const DualHeadAnimation = forwardRef(({
                 className="flex-1"
                 data-testid="frame-scrubber"
               />
-              <span className="text-xs text-blue-400 w-8 text-right">{frameSequence.length - 1}</span>
+              <span className="text-xs text-blue-400 w-8 text-right">100%</span>
             </div>
             <p className="text-center text-xs text-blue-400 mt-2">
-              Frame {currentIndex + 1} of {frameSequence.length}
+              Step {currentIndex + 1} of {frameSequence.length} • Frame {currentFrame}
             </p>
           </div>
         </div>
