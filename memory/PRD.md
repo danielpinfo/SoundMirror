@@ -153,9 +153,10 @@ Build a visual speech articulation training platform that:
   - preload.js - Electron preload script
 
 ## Credentials & Keys
-- **Emergent LLM Key**: sk-emergent-fF558Af025265A551E
-- **AWS S3 Access**: AKIAYCQIF3LNPKEVCI6D (for soundmirror-phoneme-audio bucket)
+- **Emergent LLM Key**: Available via emergent_integrations_manager (for Gemini AI grading)
+- **AWS S3 Access**: AKIAYCQIF3LNPKEVCI6D (for soundmirror-phoneme-audio bucket - reference only)
 - **Assets Location**: All sprites and audio now stored locally in /app/frontend/public/assets/
+- **Grading Note**: If no audio data provided or Gemini unavailable, mock grading is used as fallback
 
 ## Design Guidelines
 - Dark blue theme with silver accents
