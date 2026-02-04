@@ -75,7 +75,7 @@ export default function HomePage() {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Logo - Moved up to fill half the space above */}
-        <div className="text-center mt-8 mb-4">
+        <div className="text-center mt-8 mb-2">
           <img 
             src={LOGO_URL}
             alt="SoundMirror"
@@ -83,9 +83,9 @@ export default function HomePage() {
           />
         </div>
 
-        {/* Instructions - Golden color, moved up closer to logo */}
-        <div className="text-center mb-8">
-          <p className="text-[#FFD700] text-2xl md:text-3xl max-w-3xl mx-auto leading-relaxed font-medium">
+        {/* Instructions - Golden color with cobalt border, spaced out */}
+        <div className="text-center mb-6">
+          <p className="text-[#FFD700] text-2xl md:text-3xl max-w-4xl mx-auto leading-loose font-medium border-4 border-[#0047AB] rounded-2xl py-4 px-6 bg-[#0047AB]/10">
             {t('instructions')}
           </p>
         </div>
