@@ -102,12 +102,35 @@ const generatePhonemeSequence = (letter) => {
 };
 
 // Convert text to frame sequence with special character handling
-const textToFrameSequence = (text) => {
+// CRITICAL: This function must receive TRANSLITERATED text, not native script
+const textToFrameSequence = (text, language) => {
+  // Transliterate native scripts BEFORE processing
+  const transliteratedText = transliterate(text, language);
+  console.log(`[textToFrameSequence] "${text}" → "${transliteratedText}" (${language})`);
+  
   const frames = [];
-  const lowerText = text.toLowerCase();
   
   // Start with cloned neutral frames
   for (let i = 0; i < 4; i++) frames.push(0);
+  
+  // Parse transliterated text into phonemes using comprehensive rules
+  const phonemes = parseWordWithRules(transliteratedText, language);
+  console.log(`[textToFrameSequence] Phonemes:`, phonemes);
+  
+  // Clone frames for each phoneme
+  for (const phoneme of phonemes) {
+    const frame = PHONEME_FRAME_MAP[phoneme] || PHONEME_FRAME_MAP[phoneme?.toLowerCase()] || 0;
+    // Clone frame 6 times for proper duration
+    for (let j = 0; j < 6; j++) {
+      frames.push(frame);
+    }
+  }
+  
+  // End with cloned neutral frames
+  for (let i = 0; i < 6; i++) frames.push(0);
+  
+  return frames.length > 10 ? frames : [0];
+};
   
   let idx = 0;
   while (idx < lowerText.length) {
