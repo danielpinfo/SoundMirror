@@ -329,6 +329,7 @@ textarea:not([disabled]),
 select:not([disabled]),
 [role="button"]:not([disabled]),
 [role="combobox"]:not([disabled]),
+.cursor-pointer,
 .interactive {
   border: 2px solid #FFD700 !important;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
@@ -339,7 +340,8 @@ input:not([type="hidden"]):not([disabled]):hover,
 textarea:not([disabled]):hover,
 select:not([disabled]):hover,
 [role="button"]:not([disabled]):hover,
-[role="combobox"]:not([disabled]):hover {
+[role="combobox"]:not([disabled]):hover,
+.cursor-pointer:hover {
   border-color: #FFC700 !important;
   box-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
 }
