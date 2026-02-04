@@ -231,7 +231,10 @@ export const DualHeadAnimation = forwardRef(({
   const fetchLetterAudio = async (letter) => {
     setIsLoadingAudio(true);
     try {
-      const url = await getLetterAudio(letter, language);
+      // Transliterate non-Latin letters to romanized form for audio
+      const romanizedLetter = transliterateLetter(letter, language);
+      console.log(`[Audio] Letter: ${letter} → Romanized: ${romanizedLetter} (${language})`);
+      const url = await getLetterAudio(romanizedLetter, language);
       setAudioUrl(url);
     } catch (error) {
       console.error('Error fetching audio:', error);
