@@ -14,7 +14,7 @@ export const SplashScreen = ({ onComplete }) => {
     // Phase 1 (0-2s): Raindrop falling
     const rippleTimer = setTimeout(() => setPhase('ripple'), 2000);
     
-    // Phase 2 (2-4s): Concentric ripples spreading
+    // Phase 2 (2-4s): Concentric ripples spreading from pinpoint
     const logoTimer = setTimeout(() => setPhase('logo'), 4000);
     
     // Phase 3 (4-6s): Logo fading in
@@ -49,7 +49,7 @@ export const SplashScreen = ({ onComplete }) => {
         opacity: phase === 'fade' ? 0 : 1,
       }}
     >
-      {/* Silver Water Drop - HALF SIZE (15x25px instead of 30x50px) */}
+      {/* Silver Water Drop - HALF SIZE (15x25px) - falls to center pinpoint */}
       <div 
         className={`absolute ${phase === 'drop' ? 'opacity-100' : 'opacity-0'}`}
         style={{
@@ -67,13 +67,13 @@ export const SplashScreen = ({ onComplete }) => {
         }}
       />
       
-      {/* 7 Concentric Ripples - like ripples in a pond, all visible together */}
+      {/* 7 Concentric Ripples - ALL start from tiny pinpoint center and expand outward */}
       <div 
         className="absolute"
         style={{
           top: '50%',
           left: '50%',
-          transform: 'translate(-50%, -30%) perspective(800px) rotateX(80deg)',
+          transform: 'translate(-50%, -50%) perspective(800px) rotateX(80deg)',
           transformOrigin: 'center center',
         }}
       >
@@ -84,16 +84,19 @@ export const SplashScreen = ({ onComplete }) => {
               phase === 'ripple' || phase === 'logo' || phase === 'fade' ? 'opacity-100' : 'opacity-0'
             }`}
             style={{
-              // Start each ring at different sizes to show all 7 at once
-              width: `${50 + (i * 80)}px`,
-              height: `${50 + (i * 80)}px`,
-              marginLeft: `-${25 + (i * 40)}px`,
-              marginTop: `-${25 + (i * 40)}px`,
+              // ALL rings start from the SAME tiny pinpoint (10px)
+              width: '10px',
+              height: '10px',
+              left: '50%',
+              top: '50%',
+              marginLeft: '-5px',
+              marginTop: '-5px',
               border: `2px solid rgba(255, 255, 255, ${0.95 - (i * 0.1)})`,
               animation: (phase === 'ripple' || phase === 'logo' || phase === 'fade') 
-                ? 'rippleExpandSlow 4s ease-out forwards' 
+                ? 'rippleFromPinpoint 3s ease-out forwards' 
                 : 'none',
-              animationDelay: `${i * 0.1}s`,
+              // Stagger each ring by 0.25s so they emanate like real ripples
+              animationDelay: `${i * 0.25}s`,
             }}
           />
         ))}
@@ -118,7 +121,6 @@ export const SplashScreen = ({ onComplete }) => {
             src={LOGO_URL}
             alt="SoundMirror"
             className="h-32 md:h-40 mx-auto"
-            // NO filter/drop-shadow - clean logo without backlight
           />
         </div>
       </div>
@@ -147,13 +149,19 @@ export const SplashScreen = ({ onComplete }) => {
           }
         }
         
-        @keyframes rippleExpandSlow {
+        @keyframes rippleFromPinpoint {
           0% {
-            transform: scale(1);
+            width: 10px;
+            height: 10px;
+            margin-left: -5px;
+            margin-top: -5px;
             opacity: 1;
           }
           100% {
-            transform: scale(2.5);
+            width: 600px;
+            height: 600px;
+            margin-left: -300px;
+            margin-top: -300px;
             opacity: 0;
           }
         }
