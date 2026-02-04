@@ -244,8 +244,6 @@ export default function WordPracticePage() {
                 target={practiceWord}
                 language={language}
                 onGradingComplete={handleGradingComplete}
-                autoEnableCamera={true}
-                autoEnableMouthTracking={true}
               />
             ) : (
               <div className="aspect-video bg-[#0a1628] rounded-xl flex items-center justify-center border border-blue-500/20">
