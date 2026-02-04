@@ -208,7 +208,7 @@ export const DualHeadAnimation = forwardRef(({
       } else {
         sequence = textToFrameSequence(target);
         setPhonemeDisplay(target);
-        setPhoneticDisplay(textToPhonetic(target));
+        setPhoneticDisplay(textToPhonetic(target, language));
         setAudioUrl(null);
       }
       setFrameSequence(sequence);
