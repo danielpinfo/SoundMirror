@@ -150,18 +150,18 @@ export const SplashScreen = ({ onComplete }) => {
             margin-top: -5px;
             opacity: 1;
           }
-          80% {
+          70% {
+            width: 500px;
+            height: 500px;
+            margin-left: -250px;
+            margin-top: -250px;
+            opacity: 0.7;
+          }
+          100% {
             width: 600px;
             height: 600px;
             margin-left: -300px;
             margin-top: -300px;
-            opacity: 0.6;
-          }
-          100% {
-            width: 700px;
-            height: 700px;
-            margin-left: -350px;
-            margin-top: -350px;
             opacity: 0;
           }
         }
