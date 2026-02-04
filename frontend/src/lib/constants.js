@@ -215,7 +215,7 @@ export const ROMANIZATION_MAP = {
     '我很好': 'wohenhao',
     '早上好': 'zaoshanghao',
     '你好吗': 'nihaoma',
-    '很高兴认识你': 'hengaoxingrensh': 'henggaoxingrenishini',
+    '很高兴认识你': 'hengaoxingrenishini',
     '再见': 'zaijian',
   },
   hindi: {
