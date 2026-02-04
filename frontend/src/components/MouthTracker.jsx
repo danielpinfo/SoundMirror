@@ -273,6 +273,16 @@ export const MouthTracker = ({
     setFeedback('');
   }, []);
 
+  // Auto-start tracking when component mounts
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!isTracking) {
+        startTracking();
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [isTracking, startTracking]);
+
   // Get score color
   const getScoreColor = (score, target) => {
     const diff = Math.abs(score - target);
