@@ -147,12 +147,13 @@ export const LETTER_ROMANIZATION = {
     'わ': 'wa', 'を': 'wo', 'ん': 'n',
   },
   chinese: {
-    'ا': 'a', 'ب': 'ba', 'ت': 'ta', 'ث': 'tha', 'ج': 'ja',
-    'ح': 'ha', 'خ': 'kha', 'د': 'da', 'ذ': 'dha', 'ر': 'ra',
-    'ز': 'za', 'س': 'sa', 'ش': 'sha', 'ص': 'sa', 'ض': 'da',
-    'ط': 'ta', 'ظ': 'za', 'ع': 'a', 'غ': 'gha', 'ف': 'fa',
-    'ق': 'qa', 'ك': 'ka', 'ل': 'la', 'م': 'ma', 'ن': 'na',
-    'ه': 'ha', 'و': 'wa', 'ي': 'ya',
+    // Common pinyin initials - use phonetic representation
+    'b': 'ba', 'p': 'pa', 'm': 'ma', 'f': 'fa',
+    'd': 'da', 't': 'ta', 'n': 'na', 'l': 'la',
+    'g': 'ga', 'k': 'ka', 'h': 'ha',
+    'j': 'ji', 'q': 'qi', 'x': 'xi',
+    'z': 'za', 'c': 'ca', 's': 'sa',
+    'r': 'ra', 'y': 'ya', 'w': 'wa',
   },
   hindi: {
     'अ': 'a', 'आ': 'aa', 'इ': 'i', 'ई': 'ii', 'उ': 'u', 'ऊ': 'uu',
