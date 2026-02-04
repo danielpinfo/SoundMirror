@@ -26,7 +26,7 @@ export const AlphabetKeyboard = ({
           <button
             key={`${key}-${index}`}
             onClick={() => handleKeyClick(key)}
-            className={`keyboard-key ${selectedKey === key ? 'active' : ''}`}
+            className={`keyboard-key text-lg ${selectedKey === key ? 'active' : ''}`}
             data-testid={`keyboard-key-${key}`}
           >
             {key}
