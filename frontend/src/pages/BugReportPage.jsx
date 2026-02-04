@@ -26,6 +26,7 @@ export default function BugReportPage() {
     feature_area: '',
     description: '',
   });
+  const [attachments, setAttachments] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
