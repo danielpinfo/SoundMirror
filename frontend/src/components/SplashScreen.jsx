@@ -93,16 +93,16 @@ export const SplashScreen = ({ onComplete }) => {
               marginTop: '-5px',
               border: `2px solid rgba(255, 255, 255, ${0.95 - (i * 0.1)})`,
               animation: (phase === 'ripple' || phase === 'logo' || phase === 'fade') 
-                ? 'rippleFromPinpoint 2s ease-out forwards' 
+                ? `rippleFromPinpoint 3s ease-out forwards` 
                 : 'none',
-              // Shorter delay (0.12s) so multiple rings are visible at once
-              animationDelay: `${i * 0.12}s`,
+              // Longer delay (0.25s) so all 7 rings are visible at once
+              animationDelay: `${i * 0.25}s`,
             }}
           />
         ))}
       </div>
       
-      {/* Logo - NO drop-shadow/backlight effect */}
+      {/* Logo - NO background box */}
       <div 
         className={`relative z-10 text-center ${
           phase === 'logo' || phase === 'fade' ? 'opacity-100' : 'opacity-0'
@@ -111,18 +111,11 @@ export const SplashScreen = ({ onComplete }) => {
           transition: 'opacity 2s ease-in',
         }}
       >
-        <div 
-          style={{
-            background: WATER_COLOR,
-            padding: '20px 40px',
-          }}
-        >
-          <img 
-            src={LOGO_URL}
-            alt="SoundMirror"
-            className="h-32 md:h-40 mx-auto"
-          />
-        </div>
+        <img 
+          src={LOGO_URL}
+          alt="SoundMirror"
+          className="h-32 md:h-40 mx-auto"
+        />
       </div>
       
       {/* Keyframe animations */}
