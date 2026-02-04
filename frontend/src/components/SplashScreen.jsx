@@ -103,13 +103,13 @@ export const SplashScreen = ({ onComplete }) => {
         ))}
       </div>
       
-      {/* Logo - NO background box */}
+      {/* Logo - fades in at 5th ripple, stays visible for 2 seconds */}
       <div 
         className={`relative z-10 text-center ${
           phase === 'logo' || phase === 'fade' ? 'opacity-100' : 'opacity-0'
         }`}
         style={{
-          transition: 'opacity 2s ease-in',
+          transition: phase === 'logo' ? 'opacity 1s ease-in' : phase === 'fade' ? 'opacity 1s ease-out' : 'none',
         }}
       >
         <img 
