@@ -56,7 +56,7 @@ export const SplashScreen = ({ onComplete }) => {
           width: '15px',
           height: '25px',
           background: 'linear-gradient(180deg, rgba(255,255,255,0.2) 0%, #c0c0c0 20%, #e8e8e8 40%, #a8a8a8 70%, #808080 100%)',
-          borderRadius: '40% 40% 50% 50% / 30% 30% 70% 70%',
+          borderRadius: '50% 50% 40% 40% / 70% 70% 30% 30%',
           top: '50%',
           left: '50%',
           marginLeft: '-7.5px',
