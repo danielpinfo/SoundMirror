@@ -532,6 +532,7 @@ export const DualHeadAnimation = forwardRef(({
               className={`rounded-full px-3 h-10 border-blue-500/30 text-blue-300 hover:bg-blue-600/20 ${
                 animationSpeed === 'slow' ? 'bg-green-600/20 border-green-500/50' : 
                 animationSpeed === 'fast' ? 'bg-orange-600/20 border-orange-500/50' : 
+                animationSpeed === 'fastest' ? 'bg-red-600/20 border-red-500/50' :
                 'bg-white/10'
               }`}
               data-testid="speed-control-btn"
