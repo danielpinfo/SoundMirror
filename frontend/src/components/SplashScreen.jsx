@@ -92,9 +92,9 @@ export const SplashScreen = ({ onComplete }) => {
               top: '50%',
               marginLeft: '-5px',
               marginTop: '-5px',
-              border: `2px solid rgba(255, 255, 255, ${0.95 - (i * 0.1)})`,
+              border: `2px solid rgba(255, 255, 255, 1)`,
               animation: (phase === 'ripple' || phase === 'logo' || phase === 'fade') 
-                ? `rippleFromPinpoint 3s ease-out forwards` 
+                ? `rippleExpandForever 3s linear forwards` 
                 : 'none',
               // 286ms delay between each ripple (2000ms / 7 = 286ms)
               animationDelay: `${i * 0.286}s`,
