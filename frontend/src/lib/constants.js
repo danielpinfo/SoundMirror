@@ -135,6 +135,7 @@ export const DEFAULT_PRACTICE_WORDS = {
 // Romanization mappings for non-Latin script languages
 export const ROMANIZATION_MAP = {
   japanese: {
+    // Quick practice words
     'こんにちは': 'konnichiwa',
     'さようなら': 'sayonara',
     'お願いします': 'onegaishimasu',
@@ -145,8 +146,16 @@ export const ROMANIZATION_MAP = {
     '友達': 'tomodachi',
     '嬉しい': 'ureshii',
     '愛': 'ai',
+    // Phrases
+    'ありがとうございます': 'arigatougozaimasu',
+    '元気です': 'genkidesu',
+    'おはようございます': 'ohayougozaimasu',
+    'お元気ですか': 'ogenkidesuka',
+    'はじめまして': 'hajimemashite',
+    'またね': 'matane',
   },
   chinese: {
+    // Quick practice words
     '你好': 'nihao',
     '再见': 'zaijian',
     '请': 'qing',
@@ -157,8 +166,16 @@ export const ROMANIZATION_MAP = {
     '朋友': 'pengyou',
     '快乐': 'kuaile',
     '爱': 'ai',
+    // Phrases
+    '谢谢你': 'xiexieni',
+    '我很好': 'wohenhao',
+    '早上好': 'zaoshanghao',
+    '你好吗': 'nihaoma',
+    '很高兴认识你': 'hengaoxingrensh': 'henggaoxingrenishini',
+    '再见': 'zaijian',
   },
   hindi: {
+    // Quick practice words
     'नमस्ते': 'namaste',
     'अलविदा': 'alvida',
     'कृपया': 'kripaya',
@@ -169,8 +186,16 @@ export const ROMANIZATION_MAP = {
     'दोस्त': 'dost',
     'खुश': 'khush',
     'प्यार': 'pyaar',
+    // Phrases
+    'धन्यवाद': 'dhanyavad',
+    'मैं ठीक हूँ': 'main theek hoon',
+    'सुप्रभात': 'suprabhat',
+    'आप कैसे हैं': 'aap kaise hain',
+    'आपसे मिलकर खुशी हुई': 'aapse milkar khushi hui',
+    'फिर मिलेंगे': 'phir milenge',
   },
   arabic: {
+    // Quick practice words
     'مرحبا': 'marhaba',
     'وداعا': 'wadaan',
     'من فضلك': 'min fadlak',
@@ -181,6 +206,13 @@ export const ROMANIZATION_MAP = {
     'صديق': 'sadiq',
     'سعيد': 'saeed',
     'حب': 'hubb',
+    // Phrases
+    'شكرا لك': 'shukran lak',
+    'أنا بخير': 'ana bikhayr',
+    'صباح الخير': 'sabah alkhayr',
+    'كيف حالك': 'kayfa halak',
+    'تشرفت بمعرفتك': 'tasharraftu bima\'rifatik',
+    'إلى اللقاء': 'ila alliqa',
   },
 };
 
