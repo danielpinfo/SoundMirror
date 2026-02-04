@@ -67,7 +67,7 @@ export const SplashScreen = ({ onComplete }) => {
         }}
       />
       
-      {/* 7 Concentric Ripples - like ripples in a pond */}
+      {/* 7 Concentric Ripples - like ripples in a pond, all visible together */}
       <div 
         className="absolute"
         style={{
@@ -84,15 +84,16 @@ export const SplashScreen = ({ onComplete }) => {
               phase === 'ripple' || phase === 'logo' || phase === 'fade' ? 'opacity-100' : 'opacity-0'
             }`}
             style={{
-              width: '40px',
-              height: '40px',
-              marginLeft: '-20px',
-              marginTop: '-20px',
-              border: `2px solid rgba(255, 255, 255, ${0.9 - (i * 0.08)})`,
+              // Start each ring at different sizes to show all 7 at once
+              width: `${50 + (i * 80)}px`,
+              height: `${50 + (i * 80)}px`,
+              marginLeft: `-${25 + (i * 40)}px`,
+              marginTop: `-${25 + (i * 40)}px`,
+              border: `2px solid rgba(255, 255, 255, ${0.95 - (i * 0.1)})`,
               animation: (phase === 'ripple' || phase === 'logo' || phase === 'fade') 
-                ? 'rippleExpand 3s ease-out infinite' 
+                ? 'rippleExpandSlow 4s ease-out forwards' 
                 : 'none',
-              animationDelay: `${i * 0.3}s`,
+              animationDelay: `${i * 0.1}s`,
             }}
           />
         ))}
