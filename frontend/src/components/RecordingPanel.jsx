@@ -122,28 +122,20 @@ export const RecordingPanel = ({
     stopCamera();
   };
 
-  // Start camera with both video and audio
-  const startCamera = async () => {
-    console.log('[RecordingPanel] Starting camera...');
+  // Start camera and recording together (single button action)
+  const startCameraAndRecord = async () => {
+    console.log('[RecordingPanel] Begin Practice button clicked');
     setIsCameraLoading(true);
     setCameraError(null);
 
     try {
+      console.log('[RecordingPanel] Requesting media permissions...');
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { 
-          width: { ideal: 640 }, 
-          height: { ideal: 480 }, 
-          facingMode: 'user' 
-        },
-        audio: { 
-          channelCount: 1, 
-          sampleRate: 16000, 
-          echoCancellation: true, 
-          noiseSuppression: true 
-        }
+        video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' },
+        audio: { channelCount: 1, sampleRate: 16000, echoCancellation: true, noiseSuppression: true }
       });
 
-      console.log('[RecordingPanel] Got media stream');
+      console.log('[RecordingPanel] Media stream obtained');
       streamRef.current = stream;
 
       if (videoRef.current) {
@@ -151,18 +143,85 @@ export const RecordingPanel = ({
         await videoRef.current.play();
         setIsCameraActive(true);
         setIsCameraLoading(false);
-        console.log('[RecordingPanel] Camera active');
+        console.log('[RecordingPanel] Camera started');
         
-        // Start drawing video to canvas
+        // Give camera a moment to stabilize
+        await new Promise(resolve => setTimeout(resolve, 300));
         detectFrame();
+        
+        // Start recording immediately
+        audioChunksRef.current = [];
+
+        const audioTracks = stream.getAudioTracks();
+        console.log('[RecordingPanel] Audio tracks:', audioTracks.length);
+        
+        if (audioTracks.length > 0) {
+          const audioStream = new MediaStream(audioTracks);
+          let options = { mimeType: 'audio/webm;codecs=opus' };
+          if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+            options = { mimeType: 'audio/webm' };
+          }
+          if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+            options = {};
+          }
+
+          const mediaRecorder = new MediaRecorder(audioStream, options);
+          mediaRecorderRef.current = mediaRecorder;
+
+          mediaRecorder.ondataavailable = (e) => {
+            if (e.data.size > 0) {
+              audioChunksRef.current.push(e.data);
+            }
+          };
+
+          mediaRecorder.onstop = async () => {
+            console.log('[RecordingPanel] Recording stopped, processing...');
+            clearInterval(recordingTimerRef.current);
+            
+            if (audioChunksRef.current.length === 0) {
+              console.warn('[RecordingPanel] No audio chunks recorded');
+              return;
+            }
+            const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm;codecs=opus' });
+            const wavBlob = await convertToWav(audioBlob);
+            if (!wavBlob) {
+              console.warn("convertToWav returned null");
+              return;
+            }
+            console.log('[RecordingPanel] Calling performGrading');
+            await performGrading(wavBlob);
+          };
+
+          mediaRecorder.start();
+          setIsRecording(true);
+          
+          // Timer
+          setRecordingTime(0);
+          recordingTimerRef.current = setInterval(() => {
+            setRecordingTime(prev => prev + 1);
+          }, 1000);
+          
+          console.log('[RecordingPanel] Recording started');
+        }
       }
     } catch (err) {
-      console.error('[RecordingPanel] Camera error:', err);
+      console.error('[RecordingPanel] Error:', err);
       setCameraError(err.name === 'NotAllowedError' 
-        ? 'Camera permission denied. Please allow camera access in your browser settings.'
+        ? 'Camera/microphone permission denied. Please allow access in your browser settings.'
         : err.message || 'Could not access camera/microphone');
       setIsCameraLoading(false);
     }
+  };
+
+  const stopCameraAndRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+    // Don't stop the camera immediately - let onstop handler finish first
+    setTimeout(() => {
+      stopCamera();
+    }, 100);
   };
 
   const stopCamera = () => {
