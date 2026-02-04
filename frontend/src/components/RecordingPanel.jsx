@@ -13,7 +13,8 @@ export const RecordingPanel = ({
   onGradingComplete,
   target = '',
   language = 'english',
-  autoEnableCamera = false,
+  autoEnableCamera = true,  // Camera enabled by default
+  autoEnableMouthTracking = true,  // Mouth tracking enabled by default
 }) => {
   const { t } = useLanguage();
   const webcamRef = useRef(null);
@@ -25,22 +26,20 @@ export const RecordingPanel = ({
   const [audioBlob, setAudioBlob] = useState(null);
   const [videoChunks, setVideoChunks] = useState([]);
   const [audioChunks, setAudioChunks] = useState([]);
-  const [cameraEnabled, setCameraEnabled] = useState(autoEnableCamera);
+  const [cameraEnabled, setCameraEnabled] = useState(true);  // Always start enabled
   const [cameraError, setCameraError] = useState(null);
   const [grading, setGrading] = useState(null);
   const [isGrading, setIsGrading] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
-  const [showMouthTracker, setShowMouthTracker] = useState(false);
+  const [showMouthTracker, setShowMouthTracker] = useState(true);  // Mouth tracking ON by default
   const [mouthMetrics, setMouthMetrics] = useState(null);
   const recordingTimerRef = useRef(null);
 
-  // Auto-enable camera if prop is set
+  // Auto-enable camera on mount
   useEffect(() => {
-    if (autoEnableCamera && !cameraEnabled) {
-      setCameraEnabled(true);
-      setCameraError(null);
-    }
-  }, [autoEnableCamera]);
+    setCameraEnabled(true);
+    setCameraError(null);
+  }, []);
 
   // Enable camera
   const enableCamera = useCallback(() => {
