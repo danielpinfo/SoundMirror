@@ -53,6 +53,13 @@ export const RecordingPanel = ({
     return () => cleanup();
   }, []);
 
+  // Auto-start camera if autoEnableCamera is true
+  useEffect(() => {
+    if (autoEnableCamera && !isCameraActive && !isCameraLoading && !cameraError) {
+      startCamera();
+    }
+  }, [autoEnableCamera]);
+
   const loadFaceLandmarker = async () => {
     try {
       // Check if already loaded
