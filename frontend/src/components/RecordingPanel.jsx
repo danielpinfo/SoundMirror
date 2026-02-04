@@ -244,6 +244,78 @@ export const RecordingPanel = ({
     }, 100);
   };
 
+  // Fallback: try with minimal constraints
+  const tryWithMinimalConstraints = async () => {
+    console.log('[RecordingPanel] Trying with minimal constraints...');
+    setIsCameraLoading(true);
+    setCameraError(null);
+
+    try {
+      // Simplified constraints
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: true
+      });
+
+      console.log('[RecordingPanel] Media stream obtained with minimal constraints');
+      streamRef.current = stream;
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+        setIsCameraActive(true);
+        setIsCameraLoading(false);
+        console.log('[RecordingPanel] Camera started');
+        
+        await new Promise(resolve => setTimeout(resolve, 300));
+        detectFrame();
+        
+        // Start recording
+        audioChunksRef.current = [];
+        const audioTracks = stream.getAudioTracks();
+        
+        if (audioTracks.length > 0) {
+          const audioStream = new MediaStream(audioTracks);
+          const mediaRecorder = new MediaRecorder(audioStream);
+          mediaRecorderRef.current = mediaRecorder;
+
+          mediaRecorder.ondataavailable = (e) => {
+            if (e.data.size > 0) {
+              audioChunksRef.current.push(e.data);
+            }
+          };
+
+          mediaRecorder.onstop = async () => {
+            console.log('[RecordingPanel] Recording stopped, processing...');
+            clearInterval(recordingTimerRef.current);
+            
+            if (audioChunksRef.current.length === 0) {
+              console.warn('[RecordingPanel] No audio chunks recorded');
+              return;
+            }
+            const audioBlob = new Blob(audioChunksRef.current);
+            const wavBlob = await convertToWav(audioBlob);
+            if (wavBlob) {
+              await performGrading(wavBlob);
+            }
+          };
+
+          mediaRecorder.start();
+          setIsRecording(true);
+          
+          setRecordingTime(0);
+          recordingTimerRef.current = setInterval(() => {
+            setRecordingTime(prev => prev + 1);
+          }, 1000);
+        }
+      }
+    } catch (err) {
+      console.error('[RecordingPanel] Minimal constraints also failed:', err);
+      setCameraError(`Failed to start: ${err.message || err.name}`);
+      setIsCameraLoading(false);
+    }
+  };
+
   const stopCamera = () => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
