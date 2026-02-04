@@ -115,7 +115,7 @@ export default function HomePage() {
         </div>
 
         {/* Quick Practice - 8 Single Words */}
-        <div className="mb-4">
+        <div className="mb-3">
           <h3 className="text-sm font-semibold text-blue-300 uppercase tracking-wider mb-3">
             Quick Practice
           </h3>
@@ -124,7 +124,7 @@ export default function HomePage() {
               <Button
                 key={index}
                 onClick={() => handlePractice(word)}
-                className={cobaltButtonStyle}
+                className={`${cobaltButtonStyle} text-lg`}
                 data-testid={`quick-word-${index}`}
               >
                 {word}
@@ -134,8 +134,8 @@ export default function HomePage() {
         </div>
 
         {/* Phrases - Multi-word phrases */}
-        <div className="mb-6">
-          <h3 className="text-sm font-semibold text-blue-300 uppercase tracking-wider mb-4">
+        <div className="mb-4">
+          <h3 className="text-sm font-semibold text-blue-300 uppercase tracking-wider mb-3">
             Phrases
           </h3>
           <div className="flex flex-wrap gap-3">
@@ -143,7 +143,7 @@ export default function HomePage() {
               <Button
                 key={index}
                 onClick={() => handlePractice(phrase)}
-                className={cobaltButtonStyleOutline}
+                className={`${cobaltButtonStyleOutline} text-lg`}
                 data-testid={`phrase-${index}`}
               >
                 {phrase}
