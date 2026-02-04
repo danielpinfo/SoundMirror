@@ -381,7 +381,7 @@ export const DualHeadAnimation = forwardRef(({
 
   // Cycle speed - controls ANIMATION ONLY
   const cycleSpeed = useCallback(() => {
-    const speeds = ['slow', 'normal', 'fast'];
+    const speeds = ['slow', 'normal', 'fast', 'fastest'];
     const currentIdx = speeds.indexOf(animationSpeed);
     const nextIdx = (currentIdx + 1) % speeds.length;
     setAnimationSpeed(speeds[nextIdx]);
