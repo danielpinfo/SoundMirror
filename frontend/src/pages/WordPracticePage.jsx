@@ -76,13 +76,11 @@ export default function WordPracticePage() {
     setInputValue((prev) => prev + key);
   }, []);
 
-  // Auto-reset animation to beginning after it completes
+  // Animation complete handler - animation already resets itself internally
   const handleAnimationComplete = useCallback(() => {
-    // Reset to beginning after animation completes
-    if (animationRef.current) {
-      animationRef.current.reset();
-    }
-  }, []);
+    // Animation has completed and auto-reset - no action needed
+    console.log('Animation completed for:', practiceWord);
+  }, [practiceWord]);
 
   const handleGradingComplete = useCallback(async (grading) => {
     try {
