@@ -61,11 +61,22 @@ export default function BugReportPage() {
       const browser = navigator.userAgent;
       const os_info = navigator.platform;
 
-      await submitBugReport({
-        ...formData,
-        browser,
-        os_info,
+      // Create FormData for file upload
+      const formDataToSend = new FormData();
+      formDataToSend.append('platform', formData.platform);
+      formDataToSend.append('page', formData.page);
+      formDataToSend.append('severity', formData.severity);
+      formDataToSend.append('feature_area', formData.feature_area);
+      formDataToSend.append('description', formData.description);
+      formDataToSend.append('browser', browser);
+      formDataToSend.append('os_info', os_info);
+      
+      // Add attachments
+      attachments.forEach((file) => {
+        formDataToSend.append('attachments', file);
       });
+
+      await submitBugReport(formDataToSend);
 
       setSubmitted(true);
       toast.success('Bug report submitted successfully!');
