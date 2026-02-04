@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../components/ui/select';
-import { Home, Type, BookOpen, Send, CheckCircle, AlertCircle } from 'lucide-react';
+import { Home, Type, BookOpen, Send, CheckCircle, AlertCircle, Upload, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function BugReportPage() {
