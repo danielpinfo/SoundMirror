@@ -143,7 +143,7 @@ export const SplashScreen = ({ onComplete }) => {
           }
         }
         
-        @keyframes rippleFromPinpoint {
+        @keyframes rippleExpandForever {
           0% {
             width: 10px;
             height: 10px;
@@ -151,33 +151,12 @@ export const SplashScreen = ({ onComplete }) => {
             margin-top: -5px;
             opacity: 1;
           }
-          30% {
-            width: 180px;
-            height: 180px;
-            margin-left: -90px;
-            margin-top: -90px;
-            opacity: 0.95;
-          }
-          60% {
-            width: 360px;
-            height: 360px;
-            margin-left: -180px;
-            margin-top: -180px;
-            opacity: 0.8;
-          }
-          85% {
-            width: 540px;
-            height: 540px;
-            margin-left: -270px;
-            margin-top: -270px;
-            opacity: 0.4;
-          }
           100% {
-            width: 600px;
-            height: 600px;
-            margin-left: -300px;
-            margin-top: -300px;
-            opacity: 0;
+            width: 2000px;
+            height: 2000px;
+            margin-left: -1000px;
+            margin-top: -1000px;
+            opacity: 1;
           }
         }
       `}</style>
