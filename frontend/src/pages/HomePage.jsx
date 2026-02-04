@@ -74,24 +74,24 @@ export default function HomePage() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8 max-w-4xl">
-        {/* Logo - Moved up to fill half the space above */}
-        <div className="text-center mt-8 mb-2">
+        {/* Logo - Smaller size to fit everything on one screen */}
+        <div className="text-center mt-4 mb-2">
           <img 
             src={LOGO_URL}
             alt="SoundMirror"
-            className="h-80 md:h-96 mx-auto"
+            className="h-48 md:h-56 mx-auto"
           />
         </div>
 
         {/* Instructions - Golden color with cobalt border, spaced out */}
-        <div className="text-center mb-6">
-          <p className="text-[#FFD700] text-2xl md:text-3xl max-w-4xl mx-auto leading-loose font-medium border-4 border-[#0047AB] rounded-2xl py-4 px-6 bg-[#0047AB]/10">
+        <div className="text-center mb-4">
+          <p className="text-[#FFD700] text-xl md:text-2xl max-w-4xl mx-auto leading-loose font-medium border-4 border-[#0047AB] rounded-2xl py-3 px-6 bg-[#0047AB]/10">
             {t('instructions')}
           </p>
         </div>
 
         {/* Practice Input - Matching cobalt blue design */}
-        <div className="mb-8">
+        <div className="mb-4">
           <form onSubmit={handleInputSubmit} className="flex gap-3">
             <Input
               type="text"
@@ -115,8 +115,8 @@ export default function HomePage() {
         </div>
 
         {/* Quick Practice - 8 Single Words */}
-        <div className="mb-8">
-          <h3 className="text-sm font-semibold text-blue-300 uppercase tracking-wider mb-4">
+        <div className="mb-4">
+          <h3 className="text-sm font-semibold text-blue-300 uppercase tracking-wider mb-3">
             Quick Practice
           </h3>
           <div className="flex flex-wrap gap-3">
@@ -134,7 +134,7 @@ export default function HomePage() {
         </div>
 
         {/* Phrases - Multi-word phrases */}
-        <div className="mb-12">
+        <div className="mb-6">
           <h3 className="text-sm font-semibold text-blue-300 uppercase tracking-wider mb-4">
             Phrases
           </h3>
