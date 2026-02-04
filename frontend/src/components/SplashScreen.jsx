@@ -134,12 +134,18 @@ export const SplashScreen = ({ onComplete }) => {
         @keyframes dropFall {
           0% {
             top: 5%;
-            opacity: 1;
+            opacity: 0.5;
             transform: scaleY(1);
+            filter: blur(2px);
+          }
+          50% {
+            opacity: 1;
+            filter: blur(0.5px);
           }
           80% {
             opacity: 1;
             transform: scaleY(1.1);
+            filter: blur(0px);
           }
           95% {
             top: 48%;
@@ -153,7 +159,7 @@ export const SplashScreen = ({ onComplete }) => {
           }
         }
         
-        @keyframes rippleExpandForever {
+        @keyframes rippleWave {
           0% {
             width: 10px;
             height: 10px;
@@ -161,12 +167,33 @@ export const SplashScreen = ({ onComplete }) => {
             margin-top: -5px;
             opacity: 1;
           }
+          20% {
+            width: 120px;
+            height: 120px;
+            margin-left: -60px;
+            margin-top: -60px;
+            opacity: 0.9;
+          }
+          50% {
+            width: 400px;
+            height: 400px;
+            margin-left: -200px;
+            margin-top: -200px;
+            opacity: 0.5;
+          }
+          80% {
+            width: 800px;
+            height: 800px;
+            margin-left: -400px;
+            margin-top: -400px;
+            opacity: 0.15;
+          }
           100% {
-            width: 2000px;
-            height: 2000px;
-            margin-left: -1000px;
-            margin-top: -1000px;
-            opacity: 1;
+            width: 1200px;
+            height: 1200px;
+            margin-left: -600px;
+            margin-top: -600px;
+            opacity: 0;
           }
         }
       `}</style>
