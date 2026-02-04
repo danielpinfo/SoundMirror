@@ -74,8 +74,8 @@ export default function HomePage() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8 max-w-4xl">
-        {/* Logo - Smaller size to fit everything on one screen */}
-        <div className="text-center mt-4 mb-2">
+        {/* Logo - Smaller size and moved up */}
+        <div className="text-center mt-2 mb-2">
           <img 
             src={LOGO_URL}
             alt="SoundMirror"
@@ -83,15 +83,15 @@ export default function HomePage() {
           />
         </div>
 
-        {/* Instructions - Golden color with cobalt border, spaced out */}
-        <div className="text-center mb-4">
+        {/* Instructions - Golden color with cobalt border */}
+        <div className="text-center mb-3">
           <p className="text-[#FFD700] text-xl md:text-2xl max-w-4xl mx-auto leading-loose font-medium border-4 border-[#0047AB] rounded-2xl py-3 px-6 bg-[#0047AB]/10">
             {t('instructions')}
           </p>
         </div>
 
-        {/* Practice Input - Matching cobalt blue design */}
-        <div className="mb-4">
+        {/* Practice Input */}
+        <div className="mb-3">
           <form onSubmit={handleInputSubmit} className="flex gap-3">
             <Input
               type="text"
