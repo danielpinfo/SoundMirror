@@ -6,7 +6,7 @@ import { Slider } from '../components/ui/slider';
 import { Button } from '../components/ui/button';
 import { Play, Pause, RotateCcw, Volume2, VolumeX, Gauge } from 'lucide-react';
 
-// Animation speed settings - frame duration in ms (NO TRANSITIONS)
+// Animation speed settings - frame duration in ms
 const SPEED_SETTINGS = {
   slow: { frameDuration: 400, label: 'Slow' },
   normal: { frameDuration: 250, label: 'Normal' },
@@ -23,33 +23,32 @@ const LETTER_PHONEME_MAP = {
   'ch': 'cha', 'sh': 'sha', 'th': 'tha',
 };
 
-// Generate frame sequence using CLONING for duration (NO FADING)
+// Generate frame sequence using CLONING for duration
 const generatePhonemeSequence = (letter) => {
   const letterLower = letter.toLowerCase();
   const phoneme = LETTER_PHONEME_MAP[letterLower] || `${letterLower}a`;
   
   const frames = [];
   
-  // Clone neutral frames for preparation (6 clones = ~2.4s at slow speed)
+  // Clone neutral frames for preparation
   for (let i = 0; i < 6; i++) frames.push(0);
   
-  // Parse phoneme and clone each frame for extended display
+  // Parse phoneme and clone each frame
   for (let i = 0; i < phoneme.length; i++) {
     const char = phoneme[i];
     const frame = PHONEME_FRAME_MAP[char];
     if (frame !== undefined) {
-      // Clone frame 8 times for longer hold (~3.2s at slow speed)
       for (let j = 0; j < 8; j++) frames.push(frame);
     }
   }
   
-  // Clone neutral frames to return (4 clones)
+  // Clone neutral frames to return
   for (let i = 0; i < 4; i++) frames.push(0);
   
   return frames;
 };
 
-// Convert text to frame sequence using CLONING (NO FADING)
+// Convert text to frame sequence using CLONING
 const textToFrameSequence = (text) => {
   const frames = [];
   const lowerText = text.toLowerCase();
@@ -64,7 +63,6 @@ const textToFrameSequence = (text) => {
       const digraph = lowerText.slice(idx, idx + 2);
       if (PHONEME_FRAME_MAP[digraph] !== undefined) {
         const frame = PHONEME_FRAME_MAP[digraph];
-        // Clone frame 5 times for visibility
         for (let j = 0; j < 5; j++) frames.push(frame);
         idx += 2;
         continue;
@@ -73,14 +71,11 @@ const textToFrameSequence = (text) => {
     
     const char = lowerText[idx];
     if (char === ' ' || char === ',' || char === '.') {
-      // Clone neutral for pauses
       for (let j = 0; j < 3; j++) frames.push(0);
     } else if (PHONEME_FRAME_MAP[char] !== undefined) {
       const frame = PHONEME_FRAME_MAP[char];
-      // Clone frame 4 times for each character
       for (let j = 0; j < 4; j++) frames.push(frame);
     } else if (char.match(/[a-z]/)) {
-      // Unknown letters - use slight opening
       for (let j = 0; j < 3; j++) frames.push(1);
     }
     idx++;
@@ -112,34 +107,43 @@ export const DualHeadAnimation = forwardRef(({
   const [animationSpeed, setAnimationSpeed] = useState(DEFAULT_SPEED);
   const animationRef = useRef(null);
   const audioRef = useRef(null);
+  const isPlayingRef = useRef(false); // Track playing state without re-render
 
-  // Get current speed settings
   const speedSettings = SPEED_SETTINGS[animationSpeed];
 
   // Update frame sequence when target changes
   useEffect(() => {
+    // Stop any running animation when target changes
+    stopAnimation();
+    
     if (target) {
+      let sequence;
       if (mode === 'letter') {
-        const sequence = generatePhonemeSequence(target);
-        setFrameSequence(sequence);
-        setCurrentFrame(sequence[0]);
-        setCurrentIndex(0);
-        
+        sequence = generatePhonemeSequence(target);
         const letterLower = target.toLowerCase();
         const phoneme = LETTER_PHONEME_MAP[letterLower] || `${letterLower}a`;
         setPhonemeDisplay(phoneme);
-        
         fetchLetterAudio(target);
       } else {
-        const sequence = textToFrameSequence(target);
-        setFrameSequence(sequence);
-        setCurrentFrame(sequence[0]);
-        setCurrentIndex(0);
+        sequence = textToFrameSequence(target);
         setPhonemeDisplay(target);
         setAudioUrl(null);
       }
+      setFrameSequence(sequence);
+      setCurrentFrame(sequence[0] || 0);
+      setCurrentIndex(0);
     }
   }, [target, mode, language]);
+
+  // Stop animation helper
+  const stopAnimation = useCallback(() => {
+    if (animationRef.current) {
+      clearTimeout(animationRef.current);
+      animationRef.current = null;
+    }
+    isPlayingRef.current = false;
+    setIsPlaying(false);
+  }, []);
 
   // Fetch letter audio
   const fetchLetterAudio = async (letter) => {
@@ -163,7 +167,7 @@ export const DualHeadAnimation = forwardRef(({
     }
   }, [audioUrl, audioEnabled]);
 
-  // Play TTS for word mode
+  // Play TTS
   const playTTS = useCallback(() => {
     if (!audioEnabled || mode !== 'word' || !target) return;
     
@@ -185,38 +189,37 @@ export const DualHeadAnimation = forwardRef(({
     }
   }, [audioEnabled, mode, target, language, animationSpeed]);
 
-  // Animation loop - simple frame stepping (NO FADING)
-  const animate = useCallback(() => {
-    setCurrentIndex(prevIndex => {
-      const nextIndex = prevIndex + 1;
-      if (nextIndex < frameSequence.length) {
-        setCurrentFrame(frameSequence[nextIndex]);
-        // Schedule next frame
-        animationRef.current = setTimeout(() => animate(), speedSettings.frameDuration);
-        return nextIndex;
-      } else {
-        // Animation complete - stop playing and reset to beginning
-        setIsPlaying(false);
-        setCurrentFrame(frameSequence[0] || 0);
-        if (onAnimationComplete) onAnimationComplete();
-        return 0; // Reset index to 0
-      }
-    });
-  }, [frameSequence, onAnimationComplete, speedSettings.frameDuration]);
+  // Run animation step
+  const runAnimationStep = useCallback((index, sequence, duration) => {
+    if (!isPlayingRef.current) return; // Check ref to prevent stale closure
+    
+    if (index < sequence.length) {
+      setCurrentIndex(index);
+      setCurrentFrame(sequence[index]);
+      
+      // Schedule next frame
+      animationRef.current = setTimeout(() => {
+        runAnimationStep(index + 1, sequence, duration);
+      }, duration);
+    } else {
+      // Animation complete
+      stopAnimation();
+      setCurrentIndex(0);
+      setCurrentFrame(sequence[0] || 0);
+      if (onAnimationComplete) onAnimationComplete();
+    }
+  }, [onAnimationComplete, stopAnimation]);
 
   // Play
   const play = useCallback(() => {
-    if (isPlaying) return;
+    if (isPlayingRef.current) return;
     
-    // Clear any existing timeout
-    if (animationRef.current) {
-      clearTimeout(animationRef.current);
-      animationRef.current = null;
-    }
+    stopAnimation();
     
+    isPlayingRef.current = true;
+    setIsPlaying(true);
     setCurrentIndex(0);
     setCurrentFrame(frameSequence[0] || 0);
-    setIsPlaying(true);
     
     if (mode === 'letter') {
       playAudio();
@@ -224,33 +227,35 @@ export const DualHeadAnimation = forwardRef(({
       playTTS();
     }
     
-    // Start animation after a brief delay
-    animationRef.current = setTimeout(() => animate(), speedSettings.frameDuration);
-  }, [isPlaying, frameSequence, mode, playAudio, playTTS, animate, speedSettings.frameDuration]);
+    // Start animation
+    animationRef.current = setTimeout(() => {
+      runAnimationStep(1, frameSequence, speedSettings.frameDuration);
+    }, speedSettings.frameDuration);
+  }, [frameSequence, mode, playAudio, playTTS, runAnimationStep, speedSettings.frameDuration, stopAnimation]);
 
   // Pause
   const pause = useCallback(() => {
-    if (animationRef.current) {
-      clearTimeout(animationRef.current);
-    }
-    setIsPlaying(false);
+    stopAnimation();
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
     }
-  }, []);
+  }, [stopAnimation]);
 
   // Reset
   const reset = useCallback(() => {
-    pause();
+    stopAnimation();
     setCurrentIndex(0);
     setCurrentFrame(frameSequence[0] || 0);
-  }, [pause, frameSequence]);
+  }, [stopAnimation, frameSequence]);
 
   // Toggle play/pause
   const togglePlay = useCallback(() => {
-    if (isPlaying) pause();
-    else play();
-  }, [isPlaying, play, pause]);
+    if (isPlayingRef.current) {
+      pause();
+    } else {
+      play();
+    }
+  }, [play, pause]);
 
   // Toggle audio
   const toggleAudio = useCallback(() => {
@@ -271,7 +276,7 @@ export const DualHeadAnimation = forwardRef(({
     pause,
     reset,
     togglePlay,
-    isPlaying,
+    isPlaying: () => isPlayingRef.current,
     getCurrentFrame: () => currentFrame,
     setSpeed: setAnimationSpeed,
     getSpeed: () => animationSpeed,
@@ -279,24 +284,24 @@ export const DualHeadAnimation = forwardRef(({
 
   // Auto-play
   useEffect(() => {
-    if (autoPlay && target && frameSequence.length > 1 && !isPlaying) {
+    if (autoPlay && target && frameSequence.length > 1 && !isPlayingRef.current) {
       const timer = setTimeout(() => play(), 500);
       return () => clearTimeout(timer);
     }
-  }, [autoPlay, target, frameSequence.length]);
+  }, [autoPlay, target, frameSequence.length, play]);
 
-  // Cleanup
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (animationRef.current) clearTimeout(animationRef.current);
+      stopAnimation();
       if (audioRef.current) audioRef.current.pause();
       if ('speechSynthesis' in window) window.speechSynthesis.cancel();
     };
-  }, []);
+  }, [stopAnimation]);
 
   // Slider change
   const handleSliderChange = (value) => {
-    if (isPlaying) return;
+    if (isPlayingRef.current) return;
     const frameIndex = Math.round((value[0] / 100) * (frameSequence.length - 1));
     setCurrentIndex(frameIndex);
     setCurrentFrame(frameSequence[frameIndex] || 0);
@@ -308,10 +313,8 @@ export const DualHeadAnimation = forwardRef(({
 
   return (
     <div data-testid="dual-head-animation" className="w-full">
-      {/* Hidden audio element */}
       {audioUrl && <audio ref={audioRef} src={audioUrl} preload="auto" />}
 
-      {/* Phoneme Display */}
       {phonemeDisplay && (
         <div className="text-center mb-4">
           <span className="text-sm text-blue-400 uppercase tracking-wider">
@@ -321,7 +324,6 @@ export const DualHeadAnimation = forwardRef(({
         </div>
       )}
 
-      {/* Dual Head Display - NO FADING, just show/hide */}
       <div className="grid grid-cols-2 gap-4 md:gap-6">
         {/* Front View */}
         <div className="relative">
@@ -334,7 +336,6 @@ export const DualHeadAnimation = forwardRef(({
             className="aspect-square bg-white rounded-2xl overflow-hidden border-2 border-slate-200 shadow-lg"
             data-testid="front-view-container"
           >
-            {/* Show ONLY the current frame - no stacking, no opacity transitions */}
             <img
               src={SPRITE_URLS.front[currentFrame] || SPRITE_URLS.front[0]}
               alt={`Front view frame ${currentFrame}`}
@@ -358,7 +359,6 @@ export const DualHeadAnimation = forwardRef(({
             className="aspect-square bg-white rounded-2xl overflow-hidden border-2 border-slate-200 shadow-lg"
             data-testid="side-view-container"
           >
-            {/* Show ONLY the current frame - no stacking, no opacity transitions */}
             <img
               src={SPRITE_URLS.side[currentFrame] || SPRITE_URLS.side[0]}
               alt={`Side view frame ${currentFrame}`}
@@ -372,7 +372,6 @@ export const DualHeadAnimation = forwardRef(({
         </div>
       </div>
 
-      {/* Controls */}
       {showControls && (
         <div className="mt-6 space-y-4">
           <div className="flex items-center justify-center gap-3">
@@ -426,7 +425,6 @@ export const DualHeadAnimation = forwardRef(({
             </Button>
           </div>
 
-          {/* Status */}
           <div className="flex justify-center gap-4 text-xs">
             <span className="text-blue-400">
               {mode === 'letter' 
@@ -437,7 +435,6 @@ export const DualHeadAnimation = forwardRef(({
             <span className="text-blue-400">Speed: {SPEED_SETTINGS[animationSpeed].label}</span>
           </div>
 
-          {/* Scrubber */}
           <div className="px-4">
             <div className="flex items-center gap-4">
               <span className="text-xs text-blue-400 w-8">0</span>
