@@ -132,6 +132,58 @@ export const DEFAULT_PRACTICE_WORDS = {
   arabic: ['مرحبا', 'وداعا', 'من فضلك', 'شكرا', 'نعم', 'لا', 'ماء', 'صديق', 'سعيد', 'حب'],
 };
 
+// Romanization mappings for non-Latin script languages
+export const ROMANIZATION_MAP = {
+  japanese: {
+    'こんにちは': 'konnichiwa',
+    'さようなら': 'sayonara',
+    'お願いします': 'onegaishimasu',
+    'ありがとう': 'arigatou',
+    'はい': 'hai',
+    'いいえ': 'iie',
+    '水': 'mizu',
+    '友達': 'tomodachi',
+    '嬉しい': 'ureshii',
+    '愛': 'ai',
+  },
+  chinese: {
+    '你好': 'nihao',
+    '再见': 'zaijian',
+    '请': 'qing',
+    '谢谢': 'xiexie',
+    '是': 'shi',
+    '不': 'bu',
+    '水': 'shui',
+    '朋友': 'pengyou',
+    '快乐': 'kuaile',
+    '爱': 'ai',
+  },
+  hindi: {
+    'नमस्ते': 'namaste',
+    'अलविदा': 'alvida',
+    'कृपया': 'kripaya',
+    'धन्यवाद': 'dhanyavad',
+    'हाँ': 'haan',
+    'नहीं': 'nahin',
+    'पानी': 'paani',
+    'दोस्त': 'dost',
+    'खुश': 'khush',
+    'प्यार': 'pyaar',
+  },
+  arabic: {
+    'مرحبا': 'marhaba',
+    'وداعا': 'wadaan',
+    'من فضلك': 'min fadlak',
+    'شكرا': 'shukran',
+    'نعم': 'naam',
+    'لا': 'la',
+    'ماء': 'maa',
+    'صديق': 'sadiq',
+    'سعيد': 'saeed',
+    'حب': 'hubb',
+  },
+};
+
 // Extended practice words - organized by category for speech therapy
 export const PRACTICE_WORDS_BY_CATEGORY = {
   english: {
