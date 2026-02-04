@@ -70,49 +70,10 @@ const SPECIAL_COMBINATIONS = {
   'ey': 'eh',
 };
 
-// Convert text to phonetic representation
-const textToPhonetic = (text) => {
-  const lowerText = text.toLowerCase();
-  const phonemes = [];
-  
-  let idx = 0;
-  while (idx < lowerText.length) {
-    let matched = false;
-    
-    // Check for 3-letter combinations first
-    if (idx + 2 < lowerText.length) {
-      const trigraph = lowerText.slice(idx, idx + 3);
-      if (SPECIAL_COMBINATIONS[trigraph]) {
-        phonemes.push(SPECIAL_COMBINATIONS[trigraph]);
-        idx += 3;
-        matched = true;
-        continue;
-      }
-    }
-    
-    // Check for 2-letter combinations
-    if (idx + 1 < lowerText.length) {
-      const digraph = lowerText.slice(idx, idx + 2);
-      if (SPECIAL_COMBINATIONS[digraph]) {
-        phonemes.push(SPECIAL_COMBINATIONS[digraph]);
-        idx += 2;
-        matched = true;
-        continue;
-      }
-    }
-    
-    const char = lowerText[idx];
-    if (char === ' ') {
-      phonemes.push(' ');
-    } else if (char === ',' || char === '.') {
-      phonemes.push(char);
-    } else if (char.match(/[a-z]/)) {
-      phonemes.push(char);
-    }
-    idx++;
-  }
-  
-  return phonemes.join('');
+// Convert text to phonetic representation using comprehensive language rules
+const textToPhonetic = (text, language) => {
+  // Use the comprehensive language-specific phoneme parser
+  return parseWordWithRules(text, language);
 };
 
 // Generate frame sequence using CLONING for duration
