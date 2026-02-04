@@ -91,30 +91,29 @@ export default function HomePage() {
           </p>
         </div>
 
-        {/* Practice Input */}
-        <Card className="mb-8 shadow-lg bg-cobalt-surface card-hover border-blue-500/20">
-          <CardContent className="p-6">
-            <form onSubmit={handleInputSubmit} className="flex gap-3">
-              <Input
-                type="text"
-                placeholder={t('input_practice')}
-                value={practiceInput}
-                onChange={(e) => setPracticeInput(e.target.value)}
-                className="flex-1 h-12 rounded-xl border-blue-500/30 bg-[#0f2847] text-white placeholder:text-blue-300/50 focus:border-blue-400 text-lg"
-                data-testid="practice-input"
-              />
-              <Button 
-                type="submit" 
-                className={`h-12 px-6 ${cobaltButtonStyle}`}
-                disabled={!practiceInput.trim()}
-                data-testid="practice-submit-btn"
-              >
-                <span className="hidden sm:inline mr-2">{t('play')}</span>
-                <ArrowRight className="w-5 h-5" />
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+        {/* Practice Input - Matching cobalt blue design */}
+        <div className="mb-8">
+          <form onSubmit={handleInputSubmit} className="flex gap-3">
+            <Input
+              type="text"
+              placeholder={t('input_practice')}
+              value={practiceInput}
+              onChange={(e) => setPracticeInput(e.target.value)}
+              className="flex-1 h-12 rounded-full border-2 border-[#0047AB] bg-[#0047AB]/20 text-[#FFD700] placeholder:text-[#FFD700]/50 focus:border-[#FFD700] focus:bg-[#0047AB]/30 text-lg font-semibold px-6"
+              style={{ caretColor: '#FFD700' }}
+              data-testid="practice-input"
+            />
+            <Button 
+              type="submit" 
+              className={`h-12 px-6 ${cobaltButtonStyle}`}
+              disabled={!practiceInput.trim()}
+              data-testid="practice-submit-btn"
+            >
+              <span className="hidden sm:inline mr-2">{t('play')}</span>
+              <ArrowRight className="w-5 h-5" />
+            </Button>
+          </form>
+        </div>
 
         {/* Quick Practice - 8 Single Words */}
         <div className="mb-8">
