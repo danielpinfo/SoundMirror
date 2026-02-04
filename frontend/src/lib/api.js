@@ -92,7 +92,16 @@ export const gradeAttempt = async (targetPhoneme, audioData = null, language = '
 
 // Bug reports
 export const submitBugReport = async (reportData) => {
-  const response = await apiClient.post('/bug-reports', reportData);
+  // Check if reportData is FormData (file upload) or regular object
+  const isFormData = reportData instanceof FormData;
+  
+  const response = await apiClient.post('/bug-reports', reportData, {
+    headers: isFormData ? {
+      'Content-Type': 'multipart/form-data',
+    } : {
+      'Content-Type': 'application/json',
+    },
+  });
   return response.data;
 };
 
