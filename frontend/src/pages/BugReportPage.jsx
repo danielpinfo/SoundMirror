@@ -34,6 +34,15 @@ export default function BugReportPage() {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files);
+    setAttachments(prev => [...prev, ...files]);
+  };
+
+  const removeAttachment = (index) => {
+    setAttachments(prev => prev.filter((_, i) => i !== index));
+  };
+
   const isFormValid = () => {
     return formData.platform && 
            formData.page && 
