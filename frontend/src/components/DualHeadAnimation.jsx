@@ -11,8 +11,9 @@ const SPEED_SETTINGS = {
   slow: { frameDuration: 400, label: 'Slow' },
   normal: { frameDuration: 250, label: 'Normal' },
   fast: { frameDuration: 150, label: 'Fast' },
+  fastest: { frameDuration: 80, label: 'Fastest' },
 };
-const DEFAULT_SPEED = 'slow';
+const DEFAULT_SPEED = 'fast'; // Changed default to fast
 
 // Letter to phoneme mapping
 const LETTER_PHONEME_MAP = {
