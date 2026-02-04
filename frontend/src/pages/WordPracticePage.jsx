@@ -181,7 +181,7 @@ export default function WordPracticePage() {
                   <Button
                     key={index}
                     onClick={() => handleQuickPractice(word)}
-                    className={cobaltButtonStyle}
+                    className={`${cobaltButtonStyle} text-lg`}
                     data-testid={`quick-word-${index}`}
                   >
                     {word}
@@ -198,7 +198,7 @@ export default function WordPracticePage() {
                   <Button
                     key={index}
                     onClick={() => handleQuickPractice(phrase)}
-                    className={cobaltButtonStyle}
+                    className={`${cobaltButtonStyle} text-lg`}
                     data-testid={`phrase-${index}`}
                   >
                     {phrase}
