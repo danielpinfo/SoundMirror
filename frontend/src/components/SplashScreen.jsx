@@ -98,6 +98,8 @@ export const SplashScreen = ({ onComplete }) => {
                 : 'none',
               // 286ms delay between each ripple (2000ms / 7 = 286ms)
               animationDelay: `${i * 0.286}s`,
+              // Earlier rings on top so all 7 are visible
+              zIndex: 7 - i,
             }}
           />
         ))}
