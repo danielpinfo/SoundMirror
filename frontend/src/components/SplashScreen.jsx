@@ -93,10 +93,10 @@ export const SplashScreen = ({ onComplete }) => {
               marginTop: '-5px',
               border: `2px solid rgba(255, 255, 255, ${0.95 - (i * 0.1)})`,
               animation: (phase === 'ripple' || phase === 'logo' || phase === 'fade') 
-                ? 'rippleFromPinpoint 3s ease-out forwards' 
+                ? 'rippleFromPinpoint 2s ease-out forwards' 
                 : 'none',
-              // Stagger each ring by 0.25s so they emanate like real ripples
-              animationDelay: `${i * 0.25}s`,
+              // Shorter delay (0.12s) so multiple rings are visible at once
+              animationDelay: `${i * 0.12}s`,
             }}
           />
         ))}
