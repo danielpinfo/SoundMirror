@@ -41,20 +41,17 @@ export const SplashScreen = ({ onComplete }) => {
 
   if (!show) return null;
 
-  // 7 rings total for ripple effect
-  const ringCount = 7;
-
   return (
     <div 
       data-testid="splash-screen"
       className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden"
       style={{ 
         background: WATER_COLOR,
-        transition: phase === 'fade' ? 'opacity 1s ease-out' : 'none',
+        transition: phase === 'fade' ? 'opacity 0.5s ease-out' : 'none',
         opacity: phase === 'fade' ? 0 : 1,
       }}
     >
-      {/* Silver Water Drop - HALF SIZE (15x25px) - falls to center pinpoint */}
+      {/* Silver Water Drop - falls to center, sharpens as it approaches */}
       <div 
         className={`absolute ${phase === 'drop' ? 'opacity-100' : 'opacity-0'}`}
         style={{
@@ -69,10 +66,12 @@ export const SplashScreen = ({ onComplete }) => {
           boxShadow: '0 0 15px rgba(192, 192, 192, 0.4), inset 0 -5px 10px rgba(128, 128, 128, 0.4), inset 2px 0 8px rgba(255, 255, 255, 0.3)',
           animation: phase === 'drop' ? 'dropFall 2s cubic-bezier(0.55, 0, 1, 0.45) forwards' : 'none',
           transition: 'opacity 0.3s ease-out',
+          filter: 'blur(1px)',
+          animationTimingFunction: 'cubic-bezier(0.55, 0, 1, 0.45)',
         }}
       />
       
-      {/* 7 Concentric Ripples - ALL start from tiny pinpoint center and expand outward */}
+      {/* 6 Concentric Ripples - spawn at 286ms intervals, multiple visible simultaneously */}
       <div 
         className="absolute"
         style={{
@@ -80,48 +79,53 @@ export const SplashScreen = ({ onComplete }) => {
           left: '50%',
           transform: 'translate(-50%, -50%) perspective(800px) rotateX(80deg)',
           transformOrigin: 'center center',
+          pointerEvents: 'none',
         }}
       >
-        {[...Array(ringCount)].map((_, i) => (
+        {[...Array(RIPPLE_COUNT)].map((_, i) => (
           <div 
             key={i}
             className={`absolute rounded-full ${
-              phase === 'ripple' || phase === 'logo' || phase === 'fade' ? 'opacity-100' : 'opacity-0'
+              phase === 'ripple' || phase === 'logo' || phase === 'hold' ? 'opacity-100' : 'opacity-0'
             }`}
             style={{
-              // ALL rings start from the SAME tiny pinpoint (10px)
+              // Start from exact center pinpoint
               width: '10px',
               height: '10px',
               left: '50%',
               top: '50%',
               marginLeft: '-5px',
               marginTop: '-5px',
-              border: `3px solid rgba(255, 255, 255, 1)`,
-              animation: (phase === 'ripple' || phase === 'logo' || phase === 'fade') 
-                ? `rippleExpandForever 20s linear forwards` 
+              // Soft-edged ring with subtle glow - dark gray with faint blue highlights
+              border: '3px solid rgba(100, 120, 150, 0.8)',
+              boxShadow: '0 0 20px rgba(59, 130, 246, 0.4), inset 0 0 10px rgba(100, 120, 150, 0.3)',
+              animation: (phase === 'ripple' || phase === 'logo' || phase === 'hold') 
+                ? 'rippleWave 3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards' 
                 : 'none',
-              // 286ms delay between each ripple (2000ms / 7 = 286ms)
-              animationDelay: `${i * 0.286}s`,
-              // Earlier rings on top so all 7 are visible
-              zIndex: 7 - i,
+              // Spawn at exact 286ms intervals
+              animationDelay: `${i * RIPPLE_SPAWN_INTERVAL}s`,
+              // Z-index layering: earlier rings on top
+              zIndex: RIPPLE_COUNT - i,
             }}
           />
         ))}
       </div>
       
-      {/* Logo - fades in at 5th ripple, stays visible for 2 seconds - 2X LARGER */}
+      {/* Logo - fades in at t=3s, holds through end */}
       <div 
-        className={`relative z-10 text-center ${
-          phase === 'logo' || phase === 'fade' ? 'opacity-100' : 'opacity-0'
+        className={`relative z-10 text-center transition-opacity duration-2000 ${
+          phase === 'logo' || phase === 'hold' ? 'opacity-100' : 'opacity-0'
         }`}
         style={{
-          transition: phase === 'logo' ? 'opacity 1s ease-in' : phase === 'fade' ? 'opacity 1s ease-out' : 'none',
+          transitionDuration: '2000ms',
+          transitionTimingFunction: 'ease-in-out',
         }}
       >
         <img 
           src={LOGO_URL}
           alt="SoundMirror"
           className="h-64 md:h-80 mx-auto"
+          style={{ filter: 'drop-shadow(0 0 30px rgba(59, 130, 246, 0.3))' }}
         />
       </div>
       
