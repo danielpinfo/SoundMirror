@@ -298,6 +298,58 @@ export default function BugReportPage() {
                   </p>
                 </div>
 
+                {/* File Attachments */}
+                <div>
+                  <label className="block text-sm font-medium text-blue-200 mb-2">
+                    Attachments (Optional)
+                  </label>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="file"
+                        id="file-upload"
+                        multiple
+                        accept="image/*,video/*,.pdf,.txt,.log"
+                        onChange={handleFileChange}
+                        className="hidden"
+                      />
+                      <label
+                        htmlFor="file-upload"
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-blue-500/30 bg-[#0f2847] text-blue-300 cursor-pointer hover:bg-blue-900/30 transition-colors"
+                      >
+                        <Upload className="w-4 h-4" />
+                        Choose Files
+                      </label>
+                      <span className="text-xs text-blue-400">
+                        Images, videos, logs, or screenshots
+                      </span>
+                    </div>
+                    
+                    {/* Show selected files */}
+                    {attachments.length > 0 && (
+                      <div className="space-y-2">
+                        {attachments.map((file, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center justify-between p-2 rounded-lg bg-blue-900/20 border border-blue-500/20"
+                          >
+                            <span className="text-sm text-blue-300 truncate flex-1">
+                              {file.name} ({(file.size / 1024).toFixed(1)} KB)
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => removeAttachment(index)}
+                              className="ml-2 p-1 rounded-full hover:bg-red-900/30 text-red-400"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 {/* Submit Button */}
                 <Button
                   type="submit"
