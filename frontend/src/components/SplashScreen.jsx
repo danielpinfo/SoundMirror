@@ -147,19 +147,13 @@ export const SplashScreen = ({ onComplete }) => {
           }
         }
         
-        @keyframes rippleExpand {
+        @keyframes rippleExpandSlow {
           0% {
-            width: 30px;
-            height: 30px;
-            margin-left: -15px;
-            margin-top: -15px;
+            transform: scale(1);
             opacity: 1;
           }
           100% {
-            width: 700px;
-            height: 700px;
-            margin-left: -350px;
-            margin-top: -350px;
+            transform: scale(2.5);
             opacity: 0;
           }
         }
