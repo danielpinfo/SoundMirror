@@ -92,9 +92,9 @@ export const SplashScreen = ({ onComplete }) => {
               top: '50%',
               marginLeft: '-5px',
               marginTop: '-5px',
-              border: `2px solid rgba(255, 255, 255, 1)`,
+              border: `3px solid rgba(255, 255, 255, 1)`,
               animation: (phase === 'ripple' || phase === 'logo' || phase === 'fade') 
-                ? `rippleExpandForever 5s linear forwards` 
+                ? `rippleExpandForever 10s linear forwards` 
                 : 'none',
               // 286ms delay between each ripple (2000ms / 7 = 286ms)
               animationDelay: `${i * 0.286}s`,
@@ -105,7 +105,7 @@ export const SplashScreen = ({ onComplete }) => {
         ))}
       </div>
       
-      {/* Logo - fades in at 5th ripple, stays visible for 2 seconds */}
+      {/* Logo - fades in at 5th ripple, stays visible for 2 seconds - 2X LARGER */}
       <div 
         className={`relative z-10 text-center ${
           phase === 'logo' || phase === 'fade' ? 'opacity-100' : 'opacity-0'
@@ -117,7 +117,7 @@ export const SplashScreen = ({ onComplete }) => {
         <img 
           src={LOGO_URL}
           alt="SoundMirror"
-          className="h-32 md:h-40 mx-auto"
+          className="h-64 md:h-80 mx-auto"
         />
       </div>
       

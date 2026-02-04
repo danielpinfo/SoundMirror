@@ -74,12 +74,12 @@ export default function HomePage() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8 max-w-4xl">
-        {/* Logo - 4X larger at top center */}
+        {/* Logo - 2X LARGER at top center */}
         <div className="text-center mb-8">
           <img 
             src={LOGO_URL}
             alt="SoundMirror"
-            className="h-40 md:h-48 mx-auto"
+            className="h-80 md:h-96 mx-auto"
           />
         </div>
 
