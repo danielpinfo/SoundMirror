@@ -88,11 +88,11 @@ export const SplashScreen = ({ onComplete }) => {
               height: '40px',
               marginLeft: '-20px',
               marginTop: '-20px',
-              border: `2px solid rgba(255, 255, 255, ${1 - (i * 0.1)})`,
+              border: `2px solid rgba(255, 255, 255, ${0.9 - (i * 0.08)})`,
               animation: (phase === 'ripple' || phase === 'logo' || phase === 'fade') 
-                ? 'rippleExpand 2s ease-out forwards' 
+                ? 'rippleExpand 3s ease-out infinite' 
                 : 'none',
-              animationDelay: `${i * 0.15}s`,
+              animationDelay: `${i * 0.3}s`,
             }}
           />
         ))}
