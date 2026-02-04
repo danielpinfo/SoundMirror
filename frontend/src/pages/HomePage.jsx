@@ -74,8 +74,8 @@ export default function HomePage() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8 max-w-4xl">
-        {/* Logo - 2X LARGER at top center */}
-        <div className="text-center mb-8">
+        {/* Logo - Moved up to fill half the space above */}
+        <div className="text-center mt-8 mb-4">
           <img 
             src={LOGO_URL}
             alt="SoundMirror"
@@ -83,9 +83,9 @@ export default function HomePage() {
           />
         </div>
 
-        {/* Instructions - 3X larger (no Visual Speech Training header) */}
-        <div className="text-center mb-12">
-          <p className="text-blue-100 text-2xl md:text-3xl max-w-3xl mx-auto leading-relaxed font-medium">
+        {/* Instructions - Golden color, moved up closer to logo */}
+        <div className="text-center mb-8">
+          <p className="text-[#FFD700] text-2xl md:text-3xl max-w-3xl mx-auto leading-relaxed font-medium">
             {t('instructions')}
           </p>
         </div>

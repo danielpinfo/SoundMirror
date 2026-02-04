@@ -96,8 +96,8 @@ const WaterDropCanvas = ({ onComplete }) => {
       
       ctx.globalAlpha = opacity;
       
-      // 2X larger logo (h-64/h-80 equivalent)
-      const logoWidth = 320;
+      // 3X larger logo (960px width)
+      const logoWidth = 960;
       const logoHeight = (logoImage.height / logoImage.width) * logoWidth;
       
       // Add subtle glow
