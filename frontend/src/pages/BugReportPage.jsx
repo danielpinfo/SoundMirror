@@ -96,6 +96,7 @@ export default function BugReportPage() {
       feature_area: '',
       description: '',
     });
+    setAttachments([]);
     setSubmitted(false);
   };
 
