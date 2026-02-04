@@ -222,7 +222,7 @@ export const SplashScreen = ({ onComplete }) => {
         />
       </div>
       
-      {/* Keyframe animations */}
+      {/* Keyframe animations - 6 SEPARATE animations for 6 separate rings */}
       <style jsx>{`
         @keyframes dropFall {
           0% {
@@ -252,42 +252,58 @@ export const SplashScreen = ({ onComplete }) => {
           }
         }
         
-        @keyframes rippleWave {
-          0% {
-            width: 10px;
-            height: 10px;
-            margin-left: -5px;
-            margin-top: -5px;
-            opacity: 1;
-          }
-          20% {
-            width: 120px;
-            height: 120px;
-            margin-left: -60px;
-            margin-top: -60px;
-            opacity: 0.9;
-          }
-          50% {
-            width: 400px;
-            height: 400px;
-            margin-left: -200px;
-            margin-top: -200px;
-            opacity: 0.5;
-          }
-          80% {
-            width: 800px;
-            height: 800px;
-            margin-left: -400px;
-            margin-top: -400px;
-            opacity: 0.15;
-          }
-          100% {
-            width: 1200px;
-            height: 1200px;
-            margin-left: -600px;
-            margin-top: -600px;
-            opacity: 0;
-          }
+        @keyframes rippleWave1 {
+          0% { width: 10px; height: 10px; margin-left: -5px; margin-top: -5px; opacity: 0; }
+          5% { opacity: 1; }
+          20% { width: 120px; height: 120px; margin-left: -60px; margin-top: -60px; opacity: 0.9; }
+          50% { width: 400px; height: 400px; margin-left: -200px; margin-top: -200px; opacity: 0.5; }
+          80% { width: 800px; height: 800px; margin-left: -400px; margin-top: -400px; opacity: 0.15; }
+          100% { width: 1200px; height: 1200px; margin-left: -600px; margin-top: -600px; opacity: 0; }
+        }
+        
+        @keyframes rippleWave2 {
+          0% { width: 10px; height: 10px; margin-left: -5px; margin-top: -5px; opacity: 0; }
+          5% { opacity: 1; }
+          20% { width: 120px; height: 120px; margin-left: -60px; margin-top: -60px; opacity: 0.9; }
+          50% { width: 400px; height: 400px; margin-left: -200px; margin-top: -200px; opacity: 0.5; }
+          80% { width: 800px; height: 800px; margin-left: -400px; margin-top: -400px; opacity: 0.15; }
+          100% { width: 1200px; height: 1200px; margin-left: -600px; margin-top: -600px; opacity: 0; }
+        }
+        
+        @keyframes rippleWave3 {
+          0% { width: 10px; height: 10px; margin-left: -5px; margin-top: -5px; opacity: 0; }
+          5% { opacity: 1; }
+          20% { width: 120px; height: 120px; margin-left: -60px; margin-top: -60px; opacity: 0.9; }
+          50% { width: 400px; height: 400px; margin-left: -200px; margin-top: -200px; opacity: 0.5; }
+          80% { width: 800px; height: 800px; margin-left: -400px; margin-top: -400px; opacity: 0.15; }
+          100% { width: 1200px; height: 1200px; margin-left: -600px; margin-top: -600px; opacity: 0; }
+        }
+        
+        @keyframes rippleWave4 {
+          0% { width: 10px; height: 10px; margin-left: -5px; margin-top: -5px; opacity: 0; }
+          5% { opacity: 1; }
+          20% { width: 120px; height: 120px; margin-left: -60px; margin-top: -60px; opacity: 0.9; }
+          50% { width: 400px; height: 400px; margin-left: -200px; margin-top: -200px; opacity: 0.5; }
+          80% { width: 800px; height: 800px; margin-left: -400px; margin-top: -400px; opacity: 0.15; }
+          100% { width: 1200px; height: 1200px; margin-left: -600px; margin-top: -600px; opacity: 0; }
+        }
+        
+        @keyframes rippleWave5 {
+          0% { width: 10px; height: 10px; margin-left: -5px; margin-top: -5px; opacity: 0; }
+          5% { opacity: 1; }
+          20% { width: 120px; height: 120px; margin-left: -60px; margin-top: -60px; opacity: 0.9; }
+          50% { width: 400px; height: 400px; margin-left: -200px; margin-top: -200px; opacity: 0.5; }
+          80% { width: 800px; height: 800px; margin-left: -400px; margin-top: -400px; opacity: 0.15; }
+          100% { width: 1200px; height: 1200px; margin-left: -600px; margin-top: -600px; opacity: 0; }
+        }
+        
+        @keyframes rippleWave6 {
+          0% { width: 10px; height: 10px; margin-left: -5px; margin-top: -5px; opacity: 0; }
+          5% { opacity: 1; }
+          20% { width: 120px; height: 120px; margin-left: -60px; margin-top: -60px; opacity: 0.9; }
+          50% { width: 400px; height: 400px; margin-left: -200px; margin-top: -200px; opacity: 0.5; }
+          80% { width: 800px; height: 800px; margin-left: -400px; margin-top: -400px; opacity: 0.15; }
+          100% { width: 1200px; height: 1200px; margin-left: -600px; margin-top: -600px; opacity: 0; }
         }
       `}</style>
     </div>
