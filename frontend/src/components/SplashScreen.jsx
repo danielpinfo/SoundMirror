@@ -10,21 +10,22 @@ export const SplashScreen = ({ onComplete }) => {
   const [show, setShow] = useState(true);
 
   useEffect(() => {
-    // Phase timing for 8 second total duration (7s animation + 1s fade)
+    // Phase timing
     // Phase 1 (0-2s): Raindrop falling
     const rippleTimer = setTimeout(() => setPhase('ripple'), 2000);
     
-    // Phase 2 (2-4s): Concentric ripples spreading from pinpoint
-    const logoTimer = setTimeout(() => setPhase('logo'), 4000);
+    // Phase 2 (2-3.7s): 7 ripples expanding (286ms apart, last one starts at ~3.7s)
+    // Logo starts fading in at 5th ripple (around 3.14s)
+    const logoTimer = setTimeout(() => setPhase('logo'), 3140);
     
-    // Phase 3 (4-7s): Logo visible for 3 seconds (1 extra second as requested)
-    const fadeTimer = setTimeout(() => setPhase('fade'), 7000);
+    // Phase 3 (3.14-5.14s): Logo visible for 2 full seconds
+    const fadeTimer = setTimeout(() => setPhase('fade'), 5140);
     
-    // Phase 4 (7-8s): Fade to home page
+    // Phase 4 (5.14-6.14s): Fade to home page
     const completeTimer = setTimeout(() => {
       setShow(false);
       if (onComplete) onComplete();
-    }, 8000);
+    }, 6140);
 
     return () => {
       clearTimeout(rippleTimer);
