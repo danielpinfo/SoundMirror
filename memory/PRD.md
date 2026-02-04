@@ -126,6 +126,7 @@ Build a visual speech articulation training platform that:
 - ✅ Add MouthTracker for visual feedback
 
 ### P1 (High) 
+- Test camera/microphone in live browser with permissions granted
 - Test and finalize Electron desktop build (`yarn electron:build`)
 - Implement visual grading using MouthTracker data comparison
 - Connect MouthTracker metrics to grading score
