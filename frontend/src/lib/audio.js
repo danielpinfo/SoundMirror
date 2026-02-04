@@ -3,7 +3,7 @@ import axios from 'axios';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-// Cache for audio URLs (presigned URLs are valid for 1 hour)
+// Cache for audio URLs
 const audioCache = new Map();
 
 // Get audio URL for a letter
@@ -20,9 +20,12 @@ export const getLetterAudio = async (letter, language = 'english') => {
     });
     
     const data = response.data;
-    audioCache.set(cacheKey, data);
+    // The audio_url is a local path like /assets/audio/en-ba.mp3
+    // Return the full URL
+    const audioUrl = data.audio_url;
+    audioCache.set(cacheKey, audioUrl);
     
-    return data;
+    return audioUrl;
   } catch (error) {
     console.error('Error fetching letter audio:', error);
     return null;
