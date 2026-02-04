@@ -321,3 +321,34 @@ button, a, input, select, textarea {
   background: rgba(15, 40, 71, 0.6);
   border: 1px solid rgba(59, 130, 246, 0.2);
 }
+
+/* Golden borders for all interactive elements */
+button:not([disabled]),
+input:not([type="hidden"]):not([disabled]),
+textarea:not([disabled]),
+select:not([disabled]),
+[role="button"]:not([disabled]),
+[role="combobox"]:not([disabled]),
+.interactive {
+  border: 2px solid #FFD700 !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+button:not([disabled]):hover,
+input:not([type="hidden"]):not([disabled]):hover,
+textarea:not([disabled]):hover,
+select:not([disabled]):hover,
+[role="button"]:not([disabled]):hover,
+[role="combobox"]:not([disabled]):hover {
+  border-color: #FFC700 !important;
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
+}
+
+button:not([disabled]):focus,
+input:not([type="hidden"]):not([disabled]):focus,
+textarea:not([disabled]):focus,
+select:not([disabled]):focus {
+  border-color: #FFD700 !important;
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.6);
+  outline: none;
+}
