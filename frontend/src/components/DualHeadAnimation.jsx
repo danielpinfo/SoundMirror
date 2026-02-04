@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, forwardRef, useImperativeHandle } from 'react';
 import { SPRITE_URLS, PHONEME_FRAME_MAP } from '../lib/constants';
-import { parseWordWithRules, transliterateLetter } from '../lib/phonemeRules';
+import { parseWordWithRules, transliterateLetter, transliterate } from '../lib/phonemeRules';
 import { getLetterAudio } from '../lib/audio';
 import { useLanguage } from '../context/LanguageContext';
 import { Slider } from '../components/ui/slider';
@@ -229,9 +229,17 @@ export const DualHeadAnimation = forwardRef(({
         setPhoneticDisplay(phoneme);
         fetchLetterAudio(target);
       } else {
-        sequence = textToFrameSequence(target);
+        sequence = textToFrameSequence(target, language);
         setPhonemeDisplay(target);
-        setPhoneticDisplay(textToPhonetic(target, language));
+        
+        // For non-Latin scripts, show romanized version
+        const transliteratedText = transliterate(target, language);
+        if (transliteratedText !== target) {
+          setPhoneticDisplay(transliteratedText);
+        } else {
+          setPhoneticDisplay(parseWordWithRules(target, language).join('-'));
+        }
+        
         setAudioUrl(null);
       }
       setFrameSequence(sequence);
