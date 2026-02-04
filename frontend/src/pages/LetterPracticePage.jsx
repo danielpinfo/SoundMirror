@@ -93,7 +93,7 @@ export default function LetterPracticePage() {
       <main className="container mx-auto px-4 py-4 max-w-7xl">
         {/* Large Animation Section */}
         <div className="bg-cobalt-surface rounded-2xl border border-blue-500/20 shadow-sm p-6 mb-6">
-          <h3 className="text-lg font-semibold text-white mb-4">Reference Animation</h3>
+          <h3 className="text-lg font-semibold text-white mb-4">Letter Practice</h3>
           <div className="max-w-4xl mx-auto">
             <DualHeadAnimation
               ref={animationRef}
@@ -115,7 +115,7 @@ export default function LetterPracticePage() {
             />
           </div>
 
-          {/* Recording Panel - Takes 2 columns */}
+          {/* Recording Panel - Camera, Mouth Tracking, and Grading all enabled */}
           <div className="lg:col-span-2 bg-cobalt-surface rounded-2xl border border-blue-500/20 shadow-sm p-5">
             <h3 className="text-lg font-semibold text-white mb-4">Your Practice</h3>
             {selectedLetter ? (
@@ -123,6 +123,8 @@ export default function LetterPracticePage() {
                 target={selectedLetter}
                 language={language}
                 onGradingComplete={handleGradingComplete}
+                autoEnableCamera={true}
+                autoEnableMouthTracking={true}
               />
             ) : (
               <div className="aspect-video bg-[#0a1628] rounded-xl flex items-center justify-center border border-blue-500/20">
