@@ -206,9 +206,29 @@ export const RecordingPanel = ({
       }
     } catch (err) {
       console.error('[RecordingPanel] Error:', err);
-      setCameraError(err.name === 'NotAllowedError' 
-        ? 'Camera/microphone permission denied. Please allow access in your browser settings.'
-        : err.message || 'Could not access camera/microphone');
+      console.error('[RecordingPanel] Error name:', err.name);
+      console.error('[RecordingPanel] Error message:', err.message);
+      
+      let errorMessage = 'Could not access camera/microphone';
+      
+      if (err.name === 'NotAllowedError') {
+        errorMessage = 'Permission denied. Please allow camera/microphone access in your browser settings.';
+      } else if (err.name === 'NotFoundError') {
+        errorMessage = 'No camera or microphone found. Please connect a device and try again.';
+      } else if (err.name === 'NotReadableError') {
+        errorMessage = 'Camera/microphone is already in use by another application. Please close other apps using the camera.';
+      } else if (err.name === 'OverconstrainedError') {
+        errorMessage = 'Camera settings not supported. Trying with default settings...';
+        // Try again with minimal constraints
+        setTimeout(() => {
+          tryWithMinimalConstraints();
+        }, 1000);
+        return;
+      } else {
+        errorMessage = `Error: ${err.message || err.name || 'Unknown error'}`;
+      }
+      
+      setCameraError(errorMessage);
       setIsCameraLoading(false);
     }
   };
