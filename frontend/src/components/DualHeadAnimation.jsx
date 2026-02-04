@@ -6,36 +6,15 @@ import { Slider } from '../components/ui/slider';
 import { Button } from '../components/ui/button';
 import { Play, Pause, RotateCcw, Volume2, VolumeX, Gauge } from 'lucide-react';
 
-// Animation speed settings - MUCH SLOWER for visual learning
+// Animation speed settings - frame duration in ms (NO TRANSITIONS)
 const SPEED_SETTINGS = {
-  slow: { frameDuration: 600, transitionDuration: 200, label: 'Slow' },
-  normal: { frameDuration: 400, transitionDuration: 150, label: 'Normal' },
-  fast: { frameDuration: 200, transitionDuration: 100, label: 'Fast' },
+  slow: { frameDuration: 400, label: 'Slow' },
+  normal: { frameDuration: 250, label: 'Normal' },
+  fast: { frameDuration: 150, label: 'Fast' },
 };
 const DEFAULT_SPEED = 'slow';
-const FRAME_DURATION = SPEED_SETTINGS[DEFAULT_SPEED].frameDuration;
-const TRANSITION_DURATION = SPEED_SETTINGS[DEFAULT_SPEED].transitionDuration;
 
-// Preload images
-const preloadImages = () => {
-  const images = { front: {}, side: {} };
-  
-  Object.entries(SPRITE_URLS.front).forEach(([frame, url]) => {
-    const img = new Image();
-    img.src = url;
-    images.front[frame] = img;
-  });
-  
-  Object.entries(SPRITE_URLS.side).forEach(([frame, url]) => {
-    const img = new Image();
-    img.src = url;
-    images.side[frame] = img;
-  });
-  
-  return images;
-};
-
-// Letter to phoneme mapping (what sound each letter makes)
+// Letter to phoneme mapping
 const LETTER_PHONEME_MAP = {
   'a': 'ah', 'b': 'ba', 'c': 'ca', 'd': 'da', 'e': 'eh', 'f': 'fa', 'g': 'ga',
   'h': 'ha', 'i': 'ee', 'j': 'ja', 'k': 'ka', 'l': 'la', 'm': 'ma', 'n': 'na',
@@ -44,132 +23,107 @@ const LETTER_PHONEME_MAP = {
   'ch': 'cha', 'sh': 'sha', 'th': 'tha',
 };
 
-// Generate frame sequence for a phoneme with extended hold times for learning
-// Each phoneme position is held for multiple "beats" so users can see the mouth shape
+// Generate frame sequence using CLONING for duration (NO FADING)
 const generatePhonemeSequence = (letter) => {
   const letterLower = letter.toLowerCase();
   const phoneme = LETTER_PHONEME_MAP[letterLower] || `${letterLower}a`;
   
   const frames = [];
   
-  // Extended neutral start - helps user prepare
-  frames.push({ frame: 0, type: 'prepare', duration: 1.5 });
+  // Clone neutral frames for preparation (6 clones = ~2.4s at slow speed)
+  for (let i = 0; i < 6; i++) frames.push(0);
   
-  // Parse phoneme into individual sounds and create extended holds
+  // Parse phoneme and clone each frame for extended display
   for (let i = 0; i < phoneme.length; i++) {
     const char = phoneme[i];
     const frame = PHONEME_FRAME_MAP[char];
     if (frame !== undefined) {
-      // Transition IN to the phoneme position
-      frames.push({ frame, type: 'transition-in', duration: 0.5 });
-      // HOLD the position - this is the key learning moment
-      frames.push({ frame, type: 'hold', duration: 2.0 });
-      // Brief transition out before next sound
-      frames.push({ frame, type: 'transition-out', duration: 0.3 });
+      // Clone frame 8 times for longer hold (~3.2s at slow speed)
+      for (let j = 0; j < 8; j++) frames.push(frame);
     }
   }
   
-  // Return to neutral with smooth transition
-  frames.push({ frame: 0, type: 'return', duration: 1.0 });
+  // Clone neutral frames to return (4 clones)
+  for (let i = 0; i < 4; i++) frames.push(0);
   
   return frames;
 };
 
-// Convert text to frame sequence for words (TTS mode) - with extended holds for visual learning
+// Convert text to frame sequence using CLONING (NO FADING)
 const textToFrameSequence = (text) => {
   const frames = [];
   const lowerText = text.toLowerCase();
   
-  // Start with extended neutral - user gets ready
-  frames.push({ frame: 0, type: 'prepare', duration: 1.2 });
+  // Start with cloned neutral frames
+  for (let i = 0; i < 4; i++) frames.push(0);
   
-  let i = 0;
-  while (i < lowerText.length) {
-    // Check for digraphs first (ch, sh, th, etc.)
-    if (i + 1 < lowerText.length) {
-      const digraph = lowerText.slice(i, i + 2);
+  let idx = 0;
+  while (idx < lowerText.length) {
+    // Check for digraphs first
+    if (idx + 1 < lowerText.length) {
+      const digraph = lowerText.slice(idx, idx + 2);
       if (PHONEME_FRAME_MAP[digraph] !== undefined) {
         const frame = PHONEME_FRAME_MAP[digraph];
-        // Transition, hold, transition pattern for each sound
-        frames.push({ frame, type: 'transition-in', duration: 0.3 });
-        frames.push({ frame, type: 'hold', duration: 1.2 }); // Longer hold for visibility
-        frames.push({ frame, type: 'transition-out', duration: 0.2 });
-        i += 2;
+        // Clone frame 5 times for visibility
+        for (let j = 0; j < 5; j++) frames.push(frame);
+        idx += 2;
         continue;
       }
     }
     
-    const char = lowerText[i];
-    if (char === ' ') {
-      // Word break - longer neutral pause
-      frames.push({ frame: 0, type: 'word-break', duration: 0.8 });
-    } else if (char === ',' || char === '.') {
-      // Punctuation - sentence pause
-      frames.push({ frame: 0, type: 'pause', duration: 1.0 });
+    const char = lowerText[idx];
+    if (char === ' ' || char === ',' || char === '.') {
+      // Clone neutral for pauses
+      for (let j = 0; j < 3; j++) frames.push(0);
     } else if (PHONEME_FRAME_MAP[char] !== undefined) {
       const frame = PHONEME_FRAME_MAP[char];
-      // Each character gets transition-hold-transition
-      frames.push({ frame, type: 'transition-in', duration: 0.25 });
-      frames.push({ frame, type: 'hold', duration: 0.9 }); // Main visual hold
-      frames.push({ frame, type: 'transition-out', duration: 0.15 });
+      // Clone frame 4 times for each character
+      for (let j = 0; j < 4; j++) frames.push(frame);
     } else if (char.match(/[a-z]/)) {
-      // Unknown letters default to slight mouth opening
-      frames.push({ frame: 1, type: 'transition-in', duration: 0.25 });
-      frames.push({ frame: 1, type: 'hold', duration: 0.7 });
-      frames.push({ frame: 1, type: 'transition-out', duration: 0.15 });
+      // Unknown letters - use slight opening
+      for (let j = 0; j < 3; j++) frames.push(1);
     }
-    i++;
+    idx++;
   }
   
-  // End with neutral
-  frames.push({ frame: 0, type: 'end', duration: 1.0 });
+  // End with cloned neutral
+  for (let i = 0; i < 4; i++) frames.push(0);
   
   return frames;
 };
 
 export const DualHeadAnimation = forwardRef(({ 
   target = '', 
-  mode = 'letter', // 'letter' for Letter Practice (S3 audio), 'word' for Word Practice (TTS)
+  mode = 'letter',
   onAnimationComplete,
   showControls = true,
   autoPlay = false,
-  hideViewLabels = false, // Hide "FRONT VIEW" and "SIDE VIEW" labels
+  hideViewLabels = false,
 }, ref) => {
   const { language } = useLanguage();
   const [currentFrame, setCurrentFrame] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [frameSequence, setFrameSequence] = useState([]);
-  const [imagesLoaded, setImagesLoaded] = useState(false);
+  const [frameSequence, setFrameSequence] = useState([0]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [audioUrl, setAudioUrl] = useState(null);
   const [isLoadingAudio, setIsLoadingAudio] = useState(false);
   const [phonemeDisplay, setPhonemeDisplay] = useState('');
-  const [currentStepInfo, setCurrentStepInfo] = useState({ type: '', duration: 0 });
   const [animationSpeed, setAnimationSpeed] = useState(DEFAULT_SPEED);
-  const [progress, setProgress] = useState(0);
   const animationRef = useRef(null);
   const audioRef = useRef(null);
-  const startTimeRef = useRef(null);
 
   // Get current speed settings
   const speedSettings = SPEED_SETTINGS[animationSpeed];
 
-  // Preload images on mount
-  useEffect(() => {
-    preloadImages();
-    setImagesLoaded(true);
-  }, []);
-
-  // Update frame sequence and fetch audio when target changes
+  // Update frame sequence when target changes
   useEffect(() => {
     if (target) {
       if (mode === 'letter') {
         const sequence = generatePhonemeSequence(target);
         setFrameSequence(sequence);
-        setCurrentFrame(sequence[0]?.frame || 0);
+        setCurrentFrame(sequence[0]);
         setCurrentIndex(0);
-        setCurrentStepInfo(sequence[0] || { type: 'prepare', duration: 1 });
         
         const letterLower = target.toLowerCase();
         const phoneme = LETTER_PHONEME_MAP[letterLower] || `${letterLower}a`;
@@ -179,59 +133,44 @@ export const DualHeadAnimation = forwardRef(({
       } else {
         const sequence = textToFrameSequence(target);
         setFrameSequence(sequence);
-        setCurrentFrame(sequence[0]?.frame || 0);
+        setCurrentFrame(sequence[0]);
         setCurrentIndex(0);
-        setCurrentStepInfo(sequence[0] || { type: 'prepare', duration: 1 });
         setPhonemeDisplay(target);
         setAudioUrl(null);
       }
     }
   }, [target, mode, language]);
 
-  // Fetch S3 audio for letter
+  // Fetch letter audio
   const fetchLetterAudio = async (letter) => {
     setIsLoadingAudio(true);
     try {
-      const data = await getLetterAudio(letter, language);
-      if (data?.audio_url) {
-        setAudioUrl(data.audio_url);
-        // Preload the audio
-        const audio = new Audio(data.audio_url);
-        audio.preload = 'auto';
-      }
+      const url = await getLetterAudio(letter, language);
+      setAudioUrl(url);
     } catch (error) {
-      console.error('Error fetching letter audio:', error);
+      console.error('Error fetching audio:', error);
       setAudioUrl(null);
     } finally {
       setIsLoadingAudio(false);
     }
   };
 
-  // Play S3 audio
+  // Play audio
   const playAudio = useCallback(() => {
-    if (!audioEnabled || !audioUrl) return;
-    
-    try {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
-      }
-      audioRef.current = new Audio(audioUrl);
-      audioRef.current.play().catch(e => console.error('Audio play error:', e));
-    } catch (error) {
-      console.error('Error playing audio:', error);
+    if (audioUrl && audioEnabled && audioRef.current) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch(console.error);
     }
-  }, [audioEnabled, audioUrl]);
+  }, [audioUrl, audioEnabled]);
 
-  // Play TTS for word mode - with slower rate matching animation
+  // Play TTS for word mode
   const playTTS = useCallback(() => {
     if (!audioEnabled || mode !== 'word' || !target) return;
     
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(target);
-      // Adjust TTS rate based on animation speed
-      const rateMap = { slow: 0.35, normal: 0.5, fast: 0.7 };
+      const rateMap = { slow: 0.4, normal: 0.6, fast: 0.8 };
       utterance.rate = rateMap[animationSpeed] || 0.5;
       utterance.pitch = 1;
       
@@ -246,91 +185,64 @@ export const DualHeadAnimation = forwardRef(({
     }
   }, [audioEnabled, mode, target, language, animationSpeed]);
 
-  // NEW: Animation loop with timed frames
+  // Animation loop - simple frame stepping (NO FADING)
   const animate = useCallback(() => {
     setCurrentIndex(prevIndex => {
       const nextIndex = prevIndex + 1;
       if (nextIndex < frameSequence.length) {
-        const nextStep = frameSequence[nextIndex];
-        setCurrentFrame(nextStep.frame);
-        setCurrentStepInfo(nextStep);
-        
-        // Calculate duration based on step duration multiplied by speed factor
-        const baseDuration = nextStep.duration * speedSettings.frameDuration;
-        setProgress((nextIndex / (frameSequence.length - 1)) * 100);
-        
-        animationRef.current = setTimeout(() => animate(), baseDuration);
+        setCurrentFrame(frameSequence[nextIndex]);
+        animationRef.current = setTimeout(() => animate(), speedSettings.frameDuration);
         return nextIndex;
       } else {
         setIsPlaying(false);
-        setProgress(100);
+        // Auto-reset to beginning
+        setCurrentIndex(0);
+        setCurrentFrame(frameSequence[0] || 0);
         if (onAnimationComplete) onAnimationComplete();
-        return prevIndex;
+        return 0;
       }
     });
   }, [frameSequence, onAnimationComplete, speedSettings.frameDuration]);
 
-  // Play control - updated
+  // Play
   const play = useCallback(() => {
     if (isPlaying) return;
     
     setCurrentIndex(0);
-    setProgress(0);
-    if (frameSequence.length > 0) {
-      setCurrentFrame(frameSequence[0].frame);
-      setCurrentStepInfo(frameSequence[0]);
-    }
+    setCurrentFrame(frameSequence[0] || 0);
     setIsPlaying(true);
-    startTimeRef.current = Date.now();
     
-    // Play audio based on mode
     if (mode === 'letter') {
       playAudio();
     } else {
       playTTS();
     }
     
-    // Start animation after brief pause
-    const firstDuration = frameSequence[0]?.duration * speedSettings.frameDuration || 500;
-    animationRef.current = setTimeout(() => animate(), firstDuration);
+    animationRef.current = setTimeout(() => animate(), speedSettings.frameDuration);
   }, [isPlaying, frameSequence, mode, playAudio, playTTS, animate, speedSettings.frameDuration]);
 
-  // Pause control
+  // Pause
   const pause = useCallback(() => {
-    setIsPlaying(false);
     if (animationRef.current) {
       clearTimeout(animationRef.current);
-      animationRef.current = null;
     }
-    if (audioRef.current) {
-      audioRef.current.pause();
-    }
-    if (mode === 'word' && 'speechSynthesis' in window) {
+    setIsPlaying(false);
+    if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
     }
-  }, [mode]);
+  }, []);
 
-  // Reset control - updated
+  // Reset
   const reset = useCallback(() => {
     pause();
     setCurrentIndex(0);
-    setProgress(0);
-    if (frameSequence.length > 0) {
-      setCurrentFrame(frameSequence[0].frame || 0);
-      setCurrentStepInfo(frameSequence[0]);
-    } else {
-      setCurrentFrame(0);
-      setCurrentStepInfo({ type: '', duration: 0 });
-    }
+    setCurrentFrame(frameSequence[0] || 0);
   }, [pause, frameSequence]);
 
   // Toggle play/pause
   const togglePlay = useCallback(() => {
-    if (isPlaying) {
-      pause();
-    } else {
-      play();
-    }
+    if (isPlaying) pause();
+    else play();
   }, [isPlaying, play, pause]);
 
   // Toggle audio
@@ -338,7 +250,7 @@ export const DualHeadAnimation = forwardRef(({
     setAudioEnabled(prev => !prev);
   }, []);
 
-  // Cycle animation speed
+  // Cycle speed
   const cycleSpeed = useCallback(() => {
     const speeds = ['slow', 'normal', 'fast'];
     const currentIdx = speeds.indexOf(animationSpeed);
@@ -346,7 +258,7 @@ export const DualHeadAnimation = forwardRef(({
     setAnimationSpeed(speeds[nextIdx]);
   }, [animationSpeed]);
 
-  // Expose methods to parent - updated
+  // Expose methods to parent
   useImperativeHandle(ref, () => ({
     play,
     pause,
@@ -358,60 +270,40 @@ export const DualHeadAnimation = forwardRef(({
     getSpeed: () => animationSpeed,
   }));
 
-  // Auto-play if enabled
+  // Auto-play
   useEffect(() => {
-    if (autoPlay && target && imagesLoaded) {
-      const timer = setTimeout(play, 500);
+    if (autoPlay && target && frameSequence.length > 1 && !isPlaying) {
+      const timer = setTimeout(() => play(), 500);
       return () => clearTimeout(timer);
     }
-  }, [autoPlay, target, imagesLoaded, play]);
+  }, [autoPlay, target, frameSequence.length]);
 
-  // Cleanup on unmount
+  // Cleanup
   useEffect(() => {
     return () => {
-      if (animationRef.current) {
-        clearTimeout(animationRef.current);
-      }
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-      }
+      if (animationRef.current) clearTimeout(animationRef.current);
+      if (audioRef.current) audioRef.current.pause();
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
     };
   }, []);
 
-  // Handle slider change - updated for timed frames
+  // Slider change
   const handleSliderChange = (value) => {
     if (isPlaying) return;
     const frameIndex = Math.round((value[0] / 100) * (frameSequence.length - 1));
     setCurrentIndex(frameIndex);
-    if (frameSequence[frameIndex]) {
-      setCurrentFrame(frameSequence[frameIndex].frame);
-      setCurrentStepInfo(frameSequence[frameIndex]);
-    }
-    setProgress(value[0]);
+    setCurrentFrame(frameSequence[frameIndex] || 0);
   };
 
-  const sliderValue = [progress];
-
-  // Get step type display name
-  const getStepTypeName = (type) => {
-    const names = {
-      'prepare': 'Get Ready',
-      'transition-in': 'Moving',
-      'hold': 'HOLD THIS',
-      'transition-out': 'Transitioning',
-      'word-break': 'Pause',
-      'pause': 'Pause',
-      'return': 'Returning',
-      'end': 'Complete',
-    };
-    return names[type] || type;
-  };
+  const sliderValue = frameSequence.length > 1 
+    ? [(currentIndex / (frameSequence.length - 1)) * 100] 
+    : [0];
 
   return (
     <div data-testid="dual-head-animation" className="w-full">
+      {/* Hidden audio element */}
+      {audioUrl && <audio ref={audioRef} src={audioUrl} preload="auto" />}
+
       {/* Phoneme Display */}
       {phonemeDisplay && (
         <div className="text-center mb-4">
@@ -422,97 +314,50 @@ export const DualHeadAnimation = forwardRef(({
         </div>
       )}
 
-      {/* Step Indicator - Shows what's happening */}
-      {isPlaying && currentStepInfo.type && (
-        <div className={`text-center mb-3 py-2 px-4 rounded-lg mx-auto max-w-xs ${
-          currentStepInfo.type === 'hold' 
-            ? 'bg-green-500/30 border border-green-500/50' 
-            : 'bg-blue-500/20 border border-blue-500/30'
-        }`}>
-          <span className={`font-bold ${
-            currentStepInfo.type === 'hold' ? 'text-green-300 text-lg' : 'text-blue-300'
-          }`}>
-            {getStepTypeName(currentStepInfo.type)}
-          </span>
-        </div>
-      )}
-
-      {/* Dual Head Display */}
+      {/* Dual Head Display - NO FADING, just show/hide */}
       <div className="grid grid-cols-2 gap-4 md:gap-6">
-        {/* Front View (Master) */}
+        {/* Front View */}
         <div className="relative">
           {!hideViewLabels && (
             <div className="absolute top-2 left-2 z-10 px-2 py-1 bg-sky-600/90 text-white text-xs font-semibold rounded">
               FRONT VIEW
             </div>
           )}
-          {/* HOLD indicator overlay */}
-          {isPlaying && currentStepInfo.type === 'hold' && (
-            <div className="absolute inset-0 z-20 pointer-events-none">
-              <div className="absolute top-2 right-2 px-3 py-1 bg-green-500 text-white text-sm font-bold rounded-full animate-pulse">
-                HOLD
-              </div>
-              <div className="absolute inset-0 border-4 border-green-500/50 rounded-2xl"></div>
-            </div>
-          )}
           <div 
-            className="aspect-square bg-white rounded-2xl overflow-hidden border-2 border-slate-200 shadow-lg relative"
+            className="aspect-square bg-white rounded-2xl overflow-hidden border-2 border-slate-200 shadow-lg"
             data-testid="front-view-container"
           >
-            {Object.entries(SPRITE_URLS.front).map(([frame, url]) => (
-              <img
-                key={`front-${frame}`}
-                src={url}
-                alt={`Front view frame ${frame}`}
-                className="absolute inset-0 w-full h-full object-cover"
-                style={{ 
-                  opacity: parseInt(frame) === currentFrame ? 1 : 0,
-                  transition: `opacity ${speedSettings.transitionDuration}ms ease-in-out`,
-                  zIndex: parseInt(frame) === currentFrame ? 1 : 0,
-                }}
-                data-testid={parseInt(frame) === currentFrame ? "front-view-image" : undefined}
-              />
-            ))}
+            {/* Show ONLY the current frame - no stacking, no opacity transitions */}
+            <img
+              src={SPRITE_URLS.front[currentFrame] || SPRITE_URLS.front[0]}
+              alt={`Front view frame ${currentFrame}`}
+              className="w-full h-full object-cover"
+              data-testid="front-view-image"
+            />
           </div>
           <div className="absolute bottom-2 right-2 px-2 py-1 bg-black/50 text-white text-xs rounded">
             Frame: {currentFrame}
           </div>
         </div>
 
-        {/* Side View (Slave) */}
+        {/* Side View */}
         <div className="relative">
           {!hideViewLabels && (
             <div className="absolute top-2 left-2 z-10 px-2 py-1 bg-slate-600/90 text-white text-xs font-semibold rounded">
               SIDE VIEW
             </div>
           )}
-          {/* HOLD indicator overlay */}
-          {isPlaying && currentStepInfo.type === 'hold' && (
-            <div className="absolute inset-0 z-20 pointer-events-none">
-              <div className="absolute top-2 right-2 px-3 py-1 bg-green-500 text-white text-sm font-bold rounded-full animate-pulse">
-                HOLD
-              </div>
-              <div className="absolute inset-0 border-4 border-green-500/50 rounded-2xl"></div>
-            </div>
-          )}
           <div 
-            className="aspect-square bg-white rounded-2xl overflow-hidden border-2 border-slate-200 shadow-lg relative"
+            className="aspect-square bg-white rounded-2xl overflow-hidden border-2 border-slate-200 shadow-lg"
             data-testid="side-view-container"
           >
-            {Object.entries(SPRITE_URLS.side).map(([frame, url]) => (
-              <img
-                key={`side-${frame}`}
-                src={url}
-                alt={`Side view frame ${frame}`}
-                className="absolute inset-0 w-full h-full object-cover"
-                style={{ 
-                  opacity: parseInt(frame) === currentFrame ? 1 : 0,
-                  transition: `opacity ${speedSettings.transitionDuration}ms ease-in-out`,
-                  zIndex: parseInt(frame) === currentFrame ? 1 : 0,
-                }}
-                data-testid={parseInt(frame) === currentFrame ? "side-view-image" : undefined}
-              />
-            ))}
+            {/* Show ONLY the current frame - no stacking, no opacity transitions */}
+            <img
+              src={SPRITE_URLS.side[currentFrame] || SPRITE_URLS.side[0]}
+              alt={`Side view frame ${currentFrame}`}
+              className="w-full h-full object-cover"
+              data-testid="side-view-image"
+            />
           </div>
           <div className="absolute bottom-2 right-2 px-2 py-1 bg-black/50 text-white text-xs rounded">
             Frame: {currentFrame}
@@ -523,7 +368,6 @@ export const DualHeadAnimation = forwardRef(({
       {/* Controls */}
       {showControls && (
         <div className="mt-6 space-y-4">
-          {/* Play/Pause/Reset/Speed/Audio buttons */}
           <div className="flex items-center justify-center gap-3">
             <Button
               variant="outline"
@@ -542,14 +386,9 @@ export const DualHeadAnimation = forwardRef(({
               className="rounded-full w-14 h-14 bg-blue-600 hover:bg-blue-500 text-white shadow-lg"
               data-testid="play-pause-btn"
             >
-              {isPlaying ? (
-                <Pause className="w-6 h-6" />
-              ) : (
-                <Play className="w-6 h-6 ml-1" />
-              )}
+              {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6 ml-1" />}
             </Button>
 
-            {/* Speed control */}
             <Button
               variant="outline"
               size="sm"
@@ -560,7 +399,7 @@ export const DualHeadAnimation = forwardRef(({
                 'bg-white/10'
               }`}
               data-testid="speed-control-btn"
-              title="Change animation speed"
+              title="Change speed"
             >
               <Gauge className="w-4 h-4 mr-1" />
               <span className="text-xs font-medium">{SPEED_SETTINGS[animationSpeed].label}</span>
@@ -571,45 +410,30 @@ export const DualHeadAnimation = forwardRef(({
               size="icon"
               onClick={toggleAudio}
               className={`rounded-full w-10 h-10 border-blue-500/30 ${
-                audioEnabled 
-                  ? 'bg-blue-600/20 text-blue-300' 
-                  : 'bg-white/10 text-blue-400/50'
+                audioEnabled ? 'bg-blue-600/20 text-blue-300' : 'bg-white/10 text-blue-400/50'
               }`}
               data-testid="toggle-audio-btn"
-              title={audioEnabled ? 'Mute audio' : 'Enable audio'}
+              title={audioEnabled ? 'Mute' : 'Unmute'}
             >
-              {audioEnabled ? (
-                <Volume2 className="w-4 h-4" />
-              ) : (
-                <VolumeX className="w-4 h-4" />
-              )}
+              {audioEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
             </Button>
           </div>
 
-          {/* Status indicators */}
+          {/* Status */}
           <div className="flex justify-center gap-4 text-xs">
-            {mode === 'letter' && (
-              <span className="text-blue-400">
-                {isLoadingAudio ? 'Loading audio...' : 
-                 audioUrl ? (audioEnabled ? 'Audio ready' : 'Audio muted') : 
-                 'No audio'}
-              </span>
-            )}
-            {mode === 'word' && (
-              <span className="text-blue-400">
-                {audioEnabled ? 'TTS enabled' : 'Audio muted'}
-              </span>
-            )}
-            <span className="text-blue-400/70">|</span>
             <span className="text-blue-400">
-              Speed: {SPEED_SETTINGS[animationSpeed].label}
+              {mode === 'letter' 
+                ? (isLoadingAudio ? 'Loading...' : audioUrl ? 'Audio ready' : 'No audio')
+                : (audioEnabled ? 'TTS enabled' : 'Audio muted')}
             </span>
+            <span className="text-blue-400/70">|</span>
+            <span className="text-blue-400">Speed: {SPEED_SETTINGS[animationSpeed].label}</span>
           </div>
 
-          {/* Progress bar */}
+          {/* Scrubber */}
           <div className="px-4">
             <div className="flex items-center gap-4">
-              <span className="text-xs text-blue-400 w-8">0%</span>
+              <span className="text-xs text-blue-400 w-8">0</span>
               <Slider
                 value={sliderValue}
                 onValueChange={handleSliderChange}
@@ -619,10 +443,10 @@ export const DualHeadAnimation = forwardRef(({
                 className="flex-1"
                 data-testid="frame-scrubber"
               />
-              <span className="text-xs text-blue-400 w-8 text-right">100%</span>
+              <span className="text-xs text-blue-400 w-8 text-right">{frameSequence.length - 1}</span>
             </div>
             <p className="text-center text-xs text-blue-400 mt-2">
-              Step {currentIndex + 1} of {frameSequence.length} • Frame {currentFrame}
+              Frame {currentIndex + 1} of {frameSequence.length}
             </p>
           </div>
         </div>
