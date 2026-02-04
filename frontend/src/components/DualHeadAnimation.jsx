@@ -491,6 +491,7 @@ export const DualHeadAnimation = forwardRef(({
               src={SPRITE_URLS.side[currentFrame] || SPRITE_URLS.side[0]}
               alt={`Side view frame ${currentFrame}`}
               className="w-full h-full object-cover"
+              style={{ transform: 'scale(1.5)', transformOrigin: 'center center' }}
               data-testid="side-view-image"
             />
           </div>
