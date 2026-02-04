@@ -1,4 +1,26 @@
-import { ROMANIZATION_MAP } from './constants';
+import { ROMANIZATION_MAP, LETTER_ROMANIZATION } from './constants';
+
+/**
+ * Transliterate a single letter
+ * @param {string} letter - The letter to transliterate
+ * @param {string} language - Language code
+ * @returns {string} Romanized letter
+ */
+export function transliterateLetter(letter, language) {
+  const langMap = {
+    'japanese': 'japanese',
+    'chinese': 'chinese',
+    'hindi': 'hindi',
+    'arabic': 'arabic'
+  };
+  
+  const lang = langMap[language];
+  if (!lang || !LETTER_ROMANIZATION[lang]) {
+    return letter; // No transliteration needed
+  }
+  
+  return LETTER_ROMANIZATION[lang][letter] || letter;
+}
 
 // Phoneme Rules Map for 10 Languages
 // Maps letter combinations (graphemes) to phonemes for correct sprite sequencing
