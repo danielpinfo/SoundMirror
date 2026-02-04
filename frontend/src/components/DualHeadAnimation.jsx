@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, forwardRef, useImperativeHandle } from 'react';
 import { SPRITE_URLS, PHONEME_FRAME_MAP } from '../lib/constants';
+import { parseWordWithRules } from '../lib/phonemeRules';
 import { getLetterAudio } from '../lib/audio';
 import { useLanguage } from '../context/LanguageContext';
 import { Slider } from '../components/ui/slider';
