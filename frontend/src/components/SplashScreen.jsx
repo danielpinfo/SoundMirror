@@ -71,7 +71,7 @@ export const SplashScreen = ({ onComplete }) => {
         }}
       />
       
-      {/* 6 Concentric Ripples - spawn at 286ms intervals, multiple visible simultaneously */}
+      {/* 6 SEPARATE Ripple Rings - each is an independent object spawning at 286ms intervals */}
       <div 
         className="absolute"
         style={{
@@ -80,35 +80,128 @@ export const SplashScreen = ({ onComplete }) => {
           transform: 'translate(-50%, -50%) perspective(800px) rotateX(80deg)',
           transformOrigin: 'center center',
           pointerEvents: 'none',
+          visibility: phase === 'ripple' || phase === 'logo' || phase === 'hold' ? 'visible' : 'hidden',
         }}
       >
-        {[...Array(RIPPLE_COUNT)].map((_, i) => (
-          <div 
-            key={i}
-            className={`absolute rounded-full ${
-              phase === 'ripple' || phase === 'logo' || phase === 'hold' ? 'opacity-100' : 'opacity-0'
-            }`}
-            style={{
-              // Start from exact center pinpoint
-              width: '10px',
-              height: '10px',
-              left: '50%',
-              top: '50%',
-              marginLeft: '-5px',
-              marginTop: '-5px',
-              // Soft-edged ring with subtle glow - dark gray with faint blue highlights
-              border: '3px solid rgba(100, 120, 150, 0.8)',
-              boxShadow: '0 0 20px rgba(59, 130, 246, 0.4), inset 0 0 10px rgba(100, 120, 150, 0.3)',
-              animation: (phase === 'ripple' || phase === 'logo' || phase === 'hold') 
-                ? 'rippleWave 3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards' 
-                : 'none',
-              // Spawn at exact 286ms intervals
-              animationDelay: `${i * RIPPLE_SPAWN_INTERVAL}s`,
-              // Z-index layering: earlier rings on top
-              zIndex: RIPPLE_COUNT - i,
-            }}
-          />
-        ))}
+        {/* Ring 1 - spawns at t=2.000s */}
+        <div 
+          className="absolute rounded-full"
+          style={{
+            width: '10px',
+            height: '10px',
+            left: '50%',
+            top: '50%',
+            marginLeft: '-5px',
+            marginTop: '-5px',
+            border: '3px solid rgba(100, 120, 150, 0.9)',
+            boxShadow: '0 0 20px rgba(59, 130, 246, 0.4)',
+            animation: (phase === 'ripple' || phase === 'logo' || phase === 'hold') 
+              ? 'rippleWave1 3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards' 
+              : 'none',
+            animationDelay: '0s',
+            zIndex: 6,
+          }}
+        />
+        
+        {/* Ring 2 - spawns at t=2.286s */}
+        <div 
+          className="absolute rounded-full"
+          style={{
+            width: '10px',
+            height: '10px',
+            left: '50%',
+            top: '50%',
+            marginLeft: '-5px',
+            marginTop: '-5px',
+            border: '3px solid rgba(100, 120, 150, 0.9)',
+            boxShadow: '0 0 20px rgba(59, 130, 246, 0.4)',
+            animation: (phase === 'ripple' || phase === 'logo' || phase === 'hold') 
+              ? 'rippleWave2 3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards' 
+              : 'none',
+            animationDelay: '0.286s',
+            zIndex: 5,
+          }}
+        />
+        
+        {/* Ring 3 - spawns at t=2.572s */}
+        <div 
+          className="absolute rounded-full"
+          style={{
+            width: '10px',
+            height: '10px',
+            left: '50%',
+            top: '50%',
+            marginLeft: '-5px',
+            marginTop: '-5px',
+            border: '3px solid rgba(100, 120, 150, 0.9)',
+            boxShadow: '0 0 20px rgba(59, 130, 246, 0.4)',
+            animation: (phase === 'ripple' || phase === 'logo' || phase === 'hold') 
+              ? 'rippleWave3 3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards' 
+              : 'none',
+            animationDelay: '0.572s',
+            zIndex: 4,
+          }}
+        />
+        
+        {/* Ring 4 - spawns at t=2.858s */}
+        <div 
+          className="absolute rounded-full"
+          style={{
+            width: '10px',
+            height: '10px',
+            left: '50%',
+            top: '50%',
+            marginLeft: '-5px',
+            marginTop: '-5px',
+            border: '3px solid rgba(100, 120, 150, 0.9)',
+            boxShadow: '0 0 20px rgba(59, 130, 246, 0.4)',
+            animation: (phase === 'ripple' || phase === 'logo' || phase === 'hold') 
+              ? 'rippleWave4 3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards' 
+              : 'none',
+            animationDelay: '0.858s',
+            zIndex: 3,
+          }}
+        />
+        
+        {/* Ring 5 - spawns at t=3.144s */}
+        <div 
+          className="absolute rounded-full"
+          style={{
+            width: '10px',
+            height: '10px',
+            left: '50%',
+            top: '50%',
+            marginLeft: '-5px',
+            marginTop: '-5px',
+            border: '3px solid rgba(100, 120, 150, 0.9)',
+            boxShadow: '0 0 20px rgba(59, 130, 246, 0.4)',
+            animation: (phase === 'ripple' || phase === 'logo' || phase === 'hold') 
+              ? 'rippleWave5 3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards' 
+              : 'none',
+            animationDelay: '1.144s',
+            zIndex: 2,
+          }}
+        />
+        
+        {/* Ring 6 - spawns at t=3.430s */}
+        <div 
+          className="absolute rounded-full"
+          style={{
+            width: '10px',
+            height: '10px',
+            left: '50%',
+            top: '50%',
+            marginLeft: '-5px',
+            marginTop: '-5px',
+            border: '3px solid rgba(100, 120, 150, 0.9)',
+            boxShadow: '0 0 20px rgba(59, 130, 246, 0.4)',
+            animation: (phase === 'ripple' || phase === 'logo' || phase === 'hold') 
+              ? 'rippleWave6 3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards' 
+              : 'none',
+            animationDelay: '1.430s',
+            zIndex: 1,
+          }}
+        />
       </div>
       
       {/* Logo - fades in at t=3s, holds through end */}
