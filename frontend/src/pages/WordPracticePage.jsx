@@ -237,7 +237,7 @@ export default function WordPracticePage() {
 
         {/* Recording Panel and Keyboard - Side by Side */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Recording Panel - Camera and Audio enabled for grading */}
+          {/* Recording Panel - Camera, Mouth Tracking, and Grading all enabled */}
           <div className="bg-cobalt-surface rounded-2xl border border-blue-500/20 shadow-sm p-5">
             <h3 className="text-lg font-semibold text-white mb-4">Your Practice</h3>
             {practiceWord ? (
@@ -246,6 +246,7 @@ export default function WordPracticePage() {
                 language={language}
                 onGradingComplete={handleGradingComplete}
                 autoEnableCamera={true}
+                autoEnableMouthTracking={true}
               />
             ) : (
               <div className="aspect-video bg-[#0a1628] rounded-xl flex items-center justify-center border border-blue-500/20">
