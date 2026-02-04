@@ -6,7 +6,7 @@ import { Slider } from '../components/ui/slider';
 import { Button } from '../components/ui/button';
 import { Play, Pause, RotateCcw, Volume2, VolumeX, Gauge } from 'lucide-react';
 
-// Animation speed settings - frame duration in ms
+// Animation speed settings - controls ANIMATION ONLY, not audio
 const SPEED_SETTINGS = {
   slow: { frameDuration: 400, label: 'Slow' },
   normal: { frameDuration: 250, label: 'Normal' },
@@ -21,6 +21,96 @@ const LETTER_PHONEME_MAP = {
   'o': 'oh', 'p': 'pa', 'q': 'ka', 'r': 'ra', 's': 'sa', 't': 'ta', 'u': 'oo',
   'v': 'va', 'w': 'wa', 'x': 'za', 'y': 'ya', 'z': 'za',
   'ch': 'cha', 'sh': 'sha', 'th': 'tha',
+};
+
+// Special character combinations that should be treated as single sounds
+// These are processed BEFORE regular character handling
+const SPECIAL_COMBINATIONS = {
+  // Double letters - animate as single
+  'll': 'l',
+  'ss': 's',
+  'tt': 't',
+  'ff': 'f',
+  'pp': 'p',
+  'bb': 'b',
+  'dd': 'd',
+  'gg': 'g',
+  'mm': 'm',
+  'nn': 'n',
+  'rr': 'r',
+  'cc': 'k',
+  'zz': 'z',
+  // Digraphs (two letters = one sound)
+  'ch': 'ch',
+  'sh': 'sh',
+  'th': 'th',
+  'ph': 'f',
+  'wh': 'w',
+  'ck': 'k',
+  'ng': 'n',
+  'qu': 'kw',
+  // Silent letter combinations
+  'ght': 't',
+  'kn': 'n',
+  'wr': 'r',
+  'gn': 'n',
+  'mb': 'm',
+  // Vowel combinations
+  'ee': 'ee',
+  'oo': 'oo',
+  'ea': 'ee',
+  'ai': 'eh',
+  'ay': 'eh',
+  'oa': 'oh',
+  'ou': 'ow',
+  'ow': 'oh',
+  'ie': 'ee',
+  'ey': 'eh',
+};
+
+// Convert text to phonetic representation
+const textToPhonetic = (text) => {
+  const lowerText = text.toLowerCase();
+  const phonemes = [];
+  
+  let idx = 0;
+  while (idx < lowerText.length) {
+    let matched = false;
+    
+    // Check for 3-letter combinations first
+    if (idx + 2 < lowerText.length) {
+      const trigraph = lowerText.slice(idx, idx + 3);
+      if (SPECIAL_COMBINATIONS[trigraph]) {
+        phonemes.push(SPECIAL_COMBINATIONS[trigraph]);
+        idx += 3;
+        matched = true;
+        continue;
+      }
+    }
+    
+    // Check for 2-letter combinations
+    if (idx + 1 < lowerText.length) {
+      const digraph = lowerText.slice(idx, idx + 2);
+      if (SPECIAL_COMBINATIONS[digraph]) {
+        phonemes.push(SPECIAL_COMBINATIONS[digraph]);
+        idx += 2;
+        matched = true;
+        continue;
+      }
+    }
+    
+    const char = lowerText[idx];
+    if (char === ' ') {
+      phonemes.push(' ');
+    } else if (char === ',' || char === '.') {
+      phonemes.push(char);
+    } else if (char.match(/[a-z]/)) {
+      phonemes.push(char);
+    }
+    idx++;
+  }
+  
+  return phonemes.join('');
 };
 
 // Generate frame sequence using CLONING for duration
@@ -48,7 +138,7 @@ const generatePhonemeSequence = (letter) => {
   return frames;
 };
 
-// Convert text to frame sequence using CLONING
+// Convert text to frame sequence with special character handling
 const textToFrameSequence = (text) => {
   const frames = [];
   const lowerText = text.toLowerCase();
@@ -58,13 +148,40 @@ const textToFrameSequence = (text) => {
   
   let idx = 0;
   while (idx < lowerText.length) {
-    // Check for digraphs first
+    let matched = false;
+    
+    // Check for 3-letter combinations first (ght, etc.)
+    if (idx + 2 < lowerText.length) {
+      const trigraph = lowerText.slice(idx, idx + 3);
+      if (SPECIAL_COMBINATIONS[trigraph]) {
+        const sound = SPECIAL_COMBINATIONS[trigraph];
+        // Get frames for each character in the sound
+        for (let s = 0; s < sound.length; s++) {
+          const frame = PHONEME_FRAME_MAP[sound[s]];
+          if (frame !== undefined) {
+            for (let j = 0; j < 4; j++) frames.push(frame);
+          }
+        }
+        idx += 3;
+        matched = true;
+        continue;
+      }
+    }
+    
+    // Check for 2-letter combinations (ll, ch, sh, etc.)
     if (idx + 1 < lowerText.length) {
       const digraph = lowerText.slice(idx, idx + 2);
-      if (PHONEME_FRAME_MAP[digraph] !== undefined) {
-        const frame = PHONEME_FRAME_MAP[digraph];
-        for (let j = 0; j < 5; j++) frames.push(frame);
+      if (SPECIAL_COMBINATIONS[digraph]) {
+        const sound = SPECIAL_COMBINATIONS[digraph];
+        // Get frames for each character in the sound
+        for (let s = 0; s < sound.length; s++) {
+          const frame = PHONEME_FRAME_MAP[sound[s]];
+          if (frame !== undefined) {
+            for (let j = 0; j < 4; j++) frames.push(frame);
+          }
+        }
         idx += 2;
+        matched = true;
         continue;
       }
     }
@@ -104,16 +221,16 @@ export const DualHeadAnimation = forwardRef(({
   const [audioUrl, setAudioUrl] = useState(null);
   const [isLoadingAudio, setIsLoadingAudio] = useState(false);
   const [phonemeDisplay, setPhonemeDisplay] = useState('');
+  const [phoneticDisplay, setPhoneticDisplay] = useState('');
   const [animationSpeed, setAnimationSpeed] = useState(DEFAULT_SPEED);
   const animationRef = useRef(null);
   const audioRef = useRef(null);
-  const isPlayingRef = useRef(false); // Track playing state without re-render
+  const isPlayingRef = useRef(false);
 
   const speedSettings = SPEED_SETTINGS[animationSpeed];
 
   // Update frame sequence when target changes
   useEffect(() => {
-    // Stop any running animation when target changes
     stopAnimation();
     
     if (target) {
@@ -122,11 +239,13 @@ export const DualHeadAnimation = forwardRef(({
         sequence = generatePhonemeSequence(target);
         const letterLower = target.toLowerCase();
         const phoneme = LETTER_PHONEME_MAP[letterLower] || `${letterLower}a`;
-        setPhonemeDisplay(phoneme);
+        setPhonemeDisplay(target.toUpperCase());
+        setPhoneticDisplay(phoneme);
         fetchLetterAudio(target);
       } else {
         sequence = textToFrameSequence(target);
         setPhonemeDisplay(target);
+        setPhoneticDisplay(textToPhonetic(target));
         setAudioUrl(null);
       }
       setFrameSequence(sequence);
@@ -159,23 +278,23 @@ export const DualHeadAnimation = forwardRef(({
     }
   };
 
-  // Play audio
+  // Play audio - ALWAYS at slow speed regardless of animation speed
   const playAudio = useCallback(() => {
     if (audioUrl && audioEnabled && audioRef.current) {
       audioRef.current.currentTime = 0;
+      audioRef.current.playbackRate = 1.0; // Always normal audio speed
       audioRef.current.play().catch(console.error);
     }
   }, [audioUrl, audioEnabled]);
 
-  // Play TTS
+  // Play TTS - ALWAYS at slow speed regardless of animation speed
   const playTTS = useCallback(() => {
     if (!audioEnabled || mode !== 'word' || !target) return;
     
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(target);
-      const rateMap = { slow: 0.4, normal: 0.6, fast: 0.8 };
-      utterance.rate = rateMap[animationSpeed] || 0.5;
+      utterance.rate = 0.4; // ALWAYS slow for audio, regardless of animation speed
       utterance.pitch = 1;
       
       const langMap = {
@@ -187,22 +306,20 @@ export const DualHeadAnimation = forwardRef(({
       
       window.speechSynthesis.speak(utterance);
     }
-  }, [audioEnabled, mode, target, language, animationSpeed]);
+  }, [audioEnabled, mode, target, language]);
 
   // Run animation step
   const runAnimationStep = useCallback((index, sequence, duration) => {
-    if (!isPlayingRef.current) return; // Check ref to prevent stale closure
+    if (!isPlayingRef.current) return;
     
     if (index < sequence.length) {
       setCurrentIndex(index);
       setCurrentFrame(sequence[index]);
       
-      // Schedule next frame
       animationRef.current = setTimeout(() => {
         runAnimationStep(index + 1, sequence, duration);
       }, duration);
     } else {
-      // Animation complete
       stopAnimation();
       setCurrentIndex(0);
       setCurrentFrame(sequence[0] || 0);
@@ -227,7 +344,6 @@ export const DualHeadAnimation = forwardRef(({
       playTTS();
     }
     
-    // Start animation
     animationRef.current = setTimeout(() => {
       runAnimationStep(1, frameSequence, speedSettings.frameDuration);
     }, speedSettings.frameDuration);
@@ -262,7 +378,7 @@ export const DualHeadAnimation = forwardRef(({
     setAudioEnabled(prev => !prev);
   }, []);
 
-  // Cycle speed
+  // Cycle speed - controls ANIMATION ONLY
   const cycleSpeed = useCallback(() => {
     const speeds = ['slow', 'normal', 'fast'];
     const currentIdx = speeds.indexOf(animationSpeed);
@@ -315,12 +431,24 @@ export const DualHeadAnimation = forwardRef(({
     <div data-testid="dual-head-animation" className="w-full">
       {audioUrl && <audio ref={audioRef} src={audioUrl} preload="auto" />}
 
+      {/* Word/Phrase Display with Phonetic */}
       {phonemeDisplay && (
         <div className="text-center mb-4">
-          <span className="text-sm text-blue-400 uppercase tracking-wider">
-            {mode === 'letter' ? 'Phoneme: ' : 'Word: '}
-          </span>
-          <span className="text-2xl font-bold text-white ml-2">{phonemeDisplay}</span>
+          <div className="flex items-center justify-center gap-4 flex-wrap">
+            <div>
+              <span className="text-xs text-blue-400 uppercase tracking-wider block mb-1">
+                {mode === 'letter' ? 'Letter' : 'Word/Phrase'}
+              </span>
+              <span className="text-2xl font-bold text-white">{phonemeDisplay}</span>
+            </div>
+            <div className="text-blue-400/50 text-2xl">|</div>
+            <div>
+              <span className="text-xs text-green-400 uppercase tracking-wider block mb-1">
+                Phonetic
+              </span>
+              <span className="text-2xl font-bold text-green-300 font-mono">{phoneticDisplay}</span>
+            </div>
+          </div>
         </div>
       )}
 
@@ -405,7 +533,7 @@ export const DualHeadAnimation = forwardRef(({
                 'bg-white/10'
               }`}
               data-testid="speed-control-btn"
-              title="Change speed"
+              title="Animation speed (audio always slow)"
             >
               <Gauge className="w-4 h-4 mr-1" />
               <span className="text-xs font-medium">{SPEED_SETTINGS[animationSpeed].label}</span>
@@ -432,7 +560,9 @@ export const DualHeadAnimation = forwardRef(({
                 : (audioEnabled ? 'TTS enabled' : 'Audio muted')}
             </span>
             <span className="text-blue-400/70">|</span>
-            <span className="text-blue-400">Speed: {SPEED_SETTINGS[animationSpeed].label}</span>
+            <span className="text-blue-400">Animation: {SPEED_SETTINGS[animationSpeed].label}</span>
+            <span className="text-blue-400/70">|</span>
+            <span className="text-green-400">Audio: Always Slow</span>
           </div>
 
           <div className="px-4">
