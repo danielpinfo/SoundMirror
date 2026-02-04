@@ -11,10 +11,10 @@ export const SplashScreen = ({ onComplete }) => {
 
   useEffect(() => {
     // Phase timing for 7 second total duration (6s animation + 1s fade)
-    // Phase 1 (0-2s): Raindrop falling (no splash effect)
+    // Phase 1 (0-2s): Raindrop falling
     const rippleTimer = setTimeout(() => setPhase('ripple'), 2000);
     
-    // Phase 2 (2-4s): Concentric ripples spreading (flatter angle, more rings)
+    // Phase 2 (2-4s): Concentric ripples spreading
     const logoTimer = setTimeout(() => setPhase('logo'), 4000);
     
     // Phase 3 (4-6s): Logo fading in
@@ -36,6 +36,9 @@ export const SplashScreen = ({ onComplete }) => {
 
   if (!show) return null;
 
+  // 7 rings total for ripple effect
+  const ringCount = 7;
+
   return (
     <div 
       data-testid="splash-screen"
@@ -46,62 +49,56 @@ export const SplashScreen = ({ onComplete }) => {
         opacity: phase === 'fade' ? 0 : 1,
       }}
     >
-      {/* Silver Water Drop - Phase 1: First 2 seconds (NO splash on impact) */}
+      {/* Silver Water Drop - HALF SIZE (15x25px instead of 30x50px) */}
       <div 
-        className={`absolute transition-all ${
-          phase === 'drop' ? 'opacity-100' : 'opacity-0'
-        }`}
+        className={`absolute ${phase === 'drop' ? 'opacity-100' : 'opacity-0'}`}
         style={{
-          width: '30px',
-          height: '50px',
+          width: '15px',
+          height: '25px',
           background: 'linear-gradient(180deg, rgba(255,255,255,0.2) 0%, #c0c0c0 20%, #e8e8e8 40%, #a8a8a8 70%, #808080 100%)',
           borderRadius: '40% 40% 50% 50% / 30% 30% 70% 70%',
           top: '50%',
           left: '50%',
-          marginLeft: '-15px',
-          marginTop: '-25px',
-          boxShadow: '0 0 30px rgba(192, 192, 192, 0.5), inset 0 -10px 20px rgba(128, 128, 128, 0.4), inset 5px 0 15px rgba(255, 255, 255, 0.3)',
+          marginLeft: '-7.5px',
+          marginTop: '-12.5px',
+          boxShadow: '0 0 15px rgba(192, 192, 192, 0.4), inset 0 -5px 10px rgba(128, 128, 128, 0.4), inset 2px 0 8px rgba(255, 255, 255, 0.3)',
           animation: phase === 'drop' ? 'dropFall 2s cubic-bezier(0.55, 0, 1, 0.45) forwards' : 'none',
+          transition: 'opacity 0.3s ease-out',
         }}
       />
       
-      {/* Concentric Ripples - Phase 2: 2-4 seconds 
-          90 degree angle (flat, like looking down at water) 
-          12 total rings (6 more than before) */}
+      {/* 7 Concentric Ripples - like ripples in a pond */}
       <div 
         className="absolute"
         style={{
           top: '50%',
           left: '50%',
-          // 90 degree rotation = completely flat/horizontal perspective
           transform: 'translate(-50%, -30%) perspective(800px) rotateX(80deg)',
           transformOrigin: 'center center',
         }}
       >
-        {/* Generate 12 ripple rings */}
-        {[...Array(12)].map((_, i) => (
+        {[...Array(ringCount)].map((_, i) => (
           <div 
             key={i}
             className={`absolute rounded-full ${
               phase === 'ripple' || phase === 'logo' || phase === 'fade' ? 'opacity-100' : 'opacity-0'
             }`}
             style={{
-              width: '50px',
-              height: '50px',
-              marginLeft: '-25px',
-              marginTop: '-25px',
-              border: `${Math.max(1, 3 - Math.floor(i / 4))}px solid rgba(255, 255, 255, ${0.95 - (i * 0.07)})`,
+              width: '40px',
+              height: '40px',
+              marginLeft: '-20px',
+              marginTop: '-20px',
+              border: `2px solid rgba(255, 255, 255, ${1 - (i * 0.12)})`,
               animation: (phase === 'ripple' || phase === 'logo' || phase === 'fade') 
                 ? 'rippleExpand 2.5s ease-out forwards' 
                 : 'none',
-              animationDelay: `${i * 0.15}s`,
+              animationDelay: `${i * 0.25}s`,
             }}
           />
         ))}
       </div>
       
-      {/* Logo - Phase 3: 4-6 seconds (fades from 0% to 100% opacity)
-          Background blends with water color */}
+      {/* Logo - NO drop-shadow/backlight effect */}
       <div 
         className={`relative z-10 text-center ${
           phase === 'logo' || phase === 'fade' ? 'opacity-100' : 'opacity-0'
@@ -114,21 +111,18 @@ export const SplashScreen = ({ onComplete }) => {
           style={{
             background: WATER_COLOR,
             padding: '20px 40px',
-            borderRadius: '8px',
           }}
         >
           <img 
             src={LOGO_URL}
             alt="SoundMirror"
             className="h-32 md:h-40 mx-auto"
-            style={{
-              filter: 'drop-shadow(0 0 50px rgba(192, 192, 192, 0.4))',
-            }}
+            // NO filter/drop-shadow - clean logo without backlight
           />
         </div>
       </div>
       
-      {/* Custom keyframe styles */}
+      {/* Keyframe animations */}
       <style jsx>{`
         @keyframes dropFall {
           0% {
@@ -161,10 +155,10 @@ export const SplashScreen = ({ onComplete }) => {
             opacity: 1;
           }
           100% {
-            width: 800px;
-            height: 800px;
-            margin-left: -400px;
-            margin-top: -400px;
+            width: 700px;
+            height: 700px;
+            margin-left: -350px;
+            margin-top: -350px;
             opacity: 0;
           }
         }
