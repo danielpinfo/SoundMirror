@@ -178,3 +178,5 @@ export const SplashScreen = ({ onComplete }) => {
     </div>
   );
 };
+
+export default SplashScreen;
