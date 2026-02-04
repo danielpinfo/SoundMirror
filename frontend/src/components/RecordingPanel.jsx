@@ -458,20 +458,31 @@ export const RecordingPanel = ({
           className="w-full h-full object-cover"
         />
 
-        {/* Camera not active - show start button */}
+        {/* Large "Begin Practice" button overlay when not active */}
         {!isCameraActive && !isCameraLoading && !cameraError && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/95 gap-4">
             <p className="text-white text-sm">
-              Practice: <span className="font-bold text-blue-400">{target}</span>
+              Say: <span className="font-bold text-blue-400">{target}</span>
             </p>
-            <Button
-              onClick={startCamera}
-              className="w-20 h-20 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg"
-              data-testid="start-camera-btn"
-            >
-              <Video className="h-10 w-10" />
-            </Button>
-            <p className="text-slate-400 text-xs">Tap to start camera</p>
+            {isGrading ? (
+              <div className="flex flex-col items-center gap-2">
+                <div className="w-24 h-24 rounded-full bg-blue-100 flex items-center justify-center">
+                  <Loader2 className="h-12 w-12 text-blue-600 animate-spin" />
+                </div>
+                <p className="text-slate-300 text-sm">Analyzing your pronunciation...</p>
+              </div>
+            ) : (
+              <>
+                <Button
+                  onClick={startCameraAndRecord}
+                  className="w-24 h-24 rounded-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 shadow-lg hover:shadow-xl transition-all"
+                  data-testid="begin-practice-btn"
+                >
+                  <Mic className="h-12 w-12" />
+                </Button>
+                <p className="text-slate-400 text-xs">Tap to begin practice</p>
+              </>
+            )}
           </div>
         )}
 
@@ -480,7 +491,7 @@ export const RecordingPanel = ({
           <div className="absolute inset-0 flex items-center justify-center bg-slate-900/90">
             <div className="text-center space-y-2">
               <Loader2 className="h-10 w-10 text-blue-500 animate-spin mx-auto" />
-              <p className="text-white text-sm">Starting camera...</p>
+              <p className="text-white text-sm">Starting recording...</p>
             </div>
           </div>
         )}
@@ -491,7 +502,7 @@ export const RecordingPanel = ({
             <div className="text-center space-y-3 p-4 max-w-xs">
               <AlertCircle className="h-10 w-10 text-white mx-auto" />
               <p className="text-white text-sm">{cameraError}</p>
-              <Button onClick={startCamera} variant="outline" size="sm">
+              <Button onClick={startCameraAndRecord} variant="outline" size="sm">
                 Try Again
               </Button>
             </div>
@@ -505,49 +516,21 @@ export const RecordingPanel = ({
           </div>
         )}
 
-        {/* Grading in progress */}
-        {isGrading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-slate-900/90">
-            <div className="text-center space-y-2">
-              <Loader2 className="h-10 w-10 text-blue-500 animate-spin mx-auto" />
-              <p className="text-white text-sm">Analyzing your pronunciation...</p>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Controls */}
-      {isCameraActive && (
-        <div className="flex justify-center gap-3">
-          {!isRecording ? (
+        {/* Stop button on left side when recording */}
+        {isCameraActive && isRecording && (
+          <div className="absolute inset-y-0 left-4 flex items-center z-20">
             <Button
-              onClick={startRecording}
-              className="rounded-full w-16 h-16 bg-red-500 hover:bg-red-600 shadow-lg"
-              data-testid="start-recording-btn"
-            >
-              <Mic className="h-8 w-8" />
-            </Button>
-          ) : (
-            <Button
-              onClick={stopRecording}
-              className="rounded-full w-16 h-16 bg-red-600 hover:bg-red-700 shadow-lg animate-pulse"
+              onClick={stopCameraAndRecording}
+              className="w-16 h-16 rounded-full bg-red-500 hover:bg-red-600 animate-pulse shadow-lg"
               data-testid="stop-recording-btn"
             >
               <Square className="h-8 w-8" />
             </Button>
-          )}
-          
-          <Button
-            onClick={stopCamera}
-            variant="outline"
-            className="rounded-full px-4 text-slate-300 border-slate-500"
-            data-testid="stop-camera-btn"
-          >
-            Stop Camera
-          </Button>
-        </div>
-      )}
+          </div>
+        )}
+      </div>
 
+      {/* No separate camera controls needed - all in one button */}
       {/* Grading Results */}
       {grading && !isGrading && (
         <Card className="bg-slate-800 border-slate-600">
