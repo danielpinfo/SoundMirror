@@ -2,34 +2,38 @@ import React, { useEffect, useState } from 'react';
 
 const LOGO_URL = '/assets/LOGO.png';
 
-// Water/background color matching the logo background for seamless fade
+// Water/background color - matte black with subtle reflective sheen
 const WATER_COLOR = '#0a0a0a';
 
+// Ripple configuration - exactly 6 rings spawning at 286ms intervals
+const RIPPLE_COUNT = 6;
+const RIPPLE_SPAWN_INTERVAL = 0.286; // seconds
+
 export const SplashScreen = ({ onComplete }) => {
-  const [phase, setPhase] = useState('drop'); // 'drop', 'ripple', 'logo', 'fade'
+  const [phase, setPhase] = useState('drop'); // 'drop', 'ripple', 'logo', 'hold', 'fade'
   const [show, setShow] = useState(true);
 
   useEffect(() => {
-    // Phase timing
-    // Phase 1 (0-2s): Raindrop falling
+    // PHASE 1: Droplet fall (0s → 2s)
     const rippleTimer = setTimeout(() => setPhase('ripple'), 2000);
     
-    // Phase 2 (2-3.7s): 7 ripples expanding (286ms apart, last one starts at ~3.7s)
-    // Logo starts fading in at 5th ripple (around 3.14s)
-    const logoTimer = setTimeout(() => setPhase('logo'), 3140);
+    // PHASE 3: Logo fade-in (3s → 5s)
+    const logoTimer = setTimeout(() => setPhase('logo'), 3000);
     
-    // Phase 3 (3.14-5.14s): Logo visible for 2 full seconds
-    const fadeTimer = setTimeout(() => setPhase('fade'), 5140);
+    // PHASE 4: Hold (5s → 8s)
+    const holdTimer = setTimeout(() => setPhase('hold'), 5000);
     
-    // Phase 4 (5.14-6.14s): Fade to home page
+    // Fade out and complete
+    const fadeTimer = setTimeout(() => setPhase('fade'), 7500);
     const completeTimer = setTimeout(() => {
       setShow(false);
       if (onComplete) onComplete();
-    }, 6140);
+    }, 8000);
 
     return () => {
       clearTimeout(rippleTimer);
       clearTimeout(logoTimer);
+      clearTimeout(holdTimer);
       clearTimeout(fadeTimer);
       clearTimeout(completeTimer);
     };
