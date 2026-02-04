@@ -131,64 +131,6 @@ const textToFrameSequence = (text, language) => {
   
   return frames.length > 10 ? frames : [0];
 };
-  
-  let idx = 0;
-  while (idx < lowerText.length) {
-    let matched = false;
-    
-    // Check for 3-letter combinations first (ght, etc.)
-    if (idx + 2 < lowerText.length) {
-      const trigraph = lowerText.slice(idx, idx + 3);
-      if (SPECIAL_COMBINATIONS[trigraph]) {
-        const sound = SPECIAL_COMBINATIONS[trigraph];
-        // Get frames for each character in the sound
-        for (let s = 0; s < sound.length; s++) {
-          const frame = PHONEME_FRAME_MAP[sound[s]];
-          if (frame !== undefined) {
-            for (let j = 0; j < 4; j++) frames.push(frame);
-          }
-        }
-        idx += 3;
-        matched = true;
-        continue;
-      }
-    }
-    
-    // Check for 2-letter combinations (ll, ch, sh, etc.)
-    if (idx + 1 < lowerText.length) {
-      const digraph = lowerText.slice(idx, idx + 2);
-      if (SPECIAL_COMBINATIONS[digraph]) {
-        const sound = SPECIAL_COMBINATIONS[digraph];
-        // Get frames for each character in the sound
-        for (let s = 0; s < sound.length; s++) {
-          const frame = PHONEME_FRAME_MAP[sound[s]];
-          if (frame !== undefined) {
-            for (let j = 0; j < 4; j++) frames.push(frame);
-          }
-        }
-        idx += 2;
-        matched = true;
-        continue;
-      }
-    }
-    
-    const char = lowerText[idx];
-    if (char === ' ' || char === ',' || char === '.') {
-      for (let j = 0; j < 3; j++) frames.push(0);
-    } else if (PHONEME_FRAME_MAP[char] !== undefined) {
-      const frame = PHONEME_FRAME_MAP[char];
-      for (let j = 0; j < 4; j++) frames.push(frame);
-    } else if (char.match(/[a-z]/)) {
-      for (let j = 0; j < 3; j++) frames.push(1);
-    }
-    idx++;
-  }
-  
-  // End with cloned neutral
-  for (let i = 0; i < 4; i++) frames.push(0);
-  
-  return frames;
-};
 
 export const DualHeadAnimation = forwardRef(({ 
   target = '', 
