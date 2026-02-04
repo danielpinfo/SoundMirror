@@ -191,22 +191,38 @@ export const DualHeadAnimation = forwardRef(({
       const nextIndex = prevIndex + 1;
       if (nextIndex < frameSequence.length) {
         setCurrentFrame(frameSequence[nextIndex]);
-        animationRef.current = setTimeout(() => animate(), speedSettings.frameDuration);
+        // Schedule next frame OUTSIDE of state setter to avoid race conditions
         return nextIndex;
       } else {
+        // Animation complete - stop and reset
         setIsPlaying(false);
-        // Auto-reset to beginning
-        setCurrentIndex(0);
         setCurrentFrame(frameSequence[0] || 0);
         if (onAnimationComplete) onAnimationComplete();
-        return 0;
+        return 0; // Reset index
       }
     });
-  }, [frameSequence, onAnimationComplete, speedSettings.frameDuration]);
+  }, [frameSequence, onAnimationComplete]);
+
+  // Effect to continue animation when playing
+  useEffect(() => {
+    if (isPlaying && currentIndex < frameSequence.length - 1) {
+      animationRef.current = setTimeout(() => animate(), speedSettings.frameDuration);
+    }
+    return () => {
+      if (animationRef.current) {
+        clearTimeout(animationRef.current);
+      }
+    };
+  }, [isPlaying, currentIndex, frameSequence.length, animate, speedSettings.frameDuration]);
 
   // Play
   const play = useCallback(() => {
     if (isPlaying) return;
+    
+    // Clear any existing timeout
+    if (animationRef.current) {
+      clearTimeout(animationRef.current);
+    }
     
     setCurrentIndex(0);
     setCurrentFrame(frameSequence[0] || 0);
@@ -218,6 +234,7 @@ export const DualHeadAnimation = forwardRef(({
       playTTS();
     }
     
+    // Start animation after a brief delay
     animationRef.current = setTimeout(() => animate(), speedSettings.frameDuration);
   }, [isPlaying, frameSequence, mode, playAudio, playTTS, animate, speedSettings.frameDuration]);
 
