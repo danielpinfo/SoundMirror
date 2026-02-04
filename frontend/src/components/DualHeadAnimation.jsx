@@ -191,29 +191,18 @@ export const DualHeadAnimation = forwardRef(({
       const nextIndex = prevIndex + 1;
       if (nextIndex < frameSequence.length) {
         setCurrentFrame(frameSequence[nextIndex]);
-        // Schedule next frame OUTSIDE of state setter to avoid race conditions
+        // Schedule next frame
+        animationRef.current = setTimeout(() => animate(), speedSettings.frameDuration);
         return nextIndex;
       } else {
-        // Animation complete - stop and reset
+        // Animation complete - stop playing and reset to beginning
         setIsPlaying(false);
         setCurrentFrame(frameSequence[0] || 0);
         if (onAnimationComplete) onAnimationComplete();
-        return 0; // Reset index
+        return 0; // Reset index to 0
       }
     });
-  }, [frameSequence, onAnimationComplete]);
-
-  // Effect to continue animation when playing
-  useEffect(() => {
-    if (isPlaying && currentIndex < frameSequence.length - 1) {
-      animationRef.current = setTimeout(() => animate(), speedSettings.frameDuration);
-    }
-    return () => {
-      if (animationRef.current) {
-        clearTimeout(animationRef.current);
-      }
-    };
-  }, [isPlaying, currentIndex, frameSequence.length, animate, speedSettings.frameDuration]);
+  }, [frameSequence, onAnimationComplete, speedSettings.frameDuration]);
 
   // Play
   const play = useCallback(() => {
@@ -222,6 +211,7 @@ export const DualHeadAnimation = forwardRef(({
     // Clear any existing timeout
     if (animationRef.current) {
       clearTimeout(animationRef.current);
+      animationRef.current = null;
     }
     
     setCurrentIndex(0);
