@@ -93,10 +93,10 @@ export const SplashScreen = ({ onComplete }) => {
               marginTop: '-5px',
               border: `2px solid rgba(255, 255, 255, ${0.95 - (i * 0.1)})`,
               animation: (phase === 'ripple' || phase === 'logo' || phase === 'fade') 
-                ? `rippleFromPinpoint 3s ease-out forwards` 
+                ? `rippleFromPinpoint 4s ease-out forwards` 
                 : 'none',
-              // Longer delay (0.25s) so all 7 rings are visible at once
-              animationDelay: `${i * 0.25}s`,
+              // Stagger by 0.3s to ensure all 7 rings are visible overlapping
+              animationDelay: `${i * 0.3}s`,
             }}
           />
         ))}
