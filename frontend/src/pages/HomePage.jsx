@@ -80,7 +80,6 @@ export default function HomePage() {
             src={LOGO_URL}
             alt="SoundMirror"
             className="h-40 md:h-48 mx-auto"
-            style={{ filter: 'drop-shadow(0 4px 20px rgba(0, 71, 171, 0.3))' }}
           />
         </div>
 
