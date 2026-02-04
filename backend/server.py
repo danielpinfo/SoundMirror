@@ -543,66 +543,40 @@ LETTER_TO_PHONEME = {
 
 @api_router.get("/audio/letter/{letter}")
 async def get_letter_audio(letter: str, language: str = "english"):
-    """Get presigned URL for a letter's phoneme audio"""
+    """Get URL for a letter's phoneme audio from local files"""
     lang_code = LANG_CODE_MAP.get(language, "en")
     letter_lower = letter.lower()
     
     # Get phoneme for letter
     phoneme = LETTER_TO_PHONEME.get(letter_lower, f"{letter_lower}a")
     
-    # Construct S3 key
-    s3_key = f"{lang_code}-{phoneme}.mp3"
+    # Construct local file path
+    filename = f"{lang_code}-{phoneme}.mp3"
     
-    try:
-        # Check if file exists
-        s3_client.head_object(Bucket=S3_BUCKET, Key=s3_key)
-        
-        # Generate presigned URL
-        url = s3_client.generate_presigned_url(
-            'get_object',
-            Params={'Bucket': S3_BUCKET, 'Key': s3_key},
-            ExpiresIn=3600  # URL valid for 1 hour
-        )
-        
-        return {
-            "letter": letter,
-            "phoneme": phoneme,
-            "language": language,
-            "audio_url": url,
-            "s3_key": s3_key
-        }
-    except ClientError as e:
-        if e.response['Error']['Code'] == '404':
-            raise HTTPException(status_code=404, detail=f"Audio file not found: {s3_key}")
-        raise HTTPException(status_code=500, detail=str(e))
+    # Return URL path to local audio file (served via frontend static files)
+    return {
+        "letter": letter,
+        "phoneme": phoneme,
+        "language": language,
+        "audio_url": f"/assets/audio/{filename}",
+        "filename": filename
+    }
 
 @api_router.get("/audio/phoneme/{phoneme}")
 async def get_phoneme_audio(phoneme: str, language: str = "english"):
-    """Get presigned URL for a specific phoneme audio"""
+    """Get URL for a specific phoneme audio from local files"""
     lang_code = LANG_CODE_MAP.get(language, "en")
     
-    # Construct S3 key
-    s3_key = f"{lang_code}-{phoneme.lower()}.mp3"
+    # Construct local file path
+    filename = f"{lang_code}-{phoneme.lower()}.mp3"
     
-    try:
-        s3_client.head_object(Bucket=S3_BUCKET, Key=s3_key)
-        
-        url = s3_client.generate_presigned_url(
-            'get_object',
-            Params={'Bucket': S3_BUCKET, 'Key': s3_key},
-            ExpiresIn=3600
-        )
-        
-        return {
-            "phoneme": phoneme,
-            "language": language,
-            "audio_url": url,
-            "s3_key": s3_key
-        }
-    except ClientError as e:
-        if e.response['Error']['Code'] == '404':
-            raise HTTPException(status_code=404, detail=f"Audio file not found: {s3_key}")
-        raise HTTPException(status_code=500, detail=str(e))
+    # Return URL path to local audio file
+    return {
+        "phoneme": phoneme,
+        "language": language,
+        "audio_url": f"/assets/audio/{filename}",
+        "filename": filename
+    }
 
 @api_router.post("/audio/word")
 async def get_word_audio(data: Dict[str, str]):
