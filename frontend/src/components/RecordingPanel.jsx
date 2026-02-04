@@ -22,7 +22,6 @@ export const RecordingPanel = ({
   onGradingComplete,
   target = '',
   language = 'english',
-  autoEnableCamera = false,
 }) => {
   const { t } = useLanguage();
   
