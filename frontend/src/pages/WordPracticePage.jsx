@@ -159,12 +159,13 @@ export default function WordPracticePage() {
                 placeholder={t('input_practice')}
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                className="flex-1 h-11 rounded-xl border-blue-500/30 bg-[#0f2847] text-white placeholder:text-blue-300/50 focus:border-blue-400"
+                className="flex-1 h-11 rounded-full border-2 border-[#0047AB] bg-[#0047AB]/20 text-[#FFD700] placeholder:text-[#FFD700]/50 focus:border-[#FFD700] focus:bg-[#0047AB]/30 font-semibold px-5"
+                style={{ caretColor: '#FFD700' }}
                 data-testid="word-input"
               />
               <Button 
                 type="submit" 
-                className="h-11 px-5 rounded-xl bg-[#0047AB] hover:bg-[#003d91] text-[#FFD700] font-semibold"
+                className="h-11 px-5 rounded-full bg-[#0047AB] hover:bg-[#003d91] border-2 border-[#0047AB] text-[#FFD700] font-semibold"
                 disabled={!inputValue.trim()}
                 data-testid="word-submit-btn"
               >
