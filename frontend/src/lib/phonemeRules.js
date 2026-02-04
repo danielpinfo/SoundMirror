@@ -1,3 +1,5 @@
+import { ROMANIZATION_MAP } from './constants';
+
 // Phoneme Rules Map for 10 Languages
 // Maps letter combinations (graphemes) to phonemes for correct sprite sequencing
 // Rules are checked in priority order (longest first) to handle "ou" before "o"
@@ -252,6 +254,35 @@ export const PHONEME_RULES = {
 };
 
 /**
+ * Transliterate non-Latin scripts to romanized form
+ * @param {string} text - The text to transliterate
+ * @param {string} language - Language code
+ * @returns {string} Romanized text
+ */
+export function transliterate(text, language) {
+  const langMap = {
+    'japanese': 'japanese',
+    'chinese': 'chinese',
+    'hindi': 'hindi',
+    'arabic': 'arabic'
+  };
+  
+  const lang = langMap[language];
+  if (!lang || !ROMANIZATION_MAP[lang]) {
+    return text; // No transliteration needed for Latin-script languages
+  }
+  
+  // Check if we have a direct mapping for this text
+  const romanizationMap = ROMANIZATION_MAP[lang];
+  if (romanizationMap[text]) {
+    return romanizationMap[text];
+  }
+  
+  // If no direct mapping, return as-is (may need external library for full transliteration)
+  return text;
+}
+
+/**
  * Parse a word into phonemes using language-specific rules
  * Checks longer patterns first (e.g., "ou" before "o")
  * @param {string} word - The word to parse
@@ -259,6 +290,9 @@ export const PHONEME_RULES = {
  * @returns {string[]} Array of phonemes
  */
 export function parseWordWithRules(word, language = 'english') {
+  // First, transliterate non-Latin scripts
+  const romanizedWord = transliterate(word, language);
+  
   // Map full language names to short codes
   const langMap = {
     'english': 'en',
@@ -275,7 +309,7 @@ export function parseWordWithRules(word, language = 'english') {
   
   const lang = langMap[language] || 'en';
   const rules = PHONEME_RULES[lang] || PHONEME_RULES.en;
-  const cleanWord = word.toLowerCase().replace(/[^a-zñçàâäéèêëïîôöûüœæßぁ-んァ-ヶー一-龯\u0900-\u097F\u0600-\u06FF]/g, '');
+  const cleanWord = romanizedWord.toLowerCase().replace(/[^a-zñçàâäéèêëïîôöûüœæßぁ-んァ-ヶー一-龯\u0900-\u097F\u0600-\u06FF]/g, '');
   
   const phonemes = [];
   let i = 0;
