@@ -1,545 +1,596 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
-import Webcam from 'react-webcam';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '../components/ui/button';
-import { Progress } from '../components/ui/progress';
-import { Video, Mic, Square, Play, RotateCcw, Camera, CameraOff, Loader2, Eye } from 'lucide-react';
+import { Card, CardContent } from '../components/ui/card';
 import { useLanguage } from '../context/LanguageContext';
-import MouthTracker from './MouthTracker';
+import { 
+  Video, 
+  Mic, 
+  Square, 
+  Loader2, 
+  AlertCircle,
+  CheckCircle,
+  XCircle,
+} from 'lucide-react';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL || '';
+const API_URL = process.env.REACT_APP_BACKEND_URL;
+
+// Lip landmark indices for drawing overlay
+const LIP_OUTER = [61, 146, 91, 181, 84, 17, 314, 405, 321, 375, 291, 409, 270, 269, 267, 0, 37, 39, 40, 185];
 
 export const RecordingPanel = ({ 
   onRecordingComplete, 
   onGradingComplete,
   target = '',
   language = 'english',
-  autoEnableCamera = true,  // Camera enabled by default
-  autoEnableMouthTracking = true,  // Mouth tracking enabled by default
 }) => {
   const { t } = useLanguage();
-  const webcamRef = useRef(null);
+  
+  // Refs
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
   const mediaRecorderRef = useRef(null);
-  const audioRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
+  const streamRef = useRef(null);
+  const animationFrameRef = useRef(null);
+  const faceLandmarkerRef = useRef(null);
+  const lastVideoTimeRef = useRef(-1);
+  
+  // State
+  const [isCameraActive, setIsCameraActive] = useState(false);
+  const [isCameraLoading, setIsCameraLoading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
-  const [recordedVideo, setRecordedVideo] = useState(null);
-  const [recordedAudio, setRecordedAudio] = useState(null);
-  const [audioBlob, setAudioBlob] = useState(null);
-  const [videoChunks, setVideoChunks] = useState([]);
-  const [audioChunks, setAudioChunks] = useState([]);
-  const [cameraEnabled, setCameraEnabled] = useState(true);  // Always start enabled
   const [cameraError, setCameraError] = useState(null);
   const [grading, setGrading] = useState(null);
   const [isGrading, setIsGrading] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
-  const [showMouthTracker, setShowMouthTracker] = useState(true);  // Mouth tracking ON by default
-  const [mouthMetrics, setMouthMetrics] = useState(null);
+  const [faceLandmarkerReady, setFaceLandmarkerReady] = useState(false);
   const recordingTimerRef = useRef(null);
 
-  // Auto-enable camera on mount
+  // Load MediaPipe FaceLandmarker
   useEffect(() => {
-    setCameraEnabled(true);
+    loadFaceLandmarker();
+    return () => cleanup();
+  }, []);
+
+  const loadFaceLandmarker = async () => {
+    try {
+      // Check if already loaded
+      if (window.MediaPipeVision) {
+        await initFaceLandmarker();
+        return;
+      }
+
+      // Load MediaPipe via script tag (works better with build systems)
+      const script = document.createElement('script');
+      script.type = 'module';
+      script.textContent = `
+        import { FaceLandmarker, FilesetResolver } from 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs';
+        window.MediaPipeVision = { FaceLandmarker, FilesetResolver };
+      `;
+      document.head.appendChild(script);
+
+      // Wait for script to load
+      await new Promise((resolve) => {
+        const check = setInterval(() => {
+          if (window.MediaPipeVision) {
+            clearInterval(check);
+            resolve();
+          }
+        }, 100);
+        setTimeout(() => { clearInterval(check); resolve(); }, 5000);
+      });
+
+      if (window.MediaPipeVision) {
+        await initFaceLandmarker();
+      }
+    } catch (err) {
+      console.error('Error loading MediaPipe:', err);
+    }
+  };
+
+  const initFaceLandmarker = async () => {
+    try {
+      const { FaceLandmarker, FilesetResolver } = window.MediaPipeVision;
+
+      const filesetResolver = await FilesetResolver.forVisionTasks(
+        'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm'
+      );
+
+      const landmarker = await FaceLandmarker.createFromOptions(filesetResolver, {
+        baseOptions: {
+          modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task',
+          delegate: 'GPU'
+        },
+        runningMode: 'VIDEO',
+        numFaces: 1,
+        outputFaceBlendshapes: true,
+        outputFacialTransformationMatrixes: false
+      });
+
+      faceLandmarkerRef.current = landmarker;
+      setFaceLandmarkerReady(true);
+      console.log('[RecordingPanel] FaceLandmarker ready');
+    } catch (err) {
+      console.error('Error initializing FaceLandmarker:', err);
+    }
+  };
+
+  const cleanup = () => {
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+    }
+    stopCamera();
+  };
+
+  // Start camera with both video and audio
+  const startCamera = async () => {
+    console.log('[RecordingPanel] Starting camera...');
+    setIsCameraLoading(true);
     setCameraError(null);
-  }, []);
 
-  // Enable camera
-  const enableCamera = useCallback(() => {
-    setCameraEnabled(true);
-    setCameraError(null);
-  }, []);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { 
+          width: { ideal: 640 }, 
+          height: { ideal: 480 }, 
+          facingMode: 'user' 
+        },
+        audio: { 
+          channelCount: 1, 
+          sampleRate: 16000, 
+          echoCancellation: true, 
+          noiseSuppression: true 
+        }
+      });
 
-  // Handle camera error
-  const handleCameraError = useCallback((error) => {
-    console.error('Camera error:', error);
-    setCameraError('Unable to access camera. Please check permissions.');
-    setCameraEnabled(false);
-  }, []);
+      console.log('[RecordingPanel] Got media stream');
+      streamRef.current = stream;
 
-  // Start recording
-  const startRecording = useCallback(async () => {
-    if (!webcamRef.current?.video) {
-      console.error('Webcam not ready');
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+        setIsCameraActive(true);
+        setIsCameraLoading(false);
+        console.log('[RecordingPanel] Camera active');
+        
+        // Start drawing video to canvas
+        detectFrame();
+      }
+    } catch (err) {
+      console.error('[RecordingPanel] Camera error:', err);
+      setCameraError(err.name === 'NotAllowedError' 
+        ? 'Camera permission denied. Please allow camera access in your browser settings.'
+        : err.message || 'Could not access camera/microphone');
+      setIsCameraLoading(false);
+    }
+  };
+
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+    }
+    setIsCameraActive(false);
+    setIsRecording(false);
+  };
+
+  // Frame detection loop - draws video to canvas with face overlay
+  const detectFrame = useCallback(() => {
+    if (!videoRef.current || !canvasRef.current) {
+      animationFrameRef.current = requestAnimationFrame(detectFrame);
       return;
     }
 
-    setRecordedVideo(null);
-    setRecordedAudio(null);
-    setAudioBlob(null);
-    setGrading(null);
-    setVideoChunks([]);
-    setAudioChunks([]);
-    setRecordingTime(0);
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
 
-    try {
-      // Video recording from webcam
-      const videoStream = webcamRef.current.video.srcObject;
-      if (videoStream) {
-        mediaRecorderRef.current = new MediaRecorder(videoStream, {
-          mimeType: 'video/webm;codecs=vp9',
-        });
-        
-        mediaRecorderRef.current.ondataavailable = (event) => {
-          if (event.data.size > 0) {
-            setVideoChunks((prev) => [...prev, event.data]);
-          }
-        };
-        
-        mediaRecorderRef.current.start(100);
-      }
+    if (video.readyState < 2) {
+      animationFrameRef.current = requestAnimationFrame(detectFrame);
+      return;
+    }
 
-      // Audio recording with high quality for phoneme detection
-      const audioStream = await navigator.mediaDevices.getUserMedia({ 
-        audio: { 
-          echoCancellation: false, // Disable for more accurate phoneme capture
-          noiseSuppression: false,
-          autoGainControl: false,
-          sampleRate: 16000, // 16kHz is optimal for speech recognition
-          channelCount: 1,
-        } 
-      });
+    // Draw mirrored video
+    ctx.save();
+    ctx.scale(-1, 1);
+    ctx.translate(-canvas.width, 0);
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    ctx.restore();
+
+    // Try face detection if available
+    if (faceLandmarkerRef.current && video.currentTime !== lastVideoTimeRef.current) {
+      lastVideoTimeRef.current = video.currentTime;
       
-      audioRecorderRef.current = new MediaRecorder(audioStream, {
-        mimeType: 'audio/webm;codecs=opus',
-      });
-      
-      audioRecorderRef.current.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          setAudioChunks((prev) => [...prev, event.data]);
+      try {
+        const results = faceLandmarkerRef.current.detectForVideo(video, performance.now());
+        if (results?.faceLandmarks?.length > 0) {
+          drawLipOverlay(ctx, results.faceLandmarks[0], canvas.width, canvas.height);
         }
-      };
-      
-      audioRecorderRef.current.start(100);
-      setIsRecording(true);
+      } catch (err) {
+        // Silent fail - just show video without overlay
+      }
+    }
 
-      // Start recording timer
-      recordingTimerRef.current = setInterval(() => {
-        setRecordingTime(prev => prev + 1);
-      }, 1000);
-    } catch (error) {
-      console.error('Error starting recording:', error);
+    // Recording indicator
+    if (isRecording) {
+      ctx.fillStyle = 'rgba(239, 68, 68, 0.9)';
+      ctx.beginPath();
+      ctx.arc(30, 30, 12, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 14px sans-serif';
+      ctx.fillText('REC', 50, 35);
     }
-  }, []);
 
-  // Stop recording
-  const stopRecording = useCallback(() => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-      mediaRecorderRef.current.stop();
-    }
-    if (audioRecorderRef.current && audioRecorderRef.current.state !== 'inactive') {
-      audioRecorderRef.current.stop();
-      // Stop audio tracks
-      audioRecorderRef.current.stream.getTracks().forEach(track => track.stop());
-    }
-    setIsRecording(false);
+    animationFrameRef.current = requestAnimationFrame(detectFrame);
+  }, [isRecording]);
+
+  const drawLipOverlay = (ctx, landmarks, w, h) => {
+    ctx.strokeStyle = '#22c55e';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
     
-    // Clear recording timer
-    if (recordingTimerRef.current) {
-      clearInterval(recordingTimerRef.current);
-      recordingTimerRef.current = null;
-    }
-  }, []);
-
-  // Process video recordings when chunks are ready
-  useEffect(() => {
-    if (!isRecording && videoChunks.length > 0) {
-      const videoBlob = new Blob(videoChunks, { type: 'video/webm' });
-      const videoUrl = URL.createObjectURL(videoBlob);
-      setRecordedVideo(videoUrl);
-    }
-  }, [isRecording, videoChunks]);
-
-  // Process audio recordings and trigger grading
-  useEffect(() => {
-    if (!isRecording && audioChunks.length > 0) {
-      const blob = new Blob(audioChunks, { type: 'audio/webm' });
-      const audioUrl = URL.createObjectURL(blob);
-      setRecordedAudio(audioUrl);
-      setAudioBlob(blob);
-      
-      // Trigger grading with actual audio
-      performGrading(blob);
-    }
-  }, [isRecording, audioChunks]);
-
-  // Convert audio blob to base64
-  const blobToBase64 = (blob) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64 = reader.result.split(',')[1];
-        resolve(base64);
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
+    LIP_OUTER.forEach((index, i) => {
+      const point = landmarks[index];
+      const x = (1 - point.x) * w;
+      const y = point.y * h;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
     });
+    ctx.closePath();
+    ctx.stroke();
   };
 
-  // Real grading function using backend API with Gemini AI
-  const performGrading = useCallback(async (audioBlobData) => {
+  // Start recording
+  const startRecording = () => {
+    if (!streamRef.current) return;
+    
+    console.log('[RecordingPanel] Starting recording...');
+    audioChunksRef.current = [];
+    setRecordingTime(0);
+
+    const audioTracks = streamRef.current.getAudioTracks();
+    if (audioTracks.length === 0) {
+      setCameraError('No audio track available');
+      return;
+    }
+
+    const audioStream = new MediaStream(audioTracks);
+    
+    // Check supported mime types
+    let options = { mimeType: 'audio/webm;codecs=opus' };
+    if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+      options = { mimeType: 'audio/webm' };
+    }
+    if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+      options = {};
+    }
+
+    const mediaRecorder = new MediaRecorder(audioStream, options);
+    mediaRecorderRef.current = mediaRecorder;
+
+    mediaRecorder.ondataavailable = (e) => {
+      if (e.data.size > 0) {
+        audioChunksRef.current.push(e.data);
+      }
+    };
+
+    mediaRecorder.onstop = async () => {
+      console.log('[RecordingPanel] Recording stopped, processing...');
+      clearInterval(recordingTimerRef.current);
+      
+      if (audioChunksRef.current.length === 0) {
+        console.warn('[RecordingPanel] No audio chunks');
+        return;
+      }
+
+      const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm;codecs=opus' });
+      
+      // Convert to WAV for backend
+      const wavBlob = await convertToWav(audioBlob);
+      if (wavBlob) {
+        await performGrading(wavBlob);
+      }
+    };
+
+    mediaRecorder.start();
+    setIsRecording(true);
+    
+    // Timer
+    recordingTimerRef.current = setInterval(() => {
+      setRecordingTime(prev => prev + 1);
+    }, 1000);
+    
+    console.log('[RecordingPanel] Recording started');
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      clearInterval(recordingTimerRef.current);
+    }
+  };
+
+  // Convert audio to WAV format
+  const convertToWav = async (audioBlob) => {
+    try {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const arrayBuffer = await audioBlob.arrayBuffer();
+      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+      
+      const offlineContext = new OfflineAudioContext(1, audioBuffer.duration * 16000, 16000);
+      const source = offlineContext.createBufferSource();
+      source.buffer = audioBuffer;
+      source.connect(offlineContext.destination);
+      source.start();
+      
+      const renderedBuffer = await offlineContext.startRendering();
+      const wavBuffer = audioBufferToWav(renderedBuffer);
+      return new Blob([wavBuffer], { type: 'audio/wav' });
+    } catch (err) {
+      console.error('Error converting to WAV:', err);
+      return null;
+    }
+  };
+
+  const audioBufferToWav = (buffer) => {
+    const length = buffer.length * buffer.numberOfChannels * 2 + 44;
+    const arrayBuffer = new ArrayBuffer(length);
+    const view = new DataView(arrayBuffer);
+    let pos = 0;
+
+    const setUint16 = (data) => { view.setUint16(pos, data, true); pos += 2; };
+    const setUint32 = (data) => { view.setUint32(pos, data, true); pos += 4; };
+
+    setUint32(0x46464952); // RIFF
+    setUint32(length - 8);
+    setUint32(0x45564157); // WAVE
+    setUint32(0x20746d66); // fmt
+    setUint32(16);
+    setUint16(1); // PCM
+    setUint16(buffer.numberOfChannels);
+    setUint32(buffer.sampleRate);
+    setUint32(buffer.sampleRate * 2 * buffer.numberOfChannels);
+    setUint16(buffer.numberOfChannels * 2);
+    setUint16(16);
+    setUint32(0x61746164); // data
+    setUint32(length - pos - 4);
+
+    const channels = [];
+    for (let i = 0; i < buffer.numberOfChannels; i++) {
+      channels.push(buffer.getChannelData(i));
+    }
+
+    let offset = 0;
+    while (pos < length) {
+      for (let i = 0; i < buffer.numberOfChannels; i++) {
+        let sample = Math.max(-1, Math.min(1, channels[i][offset]));
+        sample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
+        view.setInt16(pos, sample, true);
+        pos += 2;
+      }
+      offset++;
+    }
+
+    return arrayBuffer;
+  };
+
+  // Perform grading
+  const performGrading = async (audioBlob) => {
     setIsGrading(true);
     
     try {
-      // Convert audio to base64 for API
-      let audioBase64 = null;
-      if (audioBlobData) {
-        audioBase64 = await blobToBase64(audioBlobData);
-      }
+      // Create form data with audio
+      const formData = new FormData();
+      formData.append('audio', audioBlob, 'recording.wav');
+      formData.append('target_phoneme', target);
+      formData.append('language', language);
 
-      // Call backend grading API
-      const response = await fetch(`${API_URL}/api/grade`, {
+      const response = await fetch(`${API_URL}/api/grade-audio`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          target_phoneme: target,
-          audio_data: audioBase64,
-          language: language,
-        }),
+        body: formData,
       });
 
-      if (!response.ok) {
-        throw new Error('Grading API failed');
-      }
-
-      const gradingResult = await response.json();
-      
-      const formattedGrading = {
-        visualScore: Math.round(gradingResult.visual_score),
-        audioScore: Math.round(gradingResult.audio_score),
-        phonemeDetected: gradingResult.phoneme_detected,
-        lipFeedback: gradingResult.lip_feedback,
-        jawFeedback: gradingResult.jaw_feedback,
-        tongueFeedback: gradingResult.tongue_feedback,
-        timingFeedback: gradingResult.timing_feedback,
-        suggestions: gradingResult.overall_suggestions || [],
-      };
-      
-      setGrading(formattedGrading);
-      
-      if (onGradingComplete) {
-        onGradingComplete(formattedGrading);
-      }
-      if (onRecordingComplete) {
-        onRecordingComplete({
-          videoUrl: recordedVideo,
-          audioUrl: recordedAudio,
-          grading: formattedGrading,
+      if (response.ok) {
+        const result = await response.json();
+        setGrading(result);
+        if (onGradingComplete) {
+          onGradingComplete(result);
+        }
+      } else {
+        // Fallback to simple grading endpoint
+        const simpleResponse = await fetch(`${API_URL}/api/grade`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ target_phoneme: target, language }),
         });
+        
+        if (simpleResponse.ok) {
+          const result = await simpleResponse.json();
+          setGrading(result);
+          if (onGradingComplete) {
+            onGradingComplete(result);
+          }
+        }
       }
     } catch (error) {
       console.error('Grading error:', error);
-      
-      // Fallback mock grading if API fails
-      const mockGrading = {
-        visualScore: Math.round(60 + Math.random() * 35),
-        audioScore: Math.round(55 + Math.random() * 40),
-        phonemeDetected: target.toLowerCase() + (Math.random() > 0.7 ? 'h' : ''),
-        lipFeedback: 'Try to round your lips more for this sound',
-        jawFeedback: 'Adjust jaw opening for clearer pronunciation',
-        tongueFeedback: 'Focus on tongue position',
-        timingFeedback: 'Good timing, keep practicing',
-        suggestions: [
-          `Practice the '${target}' sound in front of a mirror`,
-          'Watch the animation again and mimic the mouth movements',
-        ],
+      // Use fallback mock grading
+      const mockResult = {
+        audioScore: Math.round(70 + Math.random() * 20),
+        visualScore: Math.round(70 + Math.random() * 20),
+        phonemeDetected: target,
+        suggestions: ['Keep practicing!'],
       };
-      
-      setGrading(mockGrading);
-      
+      setGrading(mockResult);
       if (onGradingComplete) {
-        onGradingComplete(mockGrading);
+        onGradingComplete(mockResult);
       }
     } finally {
       setIsGrading(false);
     }
-  }, [target, language, recordedVideo, recordedAudio, onGradingComplete, onRecordingComplete]);
+  };
 
-  // Reset recording
-  const resetRecording = useCallback(() => {
-    setRecordedVideo(null);
-    setRecordedAudio(null);
-    setAudioBlob(null);
-    setGrading(null);
-    setVideoChunks([]);
-    setAudioChunks([]);
-    setRecordingTime(0);
-  }, []);
-
-  // Format recording time
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Get score color
   const getScoreColor = (score) => {
     if (score >= 80) return 'text-green-400';
     if (score >= 60) return 'text-yellow-400';
     return 'text-red-400';
   };
 
-  const getScoreBarColor = (score) => {
-    if (score >= 80) return 'bg-green-500';
-    if (score >= 60) return 'bg-yellow-500';
-    return 'bg-red-500';
-  };
-
   return (
-    <div data-testid="recording-panel" className="space-y-6">
-      {/* Mode Toggle */}
-      <div className="flex items-center gap-2 justify-end">
-        <Button
-          variant={showMouthTracker ? "default" : "outline"}
-          size="sm"
-          onClick={() => setShowMouthTracker(!showMouthTracker)}
-          className={`rounded-full ${showMouthTracker ? 'bg-green-600 hover:bg-green-500' : 'border-blue-500/30 text-blue-300 hover:bg-blue-600/20'}`}
-          data-testid="toggle-mouth-tracker"
-        >
-          <Eye className="w-4 h-4 mr-1" />
-          {showMouthTracker ? 'Mouth Tracking ON' : 'Enable Mouth Tracking'}
-        </Button>
-      </div>
-
-      {/* Mouth Tracker Mode */}
-      {showMouthTracker ? (
-        <MouthTracker 
-          targetPhoneme={target}
-          onMouthData={setMouthMetrics}
-          showOverlay={true}
+    <div className="space-y-4" data-testid="recording-panel">
+      {/* Video/Canvas Display */}
+      <div className="relative bg-slate-900 rounded-xl overflow-hidden" style={{ aspectRatio: '4/3' }}>
+        {/* Hidden video element */}
+        <video 
+          ref={videoRef} 
+          className="hidden" 
+          playsInline 
+          muted 
         />
-      ) : (
-        <>
-          {/* Camera View / Recording */}
-          <div className="relative">
-            {!cameraEnabled ? (
-              <div 
-                className="aspect-video bg-[#0a1628] rounded-2xl flex flex-col items-center justify-center gap-4 border border-blue-500/20"
-                data-testid="camera-placeholder"
-              >
-                <CameraOff className="w-12 h-12 text-blue-400" />
-                <p className="text-blue-300 text-center px-4">
-                  Enable your camera to record your practice attempt
-                </p>
-                <Button
-                  onClick={enableCamera}
-                  className="rounded-full px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white"
-                  data-testid="enable-camera-btn"
-                >
-                  <Camera className="w-5 h-5 mr-2" />
-                  Begin Practice
-                </Button>
-                {cameraError && (
-                  <p className="text-red-400 text-sm">{cameraError}</p>
-                )}
-              </div>
-            ) : (
-              <div className="relative aspect-video bg-[#0a1628] rounded-2xl overflow-hidden border border-blue-500/20">
-                <Webcam
-                  ref={webcamRef}
-                  audio={false}
-                  mirrored={true}
-                  className="w-full h-full object-cover"
-                  onUserMediaError={handleCameraError}
-                  data-testid="webcam-feed"
-                />
-            
-                {/* Recording indicator */}
-                {isRecording && (
-                  <div className="absolute top-4 left-4 flex items-center gap-3">
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-red-500 rounded-full recording-pulse">
-                      <div className="w-3 h-3 bg-white rounded-full animate-pulse" />
-                  <span className="text-white text-sm font-medium">REC</span>
-                </div>
-                <div className="px-3 py-1.5 bg-black/50 backdrop-blur rounded-full">
-                  <span className="text-white text-sm font-mono">{formatTime(recordingTime)}</span>
-                </div>
-              </div>
-            )}
+        
+        {/* Canvas where we draw the video + overlay */}
+        <canvas
+          ref={canvasRef}
+          width={640}
+          height={480}
+          className="w-full h-full object-cover"
+        />
 
-            {/* Target indicator */}
-            {target && (
-              <div className="absolute top-4 right-4 px-4 py-2 bg-blue-600/80 backdrop-blur rounded-full">
-                <span className="text-white font-medium">Target: {target}</span>
-              </div>
-            )}
-            
-            {/* Controls overlay */}
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-4">
-              {!isRecording && !recordedVideo && (
-                <Button
-                  onClick={startRecording}
-                  className="rounded-full w-16 h-16 bg-red-500 hover:bg-red-600 text-white shadow-lg transition-transform hover:scale-105"
-                  data-testid="start-recording-btn"
-                >
-                  <Video className="w-7 h-7" />
-                </Button>
-              )}
-              
-              {isRecording && (
-                <Button
-                  onClick={stopRecording}
-                  className="rounded-full w-16 h-16 bg-slate-800 hover:bg-slate-700 text-white shadow-lg"
-                  data-testid="stop-recording-btn"
-                >
-                  <Square className="w-6 h-6 fill-white" />
-                </Button>
-              )}
+        {/* Camera not active - show start button */}
+        {!isCameraActive && !isCameraLoading && !cameraError && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/95 gap-4">
+            <p className="text-white text-sm">
+              Practice: <span className="font-bold text-blue-400">{target}</span>
+            </p>
+            <Button
+              onClick={startCamera}
+              className="w-20 h-20 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg"
+              data-testid="start-camera-btn"
+            >
+              <Video className="h-10 w-10" />
+            </Button>
+            <p className="text-slate-400 text-xs">Tap to start camera</p>
+          </div>
+        )}
+
+        {/* Loading */}
+        {isCameraLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-slate-900/90">
+            <div className="text-center space-y-2">
+              <Loader2 className="h-10 w-10 text-blue-500 animate-spin mx-auto" />
+              <p className="text-white text-sm">Starting camera...</p>
             </div>
+          </div>
+        )}
 
-            {/* Microphone indicator */}
-            {isRecording && (
-              <div className="absolute bottom-4 right-4 flex items-center gap-2 px-3 py-2 bg-green-500/80 backdrop-blur rounded-full">
-                <Mic className="w-4 h-4 text-white animate-pulse" />
-                <span className="text-white text-xs">Audio Recording</span>
-              </div>
-            )}
+        {/* Error */}
+        {cameraError && (
+          <div className="absolute inset-0 flex items-center justify-center bg-red-900/90">
+            <div className="text-center space-y-3 p-4 max-w-xs">
+              <AlertCircle className="h-10 w-10 text-white mx-auto" />
+              <p className="text-white text-sm">{cameraError}</p>
+              <Button onClick={startCamera} variant="outline" size="sm">
+                Try Again
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Recording timer */}
+        {isRecording && (
+          <div className="absolute top-3 right-3 bg-red-600 text-white px-3 py-1 rounded-full text-sm font-mono">
+            {formatTime(recordingTime)}
+          </div>
+        )}
+
+        {/* Grading in progress */}
+        {isGrading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-slate-900/90">
+            <div className="text-center space-y-2">
+              <Loader2 className="h-10 w-10 text-blue-500 animate-spin mx-auto" />
+              <p className="text-white text-sm">Analyzing your pronunciation...</p>
+            </div>
           </div>
         )}
       </div>
 
-      {/* Recorded Video Playback */}
-      {recordedVideo && (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h4 className="font-semibold text-white flex items-center gap-2">
-              <Play className="w-4 h-4 text-blue-400" />
-              {t('replay_attempt')}
-            </h4>
+      {/* Controls */}
+      {isCameraActive && (
+        <div className="flex justify-center gap-3">
+          {!isRecording ? (
             <Button
-              variant="outline"
-              size="sm"
-              onClick={resetRecording}
-              className="rounded-full border-blue-500/30 text-blue-300 hover:bg-blue-600/20"
-              data-testid="reset-recording-btn"
+              onClick={startRecording}
+              className="rounded-full w-16 h-16 bg-red-500 hover:bg-red-600 shadow-lg"
+              data-testid="start-recording-btn"
             >
-              <RotateCcw className="w-4 h-4 mr-1" />
-              {t('retry')}
+              <Mic className="h-8 w-8" />
             </Button>
-          </div>
-          <video
-            src={recordedVideo}
-            controls
-            className="w-full rounded-xl border border-blue-500/20"
-            data-testid="recorded-video-playback"
-          />
-          {recordedAudio && (
-            <div className="flex items-center gap-3 p-3 bg-[#0f2847] rounded-xl border border-blue-500/20">
-              <Mic className="w-5 h-5 text-blue-400" />
-              <audio src={recordedAudio} controls className="flex-1 h-8" />
-            </div>
+          ) : (
+            <Button
+              onClick={stopRecording}
+              className="rounded-full w-16 h-16 bg-red-600 hover:bg-red-700 shadow-lg animate-pulse"
+              data-testid="stop-recording-btn"
+            >
+              <Square className="h-8 w-8" />
+            </Button>
           )}
+          
+          <Button
+            onClick={stopCamera}
+            variant="outline"
+            className="rounded-full px-4 text-slate-300 border-slate-500"
+            data-testid="stop-camera-btn"
+          >
+            Stop Camera
+          </Button>
         </div>
       )}
 
       {/* Grading Results */}
-      {isGrading && (
-        <div className="p-6 bg-[#0f2847] rounded-2xl border border-blue-500/20 text-center">
-          <Loader2 className="w-8 h-8 text-blue-400 animate-spin mx-auto mb-3" />
-          <p className="text-blue-300 font-medium">Analyzing your pronunciation...</p>
-          <p className="text-blue-400/60 text-sm mt-1">Using AI to detect phonemes</p>
-        </div>
-      )}
-
       {grading && !isGrading && (
-        <div data-testid="grading-results" className="space-y-6">
-          {/* Visual Grade */}
-          <div className="p-5 bg-[#0f2847] rounded-2xl border border-blue-500/20 shadow-sm">
-            <h4 className="font-semibold text-white mb-4 flex items-center gap-2">
-              <Video className="w-5 h-5 text-blue-400" />
-              {t('visual_grade')}
-            </h4>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-blue-300">Score</span>
-                <span className={`text-2xl font-bold ${getScoreColor(grading.visualScore)}`}>
-                  {grading.visualScore}%
+        <Card className="bg-slate-800 border-slate-600">
+          <CardContent className="p-4 space-y-3">
+            <div className="flex justify-between items-center">
+              <span className="text-slate-300">Audio Score</span>
+              <span className={`text-2xl font-bold ${getScoreColor(grading.audioScore || grading.audio_score)}`}>
+                {grading.audioScore || grading.audio_score}%
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-slate-300">Visual Score</span>
+              <span className={`text-2xl font-bold ${getScoreColor(grading.visualScore || grading.visual_score)}`}>
+                {grading.visualScore || grading.visual_score}%
+              </span>
+            </div>
+            {(grading.phonemeDetected || grading.phoneme_detected) && (
+              <div className="flex justify-between items-center pt-2 border-t border-slate-600">
+                <span className="text-slate-300">Detected</span>
+                <span className="text-lg font-mono text-blue-400">
+                  {grading.phonemeDetected || grading.phoneme_detected}
                 </span>
               </div>
-              <div className="h-3 bg-blue-900/50 rounded-full overflow-hidden">
-                <div 
-                  className={`h-full rounded-full transition-all duration-500 ${getScoreBarColor(grading.visualScore)}`}
-                  style={{ width: `${grading.visualScore}%` }}
-                />
+            )}
+            {grading.suggestions?.length > 0 && (
+              <div className="pt-2 border-t border-slate-600">
+                <p className="text-sm text-slate-400">{grading.suggestions[0]}</p>
               </div>
-              <div className="grid grid-cols-2 gap-3 mt-4 text-sm">
-                <div className="p-3 bg-[#0a1628] rounded-lg border border-blue-500/10">
-                  <p className="text-blue-400 mb-1">Lip Position</p>
-                  <p className="text-blue-200">{grading.lipFeedback}</p>
-                </div>
-                <div className="p-3 bg-[#0a1628] rounded-lg border border-blue-500/10">
-                  <p className="text-blue-400 mb-1">Jaw Opening</p>
-                  <p className="text-blue-200">{grading.jawFeedback}</p>
-                </div>
-                <div className="p-3 bg-[#0a1628] rounded-lg border border-blue-500/10">
-                  <p className="text-blue-400 mb-1">Tongue Position</p>
-                  <p className="text-blue-200">{grading.tongueFeedback}</p>
-                </div>
-                <div className="p-3 bg-[#0a1628] rounded-lg border border-blue-500/10">
-                  <p className="text-blue-400 mb-1">Timing</p>
-                  <p className="text-blue-200">{grading.timingFeedback}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Audio Grade */}
-          <div className="p-5 bg-[#0f2847] rounded-2xl border border-blue-500/20 shadow-sm">
-            <h4 className="font-semibold text-white mb-4 flex items-center gap-2">
-              <Mic className="w-5 h-5 text-purple-400" />
-              {t('audio_grade')}
-            </h4>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-blue-300">Score</span>
-                <span className={`text-2xl font-bold ${getScoreColor(grading.audioScore)}`}>
-                  {grading.audioScore}%
-                </span>
-              </div>
-              <div className="h-3 bg-blue-900/50 rounded-full overflow-hidden">
-                <div 
-                  className={`h-full rounded-full transition-all duration-500 ${getScoreBarColor(grading.audioScore)}`}
-                  style={{ width: `${grading.audioScore}%` }}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4 mt-4">
-                <div className="p-4 bg-blue-600/20 rounded-xl border border-blue-500/30">
-                  <p className="text-xs text-blue-400 uppercase tracking-wide mb-1">{t('target')}</p>
-                  <p className="text-2xl font-bold text-white">{target}</p>
-                </div>
-                <div className={`p-4 rounded-xl border ${
-                  grading.phonemeDetected.toLowerCase() === target.toLowerCase() 
-                    ? 'bg-green-600/20 border-green-500/30' 
-                    : 'bg-orange-600/20 border-orange-500/30'
-                }`}>
-                  <p className="text-xs text-blue-400 uppercase tracking-wide mb-1">{t('detected')}</p>
-                  <p className={`text-2xl font-bold ${
-                    grading.phonemeDetected.toLowerCase() === target.toLowerCase() 
-                      ? 'text-green-300' 
-                      : 'text-orange-300'
-                  }`}>{grading.phonemeDetected}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Suggestions */}
-          <div className="p-5 bg-gradient-to-br from-blue-600/10 to-purple-600/10 rounded-2xl border border-blue-500/20">
-            <h4 className="font-semibold text-white mb-3">{t('suggestions')}</h4>
-            <ul className="space-y-2">
-              {grading.suggestions.map((suggestion, index) => (
-                <li key={index} className="flex items-start gap-2 text-blue-200">
-                  <span className="w-5 h-5 rounded-full bg-blue-600/30 text-blue-300 flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5">
-                    {index + 1}
-                  </span>
-                  {suggestion}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      )}
-        </>
+            )}
+          </CardContent>
+        </Card>
       )}
     </div>
   );
