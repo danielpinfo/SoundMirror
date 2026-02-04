@@ -10,39 +10,13 @@ import BugReportPage from './pages/BugReportPage';
 import { Toaster } from './components/ui/sonner';
 import './index.css';
 
-// Check if splash was already shown this session
-const SPLASH_SHOWN_KEY = 'soundmirror_splash_shown';
-
 const AppContent = () => {
   const location = useLocation();
-  const [showSplash, setShowSplash] = useState(() => {
-    // Only show splash on home page and if not shown this session
-    const wasShown = sessionStorage.getItem(SPLASH_SHOWN_KEY);
-    return location.pathname === '/' && !wasShown;
-  });
-  const [appReady, setAppReady] = useState(false);
-
-  // Preload resources while splash is showing
-  useEffect(() => {
-    const preloadResources = async () => {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setAppReady(true);
-    };
-    preloadResources();
-  }, []);
+  // ALWAYS show splash on home page - every refresh/load
+  const [showSplash, setShowSplash] = useState(location.pathname === '/');
 
   const handleSplashComplete = () => {
-    sessionStorage.setItem(SPLASH_SHOWN_KEY, 'true');
-    if (appReady) {
-      setShowSplash(false);
-    } else {
-      const checkReady = setInterval(() => {
-        if (appReady) {
-          clearInterval(checkReady);
-          setShowSplash(false);
-        }
-      }, 100);
-    }
+    setShowSplash(false);
   };
 
   return (
@@ -57,7 +31,6 @@ const AppContent = () => {
         <Route path="/word-practice" element={<WordPracticePage />} />
         <Route path="/history" element={<HistoryPage />} />
         <Route path="/bug-report" element={<BugReportPage />} />
-        {/* Redirect old /reports route to /history */}
         <Route path="/reports" element={<Navigate to="/history" replace />} />
       </Routes>
       
