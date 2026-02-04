@@ -132,6 +132,49 @@ export const DEFAULT_PRACTICE_WORDS = {
   arabic: ['مرحبا', 'وداعا', 'من فضلك', 'شكرا', 'نعم', 'لا', 'ماء', 'صديق', 'سعيد', 'حب'],
 };
 
+// Letter romanization for non-Latin alphabets
+export const LETTER_ROMANIZATION = {
+  japanese: {
+    'あ': 'a', 'い': 'i', 'う': 'u', 'え': 'e', 'お': 'o',
+    'か': 'ka', 'き': 'ki', 'く': 'ku', 'け': 'ke', 'こ': 'ko',
+    'さ': 'sa', 'し': 'shi', 'す': 'su', 'せ': 'se', 'そ': 'so',
+    'た': 'ta', 'ち': 'chi', 'つ': 'tsu', 'て': 'te', 'と': 'to',
+    'な': 'na', 'に': 'ni', 'ぬ': 'nu', 'ね': 'ne', 'の': 'no',
+    'は': 'ha', 'ひ': 'hi', 'ふ': 'fu', 'へ': 'he', 'ほ': 'ho',
+    'ま': 'ma', 'み': 'mi', 'む': 'mu', 'め': 'me', 'も': 'mo',
+    'や': 'ya', 'ゆ': 'yu', 'よ': 'yo',
+    'ら': 'ra', 'り': 'ri', 'る': 'ru', 'れ': 're', 'ろ': 'ro',
+    'わ': 'wa', 'を': 'wo', 'ん': 'n',
+  },
+  chinese: {
+    'ا': 'a', 'ب': 'ba', 'ت': 'ta', 'ث': 'tha', 'ج': 'ja',
+    'ح': 'ha', 'خ': 'kha', 'د': 'da', 'ذ': 'dha', 'ر': 'ra',
+    'ز': 'za', 'س': 'sa', 'ش': 'sha', 'ص': 'sa', 'ض': 'da',
+    'ط': 'ta', 'ظ': 'za', 'ع': 'a', 'غ': 'gha', 'ف': 'fa',
+    'ق': 'qa', 'ك': 'ka', 'ل': 'la', 'م': 'ma', 'ن': 'na',
+    'ه': 'ha', 'و': 'wa', 'ي': 'ya',
+  },
+  hindi: {
+    'अ': 'a', 'आ': 'aa', 'इ': 'i', 'ई': 'ii', 'उ': 'u', 'ऊ': 'uu',
+    'ए': 'e', 'ऐ': 'ai', 'ओ': 'o', 'औ': 'au',
+    'क': 'ka', 'ख': 'kha', 'ग': 'ga', 'घ': 'gha',
+    'च': 'cha', 'छ': 'chha', 'ज': 'ja', 'झ': 'jha',
+    'ट': 'ta', 'ठ': 'tha', 'ड': 'da', 'ढ': 'dha',
+    'त': 'ta', 'थ': 'tha', 'द': 'da', 'ध': 'dha',
+    'न': 'na', 'प': 'pa', 'फ': 'pha', 'ब': 'ba', 'भ': 'bha',
+    'म': 'ma', 'य': 'ya', 'र': 'ra', 'ल': 'la', 'व': 'va',
+    'श': 'sha', 'ष': 'sha', 'स': 'sa', 'ह': 'ha',
+  },
+  arabic: {
+    'ا': 'a', 'ب': 'ba', 'ت': 'ta', 'ث': 'tha', 'ج': 'ja',
+    'ح': 'ha', 'خ': 'kha', 'د': 'da', 'ذ': 'dha', 'ر': 'ra',
+    'ز': 'za', 'س': 'sa', 'ش': 'sha', 'ص': 'sa', 'ض': 'da',
+    'ط': 'ta', 'ظ': 'za', 'ع': 'a', 'غ': 'gha', 'ف': 'fa',
+    'ق': 'qa', 'ك': 'ka', 'ل': 'la', 'م': 'ma', 'ن': 'na',
+    'ه': 'ha', 'و': 'wa', 'ي': 'ya',
+  },
+};
+
 // Romanization mappings for non-Latin script languages
 export const ROMANIZATION_MAP = {
   japanese: {
