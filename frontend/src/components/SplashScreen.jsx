@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-const LOGO_URL = 'https://customer-assets.emergentagent.com/job_articlearn/artifacts/q4s66aiu_LOGO.png';
+const LOGO_URL = '/assets/LOGO.png';
 
 // Water/background color matching the logo background for seamless fade
 const WATER_COLOR = '#0a0a0a';

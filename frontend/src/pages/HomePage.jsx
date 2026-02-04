@@ -7,7 +7,7 @@ import { Input } from '../components/ui/input';
 import { Card, CardContent } from '../components/ui/card';
 import { Type, ArrowRight, Bug, History } from 'lucide-react';
 
-const LOGO_URL = 'https://customer-assets.emergentagent.com/job_articlearn/artifacts/q4s66aiu_LOGO.png';
+const LOGO_URL = '/assets/LOGO.png';
 
 // Quick Practice - Single words only (8 words)
 const QUICK_PRACTICE_WORDS = {
