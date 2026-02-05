@@ -291,7 +291,7 @@ export function toAnimationSequence(analysis, options = {}) {
 }
 
 // =============================================================================
-// GRADING INTERFACE
+// GRADING INTERFACE — Consumes ipaSequence (PLACEHOLDER)
 // =============================================================================
 
 /**
@@ -303,21 +303,25 @@ export function toAnimationSequence(analysis, options = {}) {
  */
 
 /**
- * Compare target phonemes with detected phonemes for grading
+ * Compare target ipaSequence with detected ipaSequence for grading
  * PLACEHOLDER: Detection logic will be provided later
  * 
- * @param {PhonemeAnalysisResult} targetAnalysis - Expected phoneme sequence
- * @param {Object} detectedData - Detected phonemes from user (placeholder structure)
+ * @param {PhonemeAnalysisResult} targetAnalysis - Expected phoneme sequence (from analyzePhonemes)
+ * @param {PhonemeAnalysisResult|null} detectedAnalysis - Detected phonemes from user (placeholder)
  * @returns {PhonemeGradingResult}
  */
-export function gradePhonemes(targetAnalysis, detectedData = null) {
+export function gradePhonemes(targetAnalysis, detectedAnalysis = null) {
   // PLACEHOLDER: This will be replaced with actual detection comparison
-  // For now, return structure showing the interface
+  // Grading consumes ipaSequence as input
   
-  const phonemeScores = targetAnalysis.phonemes.map((target, index) => {
-    // Placeholder: Generate mock detected data
-    const detected = detectedData?.phonemes?.[index] || {
+  console.log('[gradePhonemes] Target ipaSequence:', targetAnalysis.ipaSequence);
+  console.log('[gradePhonemes] Detected ipaSequence:', detectedAnalysis?.ipaSequence || 'none');
+  
+  const phonemeScores = targetAnalysis.ipaSequence.map((target, index) => {
+    // Placeholder: Use detected ipaSequence if provided
+    const detected = detectedAnalysis?.ipaSequence?.[index] || {
       symbol: target.symbol,
+      features: target.features,
       confidence: 0.0,  // No actual detection yet
     };
     
@@ -325,13 +329,14 @@ export function gradePhonemes(targetAnalysis, detectedData = null) {
       position: index,
       target: {
         symbol: target.symbol,
-        ipa: target.ipa,
-        articulatory: target.articulatory,
+        features: target.features,
+        startMs: target.startMs,
+        endMs: target.endMs,
       },
       detected: {
         symbol: detected.symbol,
+        features: detected.features,
         confidence: detected.confidence,
-        // PLACEHOLDER: Will include actual detected features
       },
       match: detected.symbol === target.symbol,
       score: detected.confidence * 100,
@@ -353,19 +358,18 @@ export function gradePhonemes(targetAnalysis, detectedData = null) {
     phonemeScores,
     feedback,
     analysis: {
-      targetCount: targetAnalysis.phonemes.length,
-      detectedCount: detectedData?.phonemes?.length || 0,
+      targetCount: targetAnalysis.ipaSequence.length,
+      detectedCount: detectedAnalysis?.ipaSequence?.length || 0,
       matchRate: calculateMatchRate(phonemeScores),
     },
     // PLACEHOLDER fields for future implementation
     _placeholder: {
       note: 'Detection logic will be provided later',
-      expectedInputFormat: {
-        phonemes: [
-          { symbol: 'string', confidence: 'number 0-1', timing: 'optional' }
+      expectedDetectedFormat: {
+        ipaSequence: [
+          { symbol: 'string', features: 'object', startMs: 'number', endMs: 'number', confidence: 'number 0-1' }
         ],
-        audioFeatures: 'optional - spectral data, formants, etc.',
-        visualFeatures: 'optional - lip tracking data',
+        durationMs: 'number'
       },
     },
   };
@@ -373,34 +377,34 @@ export function gradePhonemes(targetAnalysis, detectedData = null) {
 
 /**
  * Generate feedback for a single phoneme comparison
- * PLACEHOLDER: Will be enhanced with IPA-specific guidance
+ * Uses features from ARTICULATORY_FEATURES schema
  */
 function generatePhonemeFeedback(target, detected) {
   if (!detected || detected.confidence === 0) {
-    return `Practice the "${target.symbol}" sound (${target.ipa})`;
+    return `Practice the "${target.symbol}" sound`;
   }
   
   if (detected.symbol === target.symbol && detected.confidence > 0.8) {
     return null; // Good match, no feedback needed
   }
   
-  const art = target.articulatory;
-  
-  // Generate articulatory guidance based on features
+  const features = target.features;
   const tips = [];
   
-  if (art.manner === 'vowel') {
-    if (art.place.includes('high')) tips.push('Raise your tongue');
-    if (art.place.includes('low')) tips.push('Lower your jaw');
-    if (art.rounded) tips.push('Round your lips');
-  } else if (art.manner === 'plosive') {
-    tips.push('Make a quick, explosive sound');
-    if (art.place === 'bilabial') tips.push('Press your lips together');
-  } else if (art.manner === 'fricative') {
-    tips.push('Create friction with continuous airflow');
-    if (art.place === 'labiodental') tips.push('Touch teeth to lower lip');
-  } else if (art.manner === 'nasal') {
-    tips.push('Let air flow through your nose');
+  // Generate articulatory guidance based on IPA features schema
+  if (features.type === 'vowel') {
+    if (features.height === 'close') tips.push('Raise your tongue higher');
+    if (features.height === 'open') tips.push('Open your mouth wider');
+    if (features.rounding) tips.push('Round your lips');
+    if (features.backness === 'front') tips.push('Move tongue forward');
+    if (features.backness === 'back') tips.push('Pull tongue back');
+  } else if (features.type === 'consonant') {
+    if (features.manner === 'plosive') tips.push('Make a quick, explosive sound');
+    if (features.manner === 'fricative') tips.push('Create friction with continuous airflow');
+    if (features.manner === 'nasal') tips.push('Let air flow through your nose');
+    if (features.place === 'bilabial') tips.push('Press your lips together');
+    if (features.place === 'labiodental') tips.push('Touch teeth to lower lip');
+    if (features.place === 'alveolar') tips.push('Touch tongue to ridge behind teeth');
   }
   
   return tips.length > 0 ? tips.join('. ') : `Focus on the "${target.symbol}" sound`;
