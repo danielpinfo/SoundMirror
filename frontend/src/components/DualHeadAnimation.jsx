@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, forwardRef, useImperativeHandle } from 'react';
-import { SPRITE_URLS, PHONEME_FRAME_MAP } from '../lib/constants';
+import { SPRITE_URLS, getFrameForPhoneme } from '../lib/constants';
 import { parseWordWithRules, transliterateLetter, transliterate } from '../lib/phonemeRules';
 import { getLetterAudio } from '../lib/audio';
 import { useLanguage } from '../context/LanguageContext';
