@@ -128,6 +128,27 @@ class GradingResponse(BaseModel):
     timing_feedback: str
     overall_suggestions: List[str]
 
+# ============ PHONEME DETECTION BRIDGE MODELS ============
+
+class IPAPhoneme(BaseModel):
+    """Single IPA phoneme in the sequence"""
+    symbol: str
+    features: Dict[str, Any] = {}
+    startMs: float = 0.0
+    endMs: float = 0.0
+    confidence: float = 0.0
+
+class PhonemeDetectionRequest(BaseModel):
+    """Request for native phoneme detection"""
+    pcmData: List[float]  # PCM samples as list of floats
+    sampleRate: int
+    language: str = "english"
+
+class PhonemeDetectionResponse(BaseModel):
+    """Response from native phoneme detection (LOCKED CONTRACT)"""
+    ipaSequence: List[IPAPhoneme] = []
+    durationMs: float = 0.0
+
 # ============ PHONEME DATA ============
 
 # Phoneme to frame mapping (based on actual PNG files)
