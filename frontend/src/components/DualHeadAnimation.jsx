@@ -40,16 +40,19 @@ const LETTER_PHONEME_MAP = {
 /**
  * PHONEME-FIRST: Generate animation data from phoneme analysis
  * Consumes LOCKED CONTRACT: { ipaSequence, durationMs }
+ * Now async to support optional PCM extraction
  * 
  * @param {string} text - Text to animate
  * @param {string} language - Language code
  * @param {string} mode - 'letter' or 'word'
  * @param {number} speedMultiplier - Speed adjustment (from SPEED_SETTINGS)
- * @returns {Object} { frames, phonemeAnalysis, animationData }
+ * @param {Blob|null} audioBlob - Optional audio for future PCM-based detection
+ * @returns {Promise<Object>} { frames, phonemeAnalysis, animationData }
  */
-const generateAnimationFromPhonemes = (text, language, mode, speedMultiplier = 1.0) => {
+const generateAnimationFromPhonemes = async (text, language, mode, speedMultiplier = 1.0, audioBlob = null) => {
   // PHONEME ANALYSIS: Returns { ipaSequence, durationMs }
-  const analysis = analyzePhonemes(text, language, { 
+  // Now async to support optional PCM extraction
+  const analysis = await analyzePhonemes(text, language, audioBlob, { 
     speedMultiplier 
   });
   
@@ -63,12 +66,12 @@ const generateAnimationFromPhonemes = (text, language, mode, speedMultiplier = 1
   };
 };
 
-// Generate frame sequence for letter practice
-const generatePhonemeSequence = (letter, language = 'english', speedMultiplier = 1.0) => {
+// Generate frame sequence for letter practice (async)
+const generatePhonemeSequence = async (letter, language = 'english', speedMultiplier = 1.0) => {
   const letterLower = letter.toLowerCase();
   const phoneme = LETTER_PHONEME_MAP[letterLower] || `${letterLower}a`;
   
-  const { frames, phonemeAnalysis } = generateAnimationFromPhonemes(
+  const { frames, phonemeAnalysis } = await generateAnimationFromPhonemes(
     phoneme, 
     language, 
     'letter',
@@ -78,9 +81,9 @@ const generatePhonemeSequence = (letter, language = 'english', speedMultiplier =
   return { frames, phonemeAnalysis };
 };
 
-// Convert text to frame sequence for word practice
-const textToFrameSequence = (text, language, speedMultiplier = 1.0) => {
-  const { frames, phonemeAnalysis, animationData } = generateAnimationFromPhonemes(
+// Convert text to frame sequence for word practice (async)
+const textToFrameSequence = async (text, language, speedMultiplier = 1.0) => {
+  const { frames, phonemeAnalysis, animationData } = await generateAnimationFromPhonemes(
     text,
     language,
     'word',
@@ -94,7 +97,7 @@ export const DualHeadAnimation = forwardRef(({
   target = '', 
   mode = 'letter',
   onAnimationComplete,
-  onPhonemeAnalysis,  // NEW: Callback to expose phoneme analysis for grading
+  onPhonemeAnalysis,  // Callback to expose phoneme analysis for grading
   showControls = true,
   autoPlay = false,
   hideViewLabels = false,
