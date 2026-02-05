@@ -121,6 +121,14 @@ Build a visual speech articulation training platform that:
 - [x] **Complete ROMANIZATION_MAP** - All words from QUICK_PRACTICE_WORDS and PRACTICE_PHRASES added
 - [x] **Code Cleanup** - Removed redundant ReportsPage.jsx
 
+### ✅ Universal Viseme Fallback System (Feb 5, 2026)
+- [x] **VISEME_FALLBACK_MAP** - 60+ phoneme mappings based on articulatory similarity (lip rounding, jaw openness, tongue placement)
+- [x] **resolveViseme()** - Mandatory function all frame lookups must pass through, with recursive fallback resolution
+- [x] **getFrameForPhoneme()** - Wrapper that guarantees a frame is always returned (defaults to 'rest'/neutral)
+- [x] **Language-agnostic enforcement** - No per-language branching in animation logic
+- [x] **Never fails** - Unknown phonemes fall back to REST (neutral mouth), animation always continues
+- [x] **Verified for all 10 languages** - Japanese, Chinese, Hindi, Arabic, English, Spanish, French, German, Italian, Portuguese
+
 ### 📋 Future Features (Backlog)
 - [ ] Real-time streaming phoneme detection via WebSocket
 - [ ] Desktop/mobile native app builds (Electron config exists, needs testing)
