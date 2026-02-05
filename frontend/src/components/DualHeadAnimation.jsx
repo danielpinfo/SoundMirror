@@ -119,6 +119,7 @@ export const DualHeadAnimation = forwardRef(({
   const speedSettings = SPEED_SETTINGS[animationSpeed];
 
   // PHONEME-FIRST: Update animation when target changes
+  // Consumes LOCKED CONTRACT: { ipaSequence, durationMs }
   useEffect(() => {
     stopAnimation();
     
@@ -139,10 +140,11 @@ export const DualHeadAnimation = forwardRef(({
         result = textToFrameSequence(target, language, speedMultiplier);
         setPhonemeDisplay(target);
         
-        // Display romanized and IPA from phoneme analysis
-        if (result.phonemeAnalysis) {
-          setPhoneticDisplay(result.phonemeAnalysis.romanized);
-          setIpaDisplay(result.phonemeAnalysis.phonemes.map(p => p.ipa).join(' '));
+        // Display IPA from ipaSequence (LOCKED CONTRACT)
+        if (result.phonemeAnalysis?.ipaSequence) {
+          const symbols = result.phonemeAnalysis.ipaSequence.map(p => p.symbol);
+          setPhoneticDisplay(symbols.join(''));
+          setIpaDisplay(symbols.join(' '));
         }
         
         setAudioUrl(null);  // Word mode uses TTS
@@ -161,8 +163,6 @@ export const DualHeadAnimation = forwardRef(({
       setFrameSequence(Array.isArray(frames) ? frames : [0]);
       setCurrentFrame(frames[0] || 0);
       setCurrentIndex(0);
-      
-      console.log('[DualHeadAnimation] Phoneme Analysis:', result.phonemeAnalysis);
     }
   }, [target, mode, language, speedSettings.speedMultiplier]);
 
