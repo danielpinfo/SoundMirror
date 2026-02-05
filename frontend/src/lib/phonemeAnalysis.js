@@ -24,6 +24,7 @@
 
 import { transliterate } from './phonemeRules';
 import { resolveViseme, getFrameForPhoneme, PHONEME_FRAME_MAP } from './constants';
+import { extractPcmFromAudioBlob } from './audioPcmUtils';
 
 // =============================================================================
 // IPA ARTICULATORY FEATURE SCHEMA
