@@ -123,49 +123,56 @@ export const DualHeadAnimation = forwardRef(({
 
   // PHONEME-FIRST: Update animation when target changes
   // Consumes LOCKED CONTRACT: { ipaSequence, durationMs }
+  // Now async to support optional PCM extraction
   useEffect(() => {
     stopAnimation();
     
     if (target) {
       const speedMultiplier = speedSettings.speedMultiplier;
-      let result;
       
-      if (mode === 'letter') {
-        // Letter practice
-        result = generatePhonemeSequence(target, language, speedMultiplier);
-        const letterLower = target.toLowerCase();
-        const phoneme = LETTER_PHONEME_MAP[letterLower] || `${letterLower}a`;
-        setPhonemeDisplay(target.toUpperCase());
-        setPhoneticDisplay(phoneme);
-        fetchLetterAudio(target);
-      } else {
-        // Word practice - uses phoneme analysis layer
-        result = textToFrameSequence(target, language, speedMultiplier);
-        setPhonemeDisplay(target);
+      // Async wrapper for phoneme analysis
+      const loadAnimation = async () => {
+        let result;
         
-        // Display IPA from ipaSequence (LOCKED CONTRACT)
-        if (result.phonemeAnalysis?.ipaSequence) {
-          const symbols = result.phonemeAnalysis.ipaSequence.map(p => p.symbol);
-          setPhoneticDisplay(symbols.join(''));
-          setIpaDisplay(symbols.join(' '));
+        if (mode === 'letter') {
+          // Letter practice
+          result = await generatePhonemeSequence(target, language, speedMultiplier);
+          const letterLower = target.toLowerCase();
+          const phoneme = LETTER_PHONEME_MAP[letterLower] || `${letterLower}a`;
+          setPhonemeDisplay(target.toUpperCase());
+          setPhoneticDisplay(phoneme);
+          fetchLetterAudio(target);
+        } else {
+          // Word practice - uses phoneme analysis layer
+          result = await textToFrameSequence(target, language, speedMultiplier);
+          setPhonemeDisplay(target);
+          
+          // Display IPA from ipaSequence (LOCKED CONTRACT)
+          if (result.phonemeAnalysis?.ipaSequence) {
+            const symbols = result.phonemeAnalysis.ipaSequence.map(p => p.symbol);
+            setPhoneticDisplay(symbols.join(''));
+            setIpaDisplay(symbols.join(' '));
+          }
+          
+          setAudioUrl(null);  // Word mode uses TTS
         }
         
-        setAudioUrl(null);  // Word mode uses TTS
-      }
+        // Store phoneme analysis
+        setCurrentPhonemeAnalysis(result.phonemeAnalysis || null);
+        
+        // Expose analysis to parent for grading
+        if (onPhonemeAnalysis && result.phonemeAnalysis) {
+          onPhonemeAnalysis(result.phonemeAnalysis);
+        }
+        
+        // Set frame sequence
+        const frames = result.frames || result;
+        setFrameSequence(Array.isArray(frames) ? frames : [0]);
+        setCurrentFrame(frames[0] || 0);
+        setCurrentIndex(0);
+      };
       
-      // Store phoneme analysis
-      setCurrentPhonemeAnalysis(result.phonemeAnalysis || null);
-      
-      // Expose analysis to parent for grading
-      if (onPhonemeAnalysis && result.phonemeAnalysis) {
-        onPhonemeAnalysis(result.phonemeAnalysis);
-      }
-      
-      // Set frame sequence
-      const frames = result.frames || result;
-      setFrameSequence(Array.isArray(frames) ? frames : [0]);
-      setCurrentFrame(frames[0] || 0);
-      setCurrentIndex(0);
+      loadAnimation();
     }
   }, [target, mode, language, speedSettings.speedMultiplier]);
 
