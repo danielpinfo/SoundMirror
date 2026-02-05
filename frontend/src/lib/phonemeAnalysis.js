@@ -18,13 +18,22 @@
  *   ↓
  * Audio (reference-only, plays alongside)
  * 
- * PLACEHOLDER: IPA specifics and detection logic will be provided later.
- * Current implementation uses romanization-based approximations.
+ * HYBRID DETECTION BRIDGE:
+ * - If audioBlob is provided AND hybrid mode is enabled,
+ * - PCM is extracted and sent to native detection service
+ * - Response is LOGGED ONLY (does not replace existing ipaSequence logic)
  */
 
 import { transliterate } from './phonemeRules';
 import { resolveViseme, getFrameForPhoneme, PHONEME_FRAME_MAP } from './constants';
 import { extractPcmFromAudioBlob } from './audioPcmUtils';
+import { detectPhonemesNative } from './nativeDetectionBridge';
+
+// =============================================================================
+// HYBRID DETECTION MODE FLAG
+// When true, PCM is sent to native detection service (logged only)
+// =============================================================================
+const HYBRID_DETECTION_ENABLED = true;
 
 // =============================================================================
 // IPA ARTICULATORY FEATURE SCHEMA
