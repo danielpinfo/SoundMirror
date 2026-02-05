@@ -102,36 +102,27 @@ const PHONEME_DURATIONS = {
 };
 
 // =============================================================================
-// CORE PHONEME ANALYSIS
+// CORE PHONEME ANALYSIS — LOCKED OUTPUT CONTRACT
 // =============================================================================
 
 /**
- * @typedef {Object} PhonemeData
- * @property {string} symbol - The phoneme symbol (romanized)
- * @property {string} ipa - IPA representation (placeholder)
- * @property {string} viseme - Mapped viseme for animation
- * @property {number} frame - PNG frame number (0-19)
- * @property {number} duration - Duration in ms
- * @property {number} startTime - Start time in ms (cumulative)
- * @property {number} endTime - End time in ms
- * @property {Object} articulatory - Articulatory features
- * @property {number} position - Position in original text
+ * @typedef {Object} IPAPhoneme
+ * @property {string} symbol - IPA symbol, e.g. 'b', 'ɛ'
+ * @property {Object} features - Articulatory features from ARTICULATORY_FEATURES
+ * @property {number} startMs - Estimated start time in milliseconds
+ * @property {number} endMs - Estimated end time in milliseconds
+ * @property {number} confidence - Confidence score 0-1 (placeholder)
  */
 
 /**
  * @typedef {Object} PhonemeAnalysisResult
- * @property {string} text - Original input text
- * @property {string} language - Language code
- * @property {string} romanized - Transliterated/romanized form
- * @property {PhonemeData[]} phonemes - Array of analyzed phonemes
- * @property {number} totalDuration - Total animation duration in ms
- * @property {Object} audioReference - Audio source info (reference only)
- * @property {Object} metadata - Additional metadata
+ * @property {IPAPhoneme[]} ipaSequence - Array of IPA phoneme objects
+ * @property {number} durationMs - Total duration in milliseconds
  */
 
 /**
- * Analyze text and produce phoneme sequence with timing and viseme data
- * This is the SINGLE SOURCE OF TRUTH for animation and grading
+ * Analyze text and produce IPA phoneme sequence
+ * LOCKED OUTPUT CONTRACT — Animation and grading consume this structure
  * 
  * @param {string} text - Input text to analyze
  * @param {string} language - Language code (english, japanese, etc.)
@@ -141,59 +132,47 @@ const PHONEME_DURATIONS = {
 export function analyzePhonemes(text, language = 'english', options = {}) {
   const {
     speedMultiplier = 1.0,  // Animation speed adjustment
-    mode = 'word',          // 'letter' or 'word'
   } = options;
   
   // Step 1: Transliterate non-Latin scripts
   const romanized = transliterate(text, language);
   
-  // Step 2: Parse into phoneme symbols
+  // Step 2: Parse into phoneme symbols (PLACEHOLDER logic)
   const phonemeSymbols = parseToPhonemeSymbols(romanized, language);
   
-  // Step 3: Build phoneme data with timing
-  let currentTime = 0;
-  const phonemes = phonemeSymbols.map((symbol, index) => {
-    const viseme = resolveViseme(symbol);
-    const frame = getFrameForPhoneme(symbol);
-    const baseDuration = PHONEME_DURATIONS[symbol] || PHONEME_DURATIONS[viseme] || PHONEME_DURATIONS.default;
-    const duration = Math.round(baseDuration / speedMultiplier);
-    const articulatory = ARTICULATORY_FEATURES[symbol] || ARTICULATORY_FEATURES[viseme] || getDefaultArticulatory(symbol);
+  // Step 3: Build ipaSequence with LOCKED CONTRACT structure
+  let currentMs = 0;
+  const ipaSequence = phonemeSymbols.map((symbol) => {
+    // Get features from ARTICULATORY_FEATURES schema
+    const features = ARTICULATORY_FEATURES[symbol] || ARTICULATORY_FEATURES[symbol.toLowerCase()] || getDefaultFeatures(symbol);
     
-    const phonemeData = {
-      symbol,
-      ipa: articulatory.ipa || symbol,
-      viseme,
-      frame,
-      duration,
-      startTime: currentTime,
-      endTime: currentTime + duration,
-      articulatory,
-      position: index,
+    // Calculate timing (PLACEHOLDER: evenly distributed)
+    const baseDuration = PHONEME_DURATIONS[symbol] || PHONEME_DURATIONS.default;
+    const duration = Math.round(baseDuration / speedMultiplier);
+    
+    const phoneme = {
+      symbol: symbol,                    // IPA symbol
+      features: features,                // From ARTICULATORY_FEATURES
+      startMs: currentMs,                // Estimated start time
+      endMs: currentMs + duration,       // Estimated end time
+      confidence: 1.0,                   // PLACEHOLDER: Always 1.0 for target analysis
     };
     
-    currentTime += duration;
-    return phonemeData;
+    currentMs += duration;
+    return phoneme;
   });
   
-  // Step 4: Build audio reference (reference-only, does NOT drive timing)
-  const audioReference = buildAudioReference(text, language, mode);
-  
-  // Step 5: Build result
-  return {
-    text,
-    language,
-    romanized,
-    phonemes,
-    totalDuration: currentTime,
-    audioReference,
-    metadata: {
-      analyzedAt: Date.now(),
-      version: '1.0.0-placeholder',
-      mode,
-      speedMultiplier,
-      phonemeCount: phonemes.length,
-    },
+  const result = {
+    ipaSequence,
+    durationMs: currentMs,
   };
+  
+  // Console log for debugging — shows ipaSequence objects
+  console.log('[analyzePhonemes] Input:', text, '→ Romanized:', romanized);
+  console.log('[analyzePhonemes] ipaSequence:', ipaSequence);
+  console.log('[analyzePhonemes] durationMs:', currentMs);
+  
+  return result;
 }
 
 /**
@@ -235,44 +214,12 @@ function parseToPhonemeSymbols(romanized, language) {
 }
 
 /**
- * Build audio reference info (reference-only, does NOT drive animation)
+ * Get default features for unknown phonemes
  */
-function buildAudioReference(text, language, mode) {
-  const langMap = {
-    'english': 'en-US', 'spanish': 'es-ES', 'italian': 'it-IT',
-    'portuguese': 'pt-BR', 'german': 'de-DE', 'french': 'fr-FR',
-    'japanese': 'ja-JP', 'chinese': 'zh-CN', 'hindi': 'hi-IN', 'arabic': 'ar-SA'
-  };
-  
-  if (mode === 'letter') {
-    return {
-      type: 'mp3',
-      source: `/assets/audio/${language}-${text.toLowerCase()}.mp3`,
-      fallback: 'tts',
-    };
-  }
-  
+function getDefaultFeatures(symbol) {
   return {
-    type: 'tts',
-    config: {
-      text,
-      lang: langMap[language] || 'en-US',
-      rate: 0.4,  // Slow for clarity
-      pitch: 1.0,
-    },
-    fallback: null,
-  };
-}
-
-/**
- * Get default articulatory features for unknown phonemes
- */
-function getDefaultArticulatory(symbol) {
-  return {
-    manner: 'unknown',
-    place: 'unknown',
-    voiced: true,
-    ipa: symbol,
+    type: 'unknown',
+    symbol: symbol,
   };
 }
 
