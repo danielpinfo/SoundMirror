@@ -361,7 +361,7 @@ export const DualHeadAnimation = forwardRef(({
     <div data-testid="dual-head-animation" className="w-full">
       {audioUrl && <audio ref={audioRef} src={audioUrl} preload="auto" />}
 
-      {/* Word/Phrase Display with Phonetic */}
+      {/* PHONEME-FIRST: Display with Phonetic and IPA */}
       {phonemeDisplay && (
         <div className="text-center mb-4">
           <div className="flex items-center justify-center gap-4 flex-wrap">
@@ -378,7 +378,25 @@ export const DualHeadAnimation = forwardRef(({
               </span>
               <span className="text-2xl font-bold text-green-300 font-mono">{phoneticDisplay}</span>
             </div>
+            {/* NEW: IPA Display (for word mode) */}
+            {ipaDisplay && mode === 'word' && (
+              <>
+                <div className="text-blue-400/50 text-2xl">|</div>
+                <div>
+                  <span className="text-xs text-purple-400 uppercase tracking-wider block mb-1">
+                    IPA
+                  </span>
+                  <span className="text-lg font-bold text-purple-300 font-mono">{ipaDisplay}</span>
+                </div>
+              </>
+            )}
           </div>
+          {/* Phoneme count indicator */}
+          {currentPhonemeAnalysis && (
+            <div className="mt-2 text-xs text-blue-400/70">
+              {currentPhonemeAnalysis.phonemes.length} phonemes • {currentPhonemeAnalysis.totalDuration}ms estimated
+            </div>
+          )}
         </div>
       )}
 
