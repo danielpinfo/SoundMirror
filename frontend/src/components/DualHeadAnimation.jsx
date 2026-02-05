@@ -209,28 +209,34 @@ export const DualHeadAnimation = forwardRef(({
     }
   }, [audioUrl, audioEnabled]);
 
-  // Play TTS - ALWAYS at slow speed regardless of animation speed
+  // Play TTS - REFERENCE ONLY, does NOT drive animation timing
+  // Uses audioReference config from phoneme analysis
   const playTTS = useCallback(() => {
     if (!audioEnabled || mode !== 'word' || !target) return;
     
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(target);
-      utterance.rate = 0.4; // ALWAYS slow for audio, regardless of animation speed
-      utterance.pitch = 1;
       
-      const langMap = {
-        'english': 'en-US', 'spanish': 'es-ES', 'italian': 'it-IT',
-        'portuguese': 'pt-BR', 'german': 'de-DE', 'french': 'fr-FR',
-        'japanese': 'ja-JP', 'chinese': 'zh-CN', 'hindi': 'hi-IN', 'arabic': 'ar-SA'
-      };
-      utterance.lang = langMap[language] || 'en-US';
+      // TTS is reference only - use config from phoneme analysis if available
+      const ttsConfig = currentPhonemeAnalysis?.audioReference?.config;
+      utterance.rate = ttsConfig?.rate || 0.4;
+      utterance.pitch = ttsConfig?.pitch || 1;
+      utterance.lang = ttsConfig?.lang || (() => {
+        const langMap = {
+          'english': 'en-US', 'spanish': 'es-ES', 'italian': 'it-IT',
+          'portuguese': 'pt-BR', 'german': 'de-DE', 'french': 'fr-FR',
+          'japanese': 'ja-JP', 'chinese': 'zh-CN', 'hindi': 'hi-IN', 'arabic': 'ar-SA'
+        };
+        return langMap[language] || 'en-US';
+      })();
       
+      console.log('[Audio Reference] TTS playing (reference only, not driving animation)');
       window.speechSynthesis.speak(utterance);
     }
-  }, [audioEnabled, mode, target, language]);
+  }, [audioEnabled, mode, target, language, currentPhonemeAnalysis]);
 
-  // Run animation step
+  // Run animation step - DRIVEN BY PHONEME TIMING, NOT AUDIO
   const runAnimationStep = useCallback((index, sequence, duration) => {
     if (!isPlayingRef.current) return;
     
@@ -249,7 +255,7 @@ export const DualHeadAnimation = forwardRef(({
     }
   }, [onAnimationComplete, stopAnimation]);
 
-  // Play
+  // Play - Animation driven by phoneme analysis, audio plays alongside
   const play = useCallback(() => {
     if (isPlayingRef.current) return;
     
@@ -260,12 +266,14 @@ export const DualHeadAnimation = forwardRef(({
     setCurrentIndex(0);
     setCurrentFrame(frameSequence[0] || 0);
     
+    // Audio is REFERENCE ONLY - plays alongside animation
     if (mode === 'letter') {
       playAudio();
     } else {
       playTTS();
     }
     
+    // Animation timing is driven by phoneme analysis, NOT audio
     animationRef.current = setTimeout(() => {
       runAnimationStep(1, frameSequence, speedSettings.frameDuration);
     }, speedSettings.frameDuration);
