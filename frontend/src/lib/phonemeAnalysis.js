@@ -193,11 +193,114 @@ export async function analyzePhonemes(text, language = 'english', audioBlob = nu
   return result;
 }
 
+// =============================================================================
+// PHONEME NORMALIZATION RULES
+// Transforms text into normalized phoneme tokens BEFORE IPA feature lookup
+// =============================================================================
+
+/**
+ * English phoneme normalization rules
+ * Maps multi-character sequences to single IPA symbols
+ */
+const ENGLISH_NORMALIZATION_RULES = {
+  // Digraphs → single IPA phoneme
+  'ch': 'tʃ',   // voiceless postalveolar affricate
+  'sh': 'ʃ',    // voiceless postalveolar fricative
+  'th': 'θ',    // voiceless dental fricative (placeholder - could be ð for voiced)
+  'ng': 'ŋ',    // velar nasal
+  'zh': 'ʒ',    // voiced postalveolar fricative
+  'ph': 'f',    // labiodental fricative (phonetic equivalent)
+  'wh': 'w',    // bilabial approximant (in most dialects)
+  
+  // Double letters → single phoneme (where doubling doesn't change pronunciation)
+  'll': 'l',
+  'ss': 's',
+  'tt': 't',
+  'ff': 'f',
+  'pp': 'p',
+  'bb': 'b',
+  'dd': 'd',
+  'gg': 'g',
+  'mm': 'm',
+  'nn': 'n',
+  'rr': 'r',
+  'zz': 'z',
+  'cc': 'k',    // typically /k/ sound
+  
+  // Common vowel digraphs → single IPA vowel
+  'ee': 'i',    // long e
+  'oo': 'u',    // long o (as in "food")
+  'ea': 'i',    // as in "eat"
+  'ai': 'eɪ',   // diphthong
+  'ay': 'eɪ',   // diphthong
+  'oa': 'oʊ',   // diphthong
+  'ou': 'aʊ',   // diphthong (as in "out")
+  'ow': 'aʊ',   // diphthong (as in "how")
+  'oi': 'ɔɪ',   // diphthong
+  'oy': 'ɔɪ',   // diphthong
+};
+
+/**
+ * Normalize text into phoneme tokens using language-specific rules
+ * Runs BEFORE IPA feature lookup
+ * 
+ * @param {string} text - Input text (romanized)
+ * @param {string} language - Language code
+ * @returns {string[]} - Array of normalized phoneme tokens
+ */
+function normalizeToPhonemeTokens(text, language) {
+  const input = text.toLowerCase();
+  const tokens = [];
+  let i = 0;
+  
+  // Only apply English normalization rules for English
+  const rules = (language === 'english' || language === 'en') 
+    ? ENGLISH_NORMALIZATION_RULES 
+    : {};
+  
+  // Sort rules by key length (longest first) for greedy matching
+  const sortedRules = Object.entries(rules).sort((a, b) => b[0].length - a[0].length);
+  
+  while (i < input.length) {
+    let matched = false;
+    
+    // Try to match normalization rules (longest first)
+    for (const [pattern, ipaSymbol] of sortedRules) {
+      if (input.substring(i, i + pattern.length) === pattern) {
+        tokens.push(ipaSymbol);
+        i += pattern.length;
+        matched = true;
+        break;
+      }
+    }
+    
+    // No rule matched - use single character
+    if (!matched) {
+      const char = input[i];
+      // Skip non-alphabetic characters
+      if (/[a-z]/.test(char)) {
+        tokens.push(char);
+      }
+      i++;
+    }
+  }
+  
+  console.log(`[PhonemeNormalization] '${text}' → [${tokens.map(t => `'${t}'`).join(', ')}]`);
+  
+  return tokens;
+}
+
 /**
  * Parse romanized text into phoneme symbols
- * PLACEHOLDER: Will be replaced with proper phoneme detection
+ * Now uses normalization layer for proper phoneme tokenization
  */
 function parseToPhonemeSymbols(romanized, language) {
+  // Use normalization layer for English
+  if (language === 'english' || language === 'en') {
+    return normalizeToPhonemeTokens(romanized, language);
+  }
+  
+  // Fallback: original parsing for other languages
   const text = romanized.toLowerCase();
   const symbols = [];
   let i = 0;
