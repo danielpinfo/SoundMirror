@@ -77,6 +77,7 @@ const textToPhonetic = (text, language) => {
 };
 
 // Generate frame sequence using CLONING for duration
+// Uses UNIVERSAL VISEME FALLBACK SYSTEM - always animates, never fails
 const generatePhonemeSequence = (letter) => {
   const letterLower = letter.toLowerCase();
   const phoneme = LETTER_PHONEME_MAP[letterLower] || `${letterLower}a`;
@@ -86,13 +87,12 @@ const generatePhonemeSequence = (letter) => {
   // Clone neutral frames for preparation
   for (let i = 0; i < 6; i++) frames.push(0);
   
-  // Parse phoneme and clone each frame
+  // Parse phoneme and clone each frame using VISEME RESOLUTION
   for (let i = 0; i < phoneme.length; i++) {
     const char = phoneme[i];
-    const frame = PHONEME_FRAME_MAP[char];
-    if (frame !== undefined) {
-      for (let j = 0; j < 8; j++) frames.push(frame);
-    }
+    // Use getFrameForPhoneme for MANDATORY viseme fallback
+    const frame = getFrameForPhoneme(char);
+    for (let j = 0; j < 8; j++) frames.push(frame);
   }
   
   // Clone neutral frames to return
@@ -102,7 +102,8 @@ const generatePhonemeSequence = (letter) => {
 };
 
 // Convert text to frame sequence with special character handling
-// CRITICAL: This function must receive TRANSLITERATED text, not native script
+// CRITICAL: Uses UNIVERSAL VISEME FALLBACK SYSTEM
+// Pipeline: Text → Transliteration → Phoneme Parsing → Viseme Resolution → PNG Frames
 const textToFrameSequence = (text, language) => {
   // Transliterate native scripts BEFORE processing
   const transliteratedText = transliterate(text, language);
@@ -117,9 +118,10 @@ const textToFrameSequence = (text, language) => {
   const phonemes = parseWordWithRules(transliteratedText, language);
   console.log(`[textToFrameSequence] Phonemes:`, phonemes);
   
-  // Clone frames for each phoneme
+  // Clone frames for each phoneme using MANDATORY VISEME RESOLUTION
   for (const phoneme of phonemes) {
-    const frame = PHONEME_FRAME_MAP[phoneme] || PHONEME_FRAME_MAP[phoneme?.toLowerCase()] || 0;
+    // Use getFrameForPhoneme for UNIVERSAL VISEME FALLBACK - NEVER fails
+    const frame = getFrameForPhoneme(phoneme);
     // Clone frame 6 times for proper duration
     for (let j = 0; j < 6; j++) {
       frames.push(frame);
