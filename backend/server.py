@@ -506,6 +506,41 @@ async def get_phoneme_map():
 async def get_frame_info():
     return {"frames": FRAME_INFO}
 
+# ============ PHONEME DETECTION BRIDGE ============
+
+@api_router.post("/phoneme/detect", response_model=PhonemeDetectionResponse)
+async def detect_phonemes(request: PhonemeDetectionRequest):
+    """
+    HYBRID NATIVE DETECTION BRIDGE
+    
+    Accepts PCM audio data and returns detected IPA phoneme sequence.
+    PLACEHOLDER: Returns mock response, no real detection yet.
+    
+    Future: This endpoint will call a native IPA detection engine.
+    """
+    pcm_length = len(request.pcmData)
+    sample_rate = request.sampleRate
+    language = request.language
+    
+    # Calculate audio duration
+    duration_seconds = pcm_length / sample_rate if sample_rate > 0 else 0
+    duration_ms = duration_seconds * 1000
+    
+    # Log receipt of data
+    logger.info(f"[PhonemeDetection] Received PCM data: length={pcm_length}, sampleRate={sample_rate}, language={language}")
+    logger.info(f"[PhonemeDetection] Audio duration: {duration_seconds:.2f}s ({duration_ms:.0f}ms)")
+    
+    # PLACEHOLDER: Return mock response
+    # No detection logic yet - ipaSequence is empty
+    response = PhonemeDetectionResponse(
+        ipaSequence=[],  # Empty - no detection implemented
+        durationMs=duration_ms
+    )
+    
+    logger.info(f"[PhonemeDetection] Returning mock response: ipaSequence=[], durationMs={duration_ms:.0f}")
+    
+    return response
+
 @api_router.get("/phoneme-to-frame/{phoneme}")
 async def get_phoneme_frame(phoneme: str):
     phoneme_lower = phoneme.lower()
