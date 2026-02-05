@@ -177,85 +177,108 @@ export const LETTER_ROMANIZATION = {
 };
 
 // Romanization mappings for non-Latin script languages
+// CRITICAL: This map must include ALL words from QUICK_PRACTICE_WORDS and PRACTICE_PHRASES
 export const ROMANIZATION_MAP = {
   japanese: {
-    // Quick practice words
+    // QUICK_PRACTICE_WORDS
     'こんにちは': 'konnichiwa',
-    'さようなら': 'sayonara',
-    'お願いします': 'onegaishimasu',
-    'ありがとう': 'arigatou',
     'はい': 'hai',
     'いいえ': 'iie',
     '水': 'mizu',
-    '友達': 'tomodachi',
-    '嬉しい': 'ureshii',
-    '愛': 'ai',
-    // Phrases
+    '食べ物': 'tabemono',
+    '良い': 'yoi',
+    '助けて': 'tasukete',
+    'ありがとう': 'arigatou',
+    // PRACTICE_PHRASES
     'ありがとうございます': 'arigatougozaimasu',
     '元気です': 'genkidesu',
     'おはようございます': 'ohayougozaimasu',
     'お元気ですか': 'ogenkidesuka',
     'はじめまして': 'hajimemashite',
+    'また後で': 'mato atode',
+    // DEFAULT_PRACTICE_WORDS (legacy)
+    'さようなら': 'sayonara',
+    'お願いします': 'onegaishimasu',
+    '友達': 'tomodachi',
+    '嬉しい': 'ureshii',
+    '愛': 'ai',
     'またね': 'matane',
   },
   chinese: {
-    // Quick practice words
+    // QUICK_PRACTICE_WORDS
     '你好': 'nihao',
-    '再见': 'zaijian',
-    '请': 'qing',
-    '谢谢': 'xiexie',
     '是': 'shi',
     '不': 'bu',
     '水': 'shui',
+    '食物': 'shiwu',
+    '好': 'hao',
+    '帮助': 'bangzhu',
+    '谢谢': 'xiexie',
+    // PRACTICE_PHRASES
+    '非常感谢': 'feichang ganxie',
+    '我很好': 'wo hen hao',
+    '早上好': 'zaoshang hao',
+    '你好吗': 'ni hao ma',
+    '很高兴认识你': 'hen gaoxing renshi ni',
+    '回头见': 'huitou jian',
+    // DEFAULT_PRACTICE_WORDS (legacy)
+    '再见': 'zaijian',
+    '请': 'qing',
     '朋友': 'pengyou',
     '快乐': 'kuaile',
     '爱': 'ai',
-    // Phrases
     '谢谢你': 'xiexieni',
-    '我很好': 'wohenhao',
-    '早上好': 'zaoshanghao',
-    '你好吗': 'nihaoma',
-    '很高兴认识你': 'hengaoxingrenishini',
-    '再见': 'zaijian',
   },
   hindi: {
-    // Quick practice words
+    // QUICK_PRACTICE_WORDS
     'नमस्ते': 'namaste',
-    'अलविदा': 'alvida',
-    'कृपया': 'kripaya',
-    'धन्यवाद': 'dhanyavad',
     'हाँ': 'haan',
     'नहीं': 'nahin',
     'पानी': 'paani',
-    'दोस्त': 'dost',
-    'खुश': 'khush',
-    'प्यार': 'pyaar',
-    // Phrases
+    'खाना': 'khaana',
+    'अच्छा': 'achha',
+    'मदद': 'madad',
     'धन्यवाद': 'dhanyavad',
+    // PRACTICE_PHRASES
+    'बहुत धन्यवाद': 'bahut dhanyavad',
     'मैं ठीक हूँ': 'main theek hoon',
     'सुप्रभात': 'suprabhat',
     'आप कैसे हैं': 'aap kaise hain',
-    'आपसे मिलकर खुशी हुई': 'aapse milkar khushi hui',
+    'आपसे मिलकर अच्छा लगा': 'aapse milkar achha laga',
     'फिर मिलेंगे': 'phir milenge',
+    // DEFAULT_PRACTICE_WORDS (legacy)
+    'अलविदा': 'alvida',
+    'कृपया': 'kripaya',
+    'दोस्त': 'dost',
+    'खुश': 'khush',
+    'प्यार': 'pyaar',
+    'आपसे मिलकर खुशी हुई': 'aapse milkar khushi hui',
   },
   arabic: {
-    // Quick practice words
+    // QUICK_PRACTICE_WORDS
     'مرحبا': 'marhaba',
-    'وداعا': 'wadaan',
-    'من فضلك': 'min fadlak',
-    'شكرا': 'shukran',
     'نعم': 'naam',
     'لا': 'la',
     'ماء': 'maa',
-    'صديق': 'sadiq',
-    'سعيد': 'saeed',
-    'حب': 'hubb',
-    // Phrases
-    'شكرا لك': 'shukran lak',
+    'طعام': 'taam',
+    'جيد': 'jayyid',
+    'مساعدة': 'musaada',
+    'شكرا': 'shukran',
+    // PRACTICE_PHRASES
+    'شكرا جزيلا': 'shukran jazeelan',
     'أنا بخير': 'ana bikhayr',
     'صباح الخير': 'sabah alkhayr',
     'كيف حالك': 'kayfa halak',
-    'تشرفت بمعرفتك': 'tasharraftu bima\'rifatik',
+    'سعيد بلقائك': 'saeed biliqaak',
+    'أراك لاحقا': 'araak lahiqan',
+    // DEFAULT_PRACTICE_WORDS (legacy)
+    'وداعا': 'wadaan',
+    'من فضلك': 'min fadlak',
+    'صديق': 'sadiq',
+    'سعيد': 'saeed',
+    'حب': 'hubb',
+    'شكرا لك': 'shukran lak',
+    'تشرفت بمعرفتك': 'tasharraftu bimarifatik',
     'إلى اللقاء': 'ila alliqa',
   },
 };
