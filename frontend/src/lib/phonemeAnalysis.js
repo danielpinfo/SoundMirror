@@ -82,6 +82,13 @@ const PHONEME_DURATIONS = {
   'a': 180, 'e': 160, 'i': 150, 'o': 170, 'u': 160,
   'ah': 200, 'eh': 180, 'ee': 170, 'oh': 190, 'oo': 180,
   
+  // IPA vowels
+  'ɪ': 140, 'ɛ': 160, 'æ': 180, 'ə': 100, 'ʌ': 150,
+  'ʊ': 140, 'ɔ': 170, 'ɑ': 190,
+  
+  // IPA diphthongs
+  'eɪ': 200, 'aɪ': 210, 'ɔɪ': 210, 'oʊ': 200, 'aʊ': 210,
+  
   // Plosives (short burst)
   'p': 80, 'b': 90, 't': 70, 'd': 80, 'k': 90, 'g': 100,
   
@@ -89,11 +96,24 @@ const PHONEME_DURATIONS = {
   'f': 120, 'v': 130, 's': 140, 'z': 150, 'sh': 160, 'h': 100,
   'th': 130,
   
+  // IPA fricatives
+  'ʃ': 160,   // sh
+  'ʒ': 160,   // zh
+  'θ': 130,   // voiceless th
+  'ð': 130,   // voiced th
+  
   // Affricates
   'ch': 150, 'j': 160,
   
+  // IPA affricates
+  'tʃ': 150,  // ch
+  'dʒ': 160,  // j
+  
   // Nasals
   'm': 120, 'n': 110, 'ng': 130,
+  
+  // IPA nasals
+  'ŋ': 130,   // ng
   
   // Liquids/Glides
   'l': 100, 'r': 110, 'w': 90, 'y': 80,
