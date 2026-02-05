@@ -316,8 +316,9 @@ export const DualHeadAnimation = forwardRef(({
     setAnimationSpeed(speeds[nextIdx]);
   }, [animationSpeed]);
 
-  // Expose methods to parent
+  // Expose methods to parent - PHONEME-FIRST architecture
   useImperativeHandle(ref, () => ({
+    // Playback controls
     play,
     pause,
     reset,
@@ -326,6 +327,10 @@ export const DualHeadAnimation = forwardRef(({
     getCurrentFrame: () => currentFrame,
     setSpeed: setAnimationSpeed,
     getSpeed: () => animationSpeed,
+    
+    // PHONEME-FIRST: Expose analysis for grading
+    getPhonemeAnalysis: () => currentPhonemeAnalysis,
+    getFrameSequence: () => frameSequence,
   }));
 
   // Auto-play
