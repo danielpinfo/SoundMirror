@@ -165,13 +165,15 @@ Build a visual speech articulation training platform that:
   - WordPracticePage.jsx
   - HistoryPage.jsx
   - BugReportPage.jsx
-  - ReportsPage.jsx (formerly PathologistPage)
 - `/app/frontend/src/components/`
-  - SplashScreen.jsx
-  - DualHeadAnimation.jsx - **Enhanced with speed control, HOLD indicator, timed frames**
+  - SplashScreen.jsx - HTML5 Canvas-based animation with droplet and ripples
+  - DualHeadAnimation.jsx - **Enhanced with speed control, HOLD indicator, transliteration pipeline**
   - RecordingPanel.jsx - **Includes MouthTracker toggle**
-  - MouthTracker.jsx - **NEW: MediaPipe Face Mesh for lip tracking**
+  - MouthTracker.jsx - **MediaPipe Face Mesh for lip tracking**
   - NavigationBar.jsx
+- `/app/frontend/src/lib/`
+  - constants.js - **Contains ROMANIZATION_MAP for non-Latin scripts**
+  - phonemeRules.js - **Contains transliterate() and parseWordWithRules() functions**
 - `/app/frontend/electron/`
   - main.js - Electron main process
   - preload.js - Electron preload script
