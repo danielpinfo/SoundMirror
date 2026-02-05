@@ -224,18 +224,19 @@ function getDefaultFeatures(symbol) {
 }
 
 // =============================================================================
-// ANIMATION INTERFACE
+// ANIMATION INTERFACE — Consumes ipaSequence
 // =============================================================================
 
 /**
  * Convert phoneme analysis to animation frame sequence
+ * Consumes ipaSequence.symbol + features from analyzePhonemes()
+ * 
  * @param {PhonemeAnalysisResult} analysis - Result from analyzePhonemes()
  * @param {Object} options - Animation options
  * @returns {Object} Animation data
  */
 export function toAnimationSequence(analysis, options = {}) {
   const {
-    frameCloneCount = 6,      // How many times to clone each frame for duration
     leadInFrames = 4,         // Neutral frames at start
     leadOutFrames = 6,        // Neutral frames at end
   } = options;
@@ -246,20 +247,25 @@ export function toAnimationSequence(analysis, options = {}) {
   // Lead-in (neutral mouth)
   for (let i = 0; i < leadInFrames; i++) {
     frames.push(0);
-    frameTimings.push({ frame: 0, phoneme: null, type: 'lead-in' });
+    frameTimings.push({ frame: 0, symbol: null, type: 'lead-in' });
   }
   
-  // Phoneme frames
-  for (const phoneme of analysis.phonemes) {
+  // Phoneme frames — uses ipaSequence.symbol + features
+  for (const phoneme of analysis.ipaSequence) {
+    // Get frame from viseme resolution using symbol
+    const viseme = resolveViseme(phoneme.symbol);
+    const frame = getFrameForPhoneme(phoneme.symbol);
+    
     // Clone frames based on duration (normalized to frame count)
-    const cloneCount = Math.max(1, Math.round(phoneme.duration / 30)); // ~30ms per frame
+    const duration = phoneme.endMs - phoneme.startMs;
+    const cloneCount = Math.max(1, Math.round(duration / 30)); // ~30ms per frame
     
     for (let i = 0; i < cloneCount; i++) {
-      frames.push(phoneme.frame);
+      frames.push(frame);
       frameTimings.push({
-        frame: phoneme.frame,
-        phoneme: phoneme.symbol,
-        ipa: phoneme.ipa,
+        frame: frame,
+        symbol: phoneme.symbol,
+        features: phoneme.features,
         type: 'phoneme',
         isFirst: i === 0,
         isLast: i === cloneCount - 1,
@@ -270,15 +276,17 @@ export function toAnimationSequence(analysis, options = {}) {
   // Lead-out (neutral mouth)
   for (let i = 0; i < leadOutFrames; i++) {
     frames.push(0);
-    frameTimings.push({ frame: 0, phoneme: null, type: 'lead-out' });
+    frameTimings.push({ frame: 0, symbol: null, type: 'lead-out' });
   }
+  
+  console.log('[toAnimationSequence] frames:', frames.length, 'phonemes:', analysis.ipaSequence.length);
   
   return {
     frames,
     frameTimings,
     totalFrames: frames.length,
-    phonemeCount: analysis.phonemes.length,
-    estimatedDuration: analysis.totalDuration,
+    phonemeCount: analysis.ipaSequence.length,
+    estimatedDuration: analysis.durationMs,
   };
 }
 
