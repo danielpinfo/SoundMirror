@@ -37,106 +37,65 @@ const LETTER_PHONEME_MAP = {
   'ch': 'cha', 'sh': 'sha', 'th': 'tha',
 };
 
-// Special character combinations that should be treated as single sounds
-// These are processed BEFORE regular character handling
-const SPECIAL_COMBINATIONS = {
-  // Double letters - animate as single
-  'll': 'l',
-  'ss': 's',
-  'tt': 't',
-  'ff': 'f',
-  'pp': 'p',
-  'bb': 'b',
-  'dd': 'd',
-  'gg': 'g',
-  'mm': 'm',
-  'nn': 'n',
-  'rr': 'r',
-  'cc': 'k',
-  'zz': 'z',
-  // Digraphs (two letters = one sound)
-  'ch': 'ch',
-  'sh': 'sh',
-  'th': 'th',
-  'ph': 'f',
-  'wh': 'w',
-  'ck': 'k',
-  'ng': 'n',
-  'qu': 'kw',
-  // Silent letter combinations
-  'ght': 't',
-  'kn': 'n',
-  'wr': 'r',
-  'gn': 'n',
-  'mb': 'm',
-  // Vowel combinations
-  'ee': 'ee',
-  'oo': 'oo',
-  'ea': 'ee',
-  'ai': 'eh',
-  'ay': 'eh',
-  'oa': 'oh',
-  'ou': 'ow',
-  'ow': 'oh',
-  'ie': 'ee',
-  'ey': 'eh',
+/**
+ * PHONEME-FIRST: Generate animation data from phoneme analysis
+ * This is the primary entry point for both letter and word animation
+ * 
+ * @param {string} text - Text to animate
+ * @param {string} language - Language code
+ * @param {string} mode - 'letter' or 'word'
+ * @param {number} speedMultiplier - Speed adjustment (from SPEED_SETTINGS)
+ * @returns {Object} { frames, phonemeAnalysis, animationData }
+ */
+const generateAnimationFromPhonemes = (text, language, mode, speedMultiplier = 1.0) => {
+  // PHONEME ANALYSIS: Single source of truth
+  const analysis = analyzePhonemes(text, language, { 
+    mode, 
+    speedMultiplier 
+  });
+  
+  console.log(`[PhonemeAnalysis] "${text}" → "${analysis.romanized}" (${language})`);
+  console.log(`[PhonemeAnalysis] Phonemes:`, analysis.phonemes.map(p => p.symbol));
+  console.log(`[PhonemeAnalysis] IPA:`, analysis.phonemes.map(p => p.ipa));
+  
+  // Convert to animation sequence
+  const animationData = toAnimationSequence(analysis);
+  
+  return {
+    frames: animationData.frames,
+    phonemeAnalysis: analysis,
+    animationData,
+  };
 };
 
-// Convert text to phonetic representation using comprehensive language rules
-const textToPhonetic = (text, language) => {
-  // Use the comprehensive language-specific phoneme parser
-  return parseWordWithRules(text, language);
-};
-
-// Generate frame sequence using CLONING for duration
-// Uses UNIVERSAL VISEME FALLBACK SYSTEM - always animates, never fails
-const generatePhonemeSequence = (letter) => {
+// Legacy: Generate frame sequence for letter practice
+// Now uses phoneme analysis layer internally
+const generatePhonemeSequence = (letter, language = 'english', speedMultiplier = 1.0) => {
   const letterLower = letter.toLowerCase();
   const phoneme = LETTER_PHONEME_MAP[letterLower] || `${letterLower}a`;
   
-  const frames = [];
+  // Use phoneme analysis for letter
+  const { frames, phonemeAnalysis } = generateAnimationFromPhonemes(
+    phoneme, 
+    language, 
+    'letter',
+    speedMultiplier
+  );
   
-  // Clone neutral frames for preparation
-  for (let i = 0; i < 6; i++) frames.push(0);
-  
-  // Parse phoneme and clone each frame using VISEME RESOLUTION
-  for (let i = 0; i < phoneme.length; i++) {
-    const char = phoneme[i];
-    // Use getFrameForPhoneme for MANDATORY viseme fallback
-    const frame = getFrameForPhoneme(char);
-    for (let j = 0; j < 8; j++) frames.push(frame);
-  }
-  
-  // Clone neutral frames to return
-  for (let i = 0; i < 4; i++) frames.push(0);
-  
-  return frames;
+  return { frames, phonemeAnalysis };
 };
 
-// Convert text to frame sequence with special character handling
-// CRITICAL: Uses UNIVERSAL VISEME FALLBACK SYSTEM
-// Pipeline: Text → Transliteration → Phoneme Parsing → Viseme Resolution → PNG Frames
-const textToFrameSequence = (text, language) => {
-  // Transliterate native scripts BEFORE processing
-  const transliteratedText = transliterate(text, language);
-  console.log(`[textToFrameSequence] "${text}" → "${transliteratedText}" (${language})`);
+// Legacy: Convert text to frame sequence for word practice
+// Now uses phoneme analysis layer internally
+const textToFrameSequence = (text, language, speedMultiplier = 1.0) => {
+  const { frames, phonemeAnalysis, animationData } = generateAnimationFromPhonemes(
+    text,
+    language,
+    'word',
+    speedMultiplier
+  );
   
-  const frames = [];
-  
-  // Start with cloned neutral frames
-  for (let i = 0; i < 4; i++) frames.push(0);
-  
-  // Parse transliterated text into phonemes using comprehensive rules
-  const phonemes = parseWordWithRules(transliteratedText, language);
-  console.log(`[textToFrameSequence] Phonemes:`, phonemes);
-  
-  // Clone frames for each phoneme using MANDATORY VISEME RESOLUTION
-  for (const phoneme of phonemes) {
-    // Use getFrameForPhoneme for UNIVERSAL VISEME FALLBACK - NEVER fails
-    const frame = getFrameForPhoneme(phoneme);
-    // Clone frame 6 times for proper duration
-    for (let j = 0; j < 6; j++) {
-      frames.push(frame);
+  return { frames, phonemeAnalysis, animationData };
     }
   }
   
