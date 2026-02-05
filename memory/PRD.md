@@ -129,6 +129,15 @@ Build a visual speech articulation training platform that:
 - [x] **Never fails** - Unknown phonemes fall back to REST (neutral mouth), animation always continues
 - [x] **Verified for all 10 languages** - Japanese, Chinese, Hindi, Arabic, English, Spanish, French, German, Italian, Portuguese
 
+### ✅ Phoneme-First Architecture (Feb 5, 2026)
+- [x] **phonemeAnalysis.js** - Centralized phoneme analysis module (single source of truth)
+- [x] **analyzePhonemes()** - Produces phoneme sequence with timing, IPA, articulatory features
+- [x] **toAnimationSequence()** - Converts phoneme analysis to animation frame sequence
+- [x] **gradePhonemes()** - Interface for comparing target vs detected phonemes (placeholder data)
+- [x] **IPA Display** - Shows IPA transcription in animation UI
+- [x] **Audio as Reference Only** - TTS/MP3 plays alongside animation but does NOT drive timing
+- [x] **Pipeline**: Text → Transliteration → Phoneme Analysis → Viseme Resolution → Animation (+ Audio reference)
+
 ### 📋 Future Features (Backlog)
 - [ ] Real-time streaming phoneme detection via WebSocket
 - [ ] Desktop/mobile native app builds (Electron config exists, needs testing)
