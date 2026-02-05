@@ -127,13 +127,30 @@ const PHONEME_DURATIONS = {
  * 
  * @param {string} text - Input text to analyze
  * @param {string} language - Language code (english, japanese, etc.)
+ * @param {Blob|null} audioBlob - Optional recorded audio for future PCM-based detection
  * @param {Object} options - Analysis options
- * @returns {PhonemeAnalysisResult}
+ * @returns {Promise<PhonemeAnalysisResult>}
  */
-export function analyzePhonemes(text, language = 'english', options = {}) {
+export async function analyzePhonemes(text, language = 'english', audioBlob = null, options = {}) {
   const {
     speedMultiplier = 1.0,  // Animation speed adjustment
   } = options;
+  
+  // PCM PIPELINE PLACEHOLDER: Extract PCM if audioBlob provided
+  // This prepares for future IPA detection engine
+  if (audioBlob) {
+    try {
+      const { pcmData, sampleRate } = await extractPcmFromAudioBlob(audioBlob);
+      console.log('[analyzePhonemes] PCM ready:', {
+        length: pcmData.length,
+        sampleRate: sampleRate,
+      });
+      // PLACEHOLDER: pcmData is available but NOT used for detection yet
+      // Future: pcmData → IPA detection engine → ipaSequence
+    } catch (error) {
+      console.error('[analyzePhonemes] PCM extraction failed:', error);
+    }
+  }
   
   // Step 1: Transliterate non-Latin scripts
   const romanized = transliterate(text, language);
