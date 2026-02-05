@@ -165,19 +165,31 @@ export async function analyzePhonemes(text, language = 'english', audioBlob = nu
     speedMultiplier = 1.0,  // Animation speed adjustment
   } = options;
   
-  // PCM PIPELINE PLACEHOLDER: Extract PCM if audioBlob provided
-  // This prepares for future IPA detection engine
-  if (audioBlob) {
+  // HYBRID DETECTION BRIDGE: If audioBlob provided AND hybrid mode enabled
+  // Extract PCM and send to native detection service (LOGGED ONLY)
+  if (audioBlob && HYBRID_DETECTION_ENABLED) {
     try {
+      // Step 1: Extract PCM from audio blob
       const { pcmData, sampleRate } = await extractPcmFromAudioBlob(audioBlob);
-      console.log('[analyzePhonemes] PCM ready:', {
+      console.log('[analyzePhonemes] PCM extracted:', {
         length: pcmData.length,
         sampleRate: sampleRate,
       });
-      // PLACEHOLDER: pcmData is available but NOT used for detection yet
-      // Future: pcmData → IPA detection engine → ipaSequence
+      
+      // Step 2: Send to native detection service
+      const nativeResult = await detectPhonemesNative(pcmData, sampleRate, language);
+      
+      // Step 3: LOG ONLY - do not replace existing ipaSequence logic
+      console.log('[analyzePhonemes] Native detection result (LOGGED ONLY):', {
+        ipaSequenceLength: nativeResult.ipaSequence?.length || 0,
+        durationMs: nativeResult.durationMs,
+        ipaSequence: nativeResult.ipaSequence,
+      });
+      
+      // NOTE: Native result is NOT used yet - existing text-based logic continues below
+      
     } catch (error) {
-      console.error('[analyzePhonemes] PCM extraction failed:', error);
+      console.error('[analyzePhonemes] Hybrid detection failed:', error);
     }
   }
   
