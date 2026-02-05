@@ -1,0 +1,176 @@
+<analysis>**original_problem_statement:**
+The user wants to continue the development of SoundMirror, a visual speech articulation training platform.
+
+The latest user requests are:
+1.  **Unify Animation Logic:** Fix the Word Practice page to use the same transliteration-based animation pipeline () as the Letter Practice page. This is to ensure animations work correctly for Japanese, Chinese, Hindi, and Arabic.
+2.  **Fix Core Functionality (Blocked):** The camera, microphone, and grading system are unusable in the Preview environment due to a security policy. A support ticket has been raised to fix this.
+3.  **UI/UX Refinements:**
+    *   **Splash Screen:** The user provided extremely detailed specifications for the splash screen animation, which involved a complete rewrite to use HTML5 Canvas. The animation must show a droplet impact followed by 6-7 non-fading, simultaneously visible, concentric ripples expanding outwards, with precise timing. The logo should be 3x larger.
+    *   **Home Page:** The layout needs to be adjusted so all content fits on one screen without scrolling. The logo should be moved up, the space below it reduced, instruction text color changed to golden with a cobalt blue border, and spacing between instructions increased. Font sizes for all interactive words and phrases should be larger.
+    - **Practice Pages:** The default animation speed should be Fast, with a new Fastest option added. The side-view animation should be zoomed in to focus on the tongue.
+4.  **Multi-Language Support:** Ensure all 10 languages are fully functional, including animations for word/letter practice (driven by transliteration) and audio for letter practice.
+5.  **Bug Reporting:** Implement file upload functionality for the bug report page.
+
+**User's preferred language**: English
+
+**what currently exists?**
+The project is a full-stack application with a React frontend and a FastAPI backend. The agent has performed a significant UI/UX overhaul based on user feedback.
+
+The most critical and time-consuming task was the splash screen, which was completely rewritten from CSS to use **HTML5 Canvas** to meet the user's very specific animation requirements for multiple, simultaneous, non-fading ripples.
+
+Multi-language support for Japanese, Chinese, Hindi, and Arabic has been implemented by adding a transliteration layer that converts native script to romanized characters, which then drives the phoneme-to-animation pipeline. This is working for Letter Practice but is broken for Word Practice.
+
+The camera/microphone issue was diagnosed as a platform-level iframe security policy issue, and a support ticket was raised. The agent has since pivoted to other UI and feature tasks as requested by the user.
+
+**Last working item**:
+-   **Last item agent was working:** The user pointed out that Word Practice is still bypassing the correct animation pipeline (transliteration → phoneme → frame sequence) for non-roman scripts. The agent's task is to unify the logic so that  also uses the  function, just like .
+-   **Status:** IN PROGRESS
+-   **Agent Testing Done:** N
+-   **Which testing method agent to use?** Frontend testing agent to verify that word animations work correctly for Japanese, Chinese, Hindi, and Arabic after the fix.
+-   **User Testing Done:** N
+
+**All Pending/In progress Issue list**:
+-   **Issue 1:** Word Practice animation logic is incorrect for non-roman scripts. (P0)
+-   **Issue 2:** Core camera/microphone functionality is blocked. (P1)
+
+**Issues Detail:**
+-   **Issue 1: Word Practice animation logic is incorrect for non-roman scripts.**
+    -   **Attempted fixes:** The agent tried to modify  to force the 'word' mode to use the  function but failed multiple  attempts. The last user message was to Keep fixing.
+    -   **Next debug checklist:**
+        1.  View the file .
+        2.  Locate the  hook that triggers on .
+        3.  Inside this hook, find the conditional logic for .
+        4.  Replace the existing, incorrect animation logic for words with a call to .
+        5.  Remove any legacy code that attempts to generate animations directly from the native script.
+    -   **Why fix this issue and what will be achieved with the fix?** This will unify the animation generation logic, ensuring that word animations for Japanese, Chinese, Hindi, and Arabic work correctly by using the transliteration pipeline.
+    -   **Status:** IN PROGRESS
+    -   **Is recurring issue?** Y
+    -   **Should Test frontend/backend/both after fix?** Frontend
+    -   **Blocked on other issue:** None
+
+-   **Issue 2: Core camera/microphone functionality is blocked.**
+    -   **Attempted fixes:** The agent correctly diagnosed the issue as an iframe  violation in the Preview environment. The agent notified the  to request the addition of  to the preview iframe.
+    -   **Next debug checklist:** This issue cannot be resolved by the agent. The agent must wait for the platform support team to fix the environment. In the meantime, work on other user-requested tasks.
+    -   **Why fix this issue and what will be achieved with the fix?** This is the application's primary feature. Fixing it will enable user recording, practice, and grading.
+    -   **Status:** BLOCKED
+    -   **Is recurring issue?** Y
+    -   **Should Test frontend/backend/both after fix?** both
+    -   **Blocked on other issue:** None. This is a platform-level blocker.
+
+**In progress Task List**:
+-   **Task 1: Unify Word Practice and Letter Practice animation pipeline**
+    -   **Where to resume:** In , within the main  hook that generates the animation sequence. The immediate goal is to fix the logic branch for .
+    -   **What will be achieved with this?** Consistent and functional animations across all languages and practice modes.
+    -   **Status:** IN PROGRESS
+    -   **Should Test frontend/backend/both after fix?** Frontend
+    -   **Blocked on something:** No
+
+**Upcoming and Future Tasks**
+-   **Upcoming Tasks:**
+    -   P1: Implement the backend for the bug reporting system. The endpoint  in  needs to be updated to accept  and email the report content and attachments.
+    -   P2: Verify that audio for letter practice works correctly for all 10 languages, especially those requiring transliteration.
+    -   P3: Finalize and test the Electron desktop build process.
+-   **Future Tasks:**
+    -   Add missing PNG sprite frames for visemes like ch and sh.
+    -   Implement real-time audio streaming (e.g., via WebSockets) to the backend.
+    -   Add more practice content (words, phrases) for all languages.
+    -   Implement PDF export functionality for the History Library reports.
+    -   Add social sharing for achievements.
+    -   Allow users to create and manage custom practice lists.
+
+**Completed work in this session**
+-   **Splash Screen Rewrite (Canvas):** Re-implemented the entire splash screen using HTML5 Canvas to achieve the user's precise animation specification: a falling droplet, 6-7 simultaneous non-fading expanding rings, specific timing, and a 3x larger logo.
+-   **Home Page Overhaul:** Adjusted layout to fit on one screen, moved the logo up, changed instruction text to golden with a cobalt blue border, increased text spacing, and enlarged fonts on all buttons.
+-   **Practice Page UI:** Set default animation speed to Fast and added a Fastest option. Zoomed in the side-view animation by 1.5x to focus on the tongue.
+-   **Multi-language Animation Fix (Partial):** Implemented a transliteration system in  to enable animations for Japanese, Chinese, Hindi, and Arabic. This is now working for letter practice.
+-   **Bug Report UI:** Added a file upload input to the bug report form.
+-   **Camera/Mic Issue Diagnosis:** Correctly identified the root cause as a Preview environment iframe permission issue and escalated it to support.
+
+**Earlier issues found/mentioned but not fixed**
+-   **Issue 1:** The backend endpoint for bug reports in  does not handle file uploads or send emails. The frontend is complete, but the backend logic is missing.
+-   **Issue 2:** The file  is redundant after its functionality was merged into  and should be deleted.
+
+**Known issue recurrence from previous fork**
+-   The camera/mic functionality has been a persistent blocker, now understood to be an environmental issue with the Preview iframe.
+-   Achieving the user's exact visual specifications for animations (especially the splash screen) requires many iterations and precise implementation.
+
+**Code Architecture**
+
+
+**Key Technical Concepts**
+-   **Frontend:** React, Tailwind CSS, **HTML5 Canvas** (for splash screen render loop).
+-   **Animation:** Frame-based sprite animation driven by phoneme sequences.
+-   **Multi-language:** Transliteration (romanization) of native scripts (Japanese, Chinese, Hindi, Arabic) to drive the animation and audio systems.
+-   **Backend:** FastAPI.
+-   **AI Integration:** Gemini Flash for grading.
+
+**key DB schema**
+-   **IndexedDB ():**
+    -    object store: 
+
+**changes in tech stack**
+-   The splash screen animation was completely changed from a CSS/Framer Motion approach to a custom **HTML5 Canvas render loop** to meet the complex visual requirements.
+
+**All files of reference**
+-   : **Highest priority.** Contains the broken animation logic for 'Word Practice' that needs to be fixed.
+-   : The new, user-approved Canvas implementation of the splash screen.
+-   : Contains the critical transliteration logic for non-roman scripts.
+-   : Contains the practice words and romanization maps that feed the animation system.
+-   : Heavily modified for layout and styling.
+-   : The bug report endpoint needs implementation.
+
+**Areas that need refactoring**:
+-   The file  is dead code and should be deleted.
+-   The  endpoint in  is a stub and needs to be fully implemented to handle file uploads and send emails.
+
+**key api endpoints**
+-   : Submits practice attempts for grading.
+-   : Submits bug reports. **(Backend logic is not implemented).**
+-   : Retrieves audio for letter practice.
+
+**Critical Info for New Agent**
+-   **Top Priority:** Your immediate task is to fix the animation pipeline in . Ensure that  uses the  function with the transliterated string to generate animations, just as  does. This is the user's last and most pressing request.
+-   **Camera is BLOCKED:** Do not attempt to fix the camera/microphone. It is an environmental issue with the Preview iframe's security policy. A support ticket is open. Await a platform fix while you work on other tasks.
+-   **Animation Standard:** The user has extremely high standards for visual fidelity and timing. The Canvas implementation in  is the gold standard for complex animations in this project. All animations for non-roman scripts MUST be driven by a transliterated (romanized) string, never the native script characters.
+
+**documents and test reports created in this job**
+-   /app/memory/PRD.md
+
+**Last 10 User Messages and any pending HUMAN messages**
+1.  **User (LATEST):** Word Practice is still bypassing the transliteration pipeline. Unify it with Letter Practice to use . Audio should be layered on top, not drive timing. (IN PROGRESS)
+2.  **User:** Animations are not working for Japanese, Chinese, Hindi, Arabic. Drive mouth animation from the transliterated phoneme string, not native script. (ATTEMPTED)
+3.  **Agent:** Fixed a syntax error in . (DONE)
+4.  **User:** For those four languages, there is no animation for word practice and no audio for letter practice. Make them operational. (ATTEMPTED)
+5.  **Agent:** Reported that Japanese animation is now working after adding transliteration. (PARTIALLY DONE)
+6.  **User:** Animations are not working for Japanese, Chinese, Hindi, or Arabic. (IN PROGRESS)
+7.  **Agent:** Diagnosed that the phoneme parser expects roman characters and needs a transliteration layer. (DONE)
+8.  **User:** Move content up on the home page and make fonts larger on all practice pages. (DONE)
+9.  **Agent:** Completed UI adjustments for home page layout and font sizes. (DONE)
+10. **User:** Japanese is not animating in word practice. The language data is in the  repo. Also, make the home page fit on one screen. (ATTEMPTED)
+
+**Project Health Check:**
+-   **Broken:**
+    -   Word practice animations for Japanese, Chinese, Hindi, and Arabic.
+-   **Mocked:**
+    -   None.
+-   **Blocked:**
+    -   The entire recording and grading functionality (camera/microphone access) is blocked by the Preview environment's iframe security policy.
+
+**3rd Party Integrations**
+-   **Gemini Flash** (Audio Analysis) — uses Emergent LLM Key
+-   **MediaPipe** (Visual Analysis) — requires no key
+-   **Electron** (Desktop App Builder) — requires no key
+
+**Testing status**
+-   Testing agent used after significant changes: NO (primarily used screenshots and manual verification).
+-   Troubleshoot agent used after agent stuck in loop: YES, to diagnose the splash screen ripple issue.
+-   Test files created: []
+-   Known regressions: Word Practice animations for non-roman scripts are not working.
+
+**Credentials to test flow:**
+None required.
+
+**What agent forgot to execute**
+-   The agent did not complete the final user request to unify the animation pipeline for Word Practice.
+-   The agent did not implement the backend logic for file uploads and email sending in the bug report feature.
+-   The agent did not delete the redundant  file.</analysis>
