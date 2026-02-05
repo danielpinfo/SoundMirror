@@ -112,6 +112,15 @@ Build a visual speech articulation training platform that:
 - [x] **Auto-Enable Camera** - Camera auto-enabled on Word Practice page
 - [x] **/reports redirects to /history** - Consolidated navigation
 
+### ✅ Multi-Language Animation Fix (Feb 5, 2026)
+- [x] **Unified Animation Pipeline** - Word Practice now uses same textToFrameSequence() as Letter Practice
+- [x] **Japanese Transliteration** - こんにちは → konnichiwa, 食べ物 → tabemono, etc.
+- [x] **Chinese Transliteration** - 你好 → nihao, 谢谢 → xiexie, etc.  
+- [x] **Hindi Transliteration** - नमस्ते → namaste, धन्यवाद → dhanyavad, etc.
+- [x] **Arabic Transliteration** - مرحبا → marhaba, شكرا → shukran, etc.
+- [x] **Complete ROMANIZATION_MAP** - All words from QUICK_PRACTICE_WORDS and PRACTICE_PHRASES added
+- [x] **Code Cleanup** - Removed redundant ReportsPage.jsx
+
 ### 📋 Future Features (Backlog)
 - [ ] Real-time streaming phoneme detection via WebSocket
 - [ ] Desktop/mobile native app builds (Electron config exists, needs testing)
