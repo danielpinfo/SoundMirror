@@ -214,51 +214,97 @@ export async function analyzePhonemes(text, language = 'english', audioBlob = nu
 }
 
 // =============================================================================
-// PHONEME NORMALIZATION RULES
+// PHONEME NORMALIZATION RULES — LANGUAGE-SCOPED CONFIGURATION
 // Transforms text into normalized phoneme tokens BEFORE IPA feature lookup
 // =============================================================================
 
 /**
- * English phoneme normalization rules
- * Maps multi-character sequences to single IPA symbols
+ * Language-scoped normalization rules configuration
+ * Structure: { languageCode: { digraphs, doubles, vowels } }
+ * 
+ * Rules are grouped by type for maintainability:
+ * - digraphs: Multi-letter consonant combinations → single IPA symbol
+ * - doubles: Double letters → single phoneme
+ * - vowels: Vowel digraphs/diphthongs → single IPA symbol
  */
-const ENGLISH_NORMALIZATION_RULES = {
-  // Digraphs → single IPA phoneme
-  'ch': 'tʃ',   // voiceless postalveolar affricate
-  'sh': 'ʃ',    // voiceless postalveolar fricative
-  'th': 'θ',    // voiceless dental fricative (placeholder - could be ð for voiced)
-  'ng': 'ŋ',    // velar nasal
-  'zh': 'ʒ',    // voiced postalveolar fricative
-  'ph': 'f',    // labiodental fricative (phonetic equivalent)
-  'wh': 'w',    // bilabial approximant (in most dialects)
+const NORMALIZATION_RULES = {
+  // English normalization rules
+  en: {
+    // Digraphs → single IPA phoneme
+    digraphs: {
+      'ch': 'tʃ',   // voiceless postalveolar affricate
+      'sh': 'ʃ',    // voiceless postalveolar fricative
+      'th': 'θ',    // voiceless dental fricative (placeholder - could be ð for voiced)
+      'ng': 'ŋ',    // velar nasal
+      'zh': 'ʒ',    // voiced postalveolar fricative
+      'ph': 'f',    // labiodental fricative (phonetic equivalent)
+      'wh': 'w',    // bilabial approximant (in most dialects)
+    },
+    
+    // Double letters → single phoneme (where doubling doesn't change pronunciation)
+    doubles: {
+      'll': 'l',
+      'ss': 's',
+      'tt': 't',
+      'ff': 'f',
+      'pp': 'p',
+      'bb': 'b',
+      'dd': 'd',
+      'gg': 'g',
+      'mm': 'm',
+      'nn': 'n',
+      'rr': 'r',
+      'zz': 'z',
+      'cc': 'k',    // typically /k/ sound
+    },
+    
+    // Common vowel digraphs → single IPA vowel
+    vowels: {
+      'ee': 'i',    // long e
+      'oo': 'u',    // long o (as in "food")
+      'ea': 'i',    // as in "eat"
+      'ai': 'eɪ',   // diphthong
+      'ay': 'eɪ',   // diphthong
+      'oa': 'oʊ',   // diphthong
+      'ou': 'aʊ',   // diphthong (as in "out")
+      'ow': 'aʊ',   // diphthong (as in "how")
+      'oi': 'ɔɪ',   // diphthong
+      'oy': 'ɔɪ',   // diphthong
+    },
+  },
   
-  // Double letters → single phoneme (where doubling doesn't change pronunciation)
-  'll': 'l',
-  'ss': 's',
-  'tt': 't',
-  'ff': 'f',
-  'pp': 'p',
-  'bb': 'b',
-  'dd': 'd',
-  'gg': 'g',
-  'mm': 'm',
-  'nn': 'n',
-  'rr': 'r',
-  'zz': 'z',
-  'cc': 'k',    // typically /k/ sound
-  
-  // Common vowel digraphs → single IPA vowel
-  'ee': 'i',    // long e
-  'oo': 'u',    // long o (as in "food")
-  'ea': 'i',    // as in "eat"
-  'ai': 'eɪ',   // diphthong
-  'ay': 'eɪ',   // diphthong
-  'oa': 'oʊ',   // diphthong
-  'ou': 'aʊ',   // diphthong (as in "out")
-  'ow': 'aʊ',   // diphthong (as in "how")
-  'oi': 'ɔɪ',   // diphthong
-  'oy': 'ɔɪ',   // diphthong
+  // Alias: 'english' → 'en'
+  english: 'en',
 };
+
+/**
+ * Get flattened normalization rules for a language
+ * Handles aliases and returns empty object for unknown languages
+ * 
+ * @param {string} language - Language code
+ * @returns {Object} - Flattened rules { pattern: ipaSymbol }
+ */
+function getNormalizationRules(language) {
+  const langKey = language?.toLowerCase() || '';
+  
+  // Resolve alias if needed
+  let rules = NORMALIZATION_RULES[langKey];
+  if (typeof rules === 'string') {
+    rules = NORMALIZATION_RULES[rules];
+  }
+  
+  // Return empty if no rules for this language
+  if (!rules || typeof rules !== 'object') {
+    return {};
+  }
+  
+  // Flatten grouped rules into single object
+  return {
+    ...rules.digraphs,
+    ...rules.doubles,
+    ...rules.vowels,
+  };
+}
 
 /**
  * Normalize text into phoneme tokens using language-specific rules
@@ -273,10 +319,8 @@ function normalizeToPhonemeTokens(text, language) {
   const tokens = [];
   let i = 0;
   
-  // Only apply English normalization rules for English
-  const rules = (language === 'english' || language === 'en') 
-    ? ENGLISH_NORMALIZATION_RULES 
-    : {};
+  // Get language-specific rules (returns empty object if not found)
+  const rules = getNormalizationRules(language);
   
   // Sort rules by key length (longest first) for greedy matching
   const sortedRules = Object.entries(rules).sort((a, b) => b[0].length - a[0].length);
