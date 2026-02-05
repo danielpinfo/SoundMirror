@@ -96,19 +96,13 @@ const textToFrameSequence = (text, language, speedMultiplier = 1.0) => {
   );
   
   return { frames, phonemeAnalysis, animationData };
-    }
-  }
-  
-  // End with cloned neutral frames
-  for (let i = 0; i < 6; i++) frames.push(0);
-  
-  return frames.length > 10 ? frames : [0];
 };
 
 export const DualHeadAnimation = forwardRef(({ 
   target = '', 
   mode = 'letter',
   onAnimationComplete,
+  onPhonemeAnalysis,  // NEW: Callback to expose phoneme analysis for grading
   showControls = true,
   autoPlay = false,
   hideViewLabels = false,
@@ -123,45 +117,62 @@ export const DualHeadAnimation = forwardRef(({
   const [isLoadingAudio, setIsLoadingAudio] = useState(false);
   const [phonemeDisplay, setPhonemeDisplay] = useState('');
   const [phoneticDisplay, setPhoneticDisplay] = useState('');
+  const [ipaDisplay, setIpaDisplay] = useState('');  // NEW: IPA display
   const [animationSpeed, setAnimationSpeed] = useState(DEFAULT_SPEED);
+  const [currentPhonemeAnalysis, setCurrentPhonemeAnalysis] = useState(null);  // NEW: Store analysis
   const animationRef = useRef(null);
   const audioRef = useRef(null);
   const isPlayingRef = useRef(false);
 
   const speedSettings = SPEED_SETTINGS[animationSpeed];
 
-  // Update frame sequence when target changes
+  // PHONEME-FIRST: Update animation when target changes
   useEffect(() => {
     stopAnimation();
     
     if (target) {
-      let sequence;
+      const speedMultiplier = speedSettings.speedMultiplier;
+      let result;
+      
       if (mode === 'letter') {
-        sequence = generatePhonemeSequence(target);
+        // Letter practice
+        result = generatePhonemeSequence(target, language, speedMultiplier);
         const letterLower = target.toLowerCase();
         const phoneme = LETTER_PHONEME_MAP[letterLower] || `${letterLower}a`;
         setPhonemeDisplay(target.toUpperCase());
         setPhoneticDisplay(phoneme);
         fetchLetterAudio(target);
       } else {
-        sequence = textToFrameSequence(target, language);
+        // Word practice - uses phoneme analysis layer
+        result = textToFrameSequence(target, language, speedMultiplier);
         setPhonemeDisplay(target);
         
-        // For non-Latin scripts, show romanized version
-        const transliteratedText = transliterate(target, language);
-        if (transliteratedText !== target) {
-          setPhoneticDisplay(transliteratedText);
-        } else {
-          setPhoneticDisplay(parseWordWithRules(target, language).join('-'));
+        // Display romanized and IPA from phoneme analysis
+        if (result.phonemeAnalysis) {
+          setPhoneticDisplay(result.phonemeAnalysis.romanized);
+          setIpaDisplay(result.phonemeAnalysis.phonemes.map(p => p.ipa).join(' '));
         }
         
-        setAudioUrl(null);
+        setAudioUrl(null);  // Word mode uses TTS
       }
-      setFrameSequence(sequence);
-      setCurrentFrame(sequence[0] || 0);
+      
+      // Store phoneme analysis
+      setCurrentPhonemeAnalysis(result.phonemeAnalysis || null);
+      
+      // Expose analysis to parent for grading
+      if (onPhonemeAnalysis && result.phonemeAnalysis) {
+        onPhonemeAnalysis(result.phonemeAnalysis);
+      }
+      
+      // Set frame sequence
+      const frames = result.frames || result;
+      setFrameSequence(Array.isArray(frames) ? frames : [0]);
+      setCurrentFrame(frames[0] || 0);
       setCurrentIndex(0);
+      
+      console.log('[DualHeadAnimation] Phoneme Analysis:', result.phonemeAnalysis);
     }
-  }, [target, mode, language]);
+  }, [target, mode, language, speedSettings.speedMultiplier]);
 
   // Stop animation helper
   const stopAnimation = useCallback(() => {
@@ -173,13 +184,12 @@ export const DualHeadAnimation = forwardRef(({
     setIsPlaying(false);
   }, []);
 
-  // Fetch letter audio
+  // Fetch letter audio (REFERENCE ONLY - does not drive animation)
   const fetchLetterAudio = async (letter) => {
     setIsLoadingAudio(true);
     try {
-      // Transliterate non-Latin letters to romanized form for audio
       const romanizedLetter = transliterateLetter(letter, language);
-      console.log(`[Audio] Letter: ${letter} → Romanized: ${romanizedLetter} (${language})`);
+      console.log(`[Audio Reference] Letter: ${letter} → Romanized: ${romanizedLetter} (${language})`);
       const url = await getLetterAudio(romanizedLetter, language);
       setAudioUrl(url);
     } catch (error) {
@@ -190,11 +200,11 @@ export const DualHeadAnimation = forwardRef(({
     }
   };
 
-  // Play audio - ALWAYS at slow speed regardless of animation speed
+  // Play audio - REFERENCE ONLY, does NOT drive animation timing
   const playAudio = useCallback(() => {
     if (audioUrl && audioEnabled && audioRef.current) {
       audioRef.current.currentTime = 0;
-      audioRef.current.playbackRate = 1.0; // Always normal audio speed
+      audioRef.current.playbackRate = 1.0;
       audioRef.current.play().catch(console.error);
     }
   }, [audioUrl, audioEnabled]);
