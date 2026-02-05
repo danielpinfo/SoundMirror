@@ -52,7 +52,7 @@ Build a visual speech articulation training platform that:
 - **Gemini AI** (via Emergent LLM key): Phoneme analysis and grading
 - **MediaPipe**: Real-time visual mouth tracking
 
-## What's Been Implemented (Feb 3, 2026)
+## What's Been Implemented (Feb 5, 2026)
 
 ### ✅ Completed
 - [x] Home page with SoundMirror branding and language selector
