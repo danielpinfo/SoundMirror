@@ -26,52 +26,49 @@ import { transliterate } from './phonemeRules';
 import { resolveViseme, getFrameForPhoneme, PHONEME_FRAME_MAP } from './constants';
 
 // =============================================================================
-// PLACEHOLDER: Articulatory Features Database
-// Will be replaced with proper IPA-based data
+// IPA ARTICULATORY FEATURE SCHEMA
 // =============================================================================
 
-const ARTICULATORY_FEATURES = {
-  // Vowels
-  'a': { manner: 'vowel', place: 'low-central', voiced: true, rounded: false, ipa: 'ɑ' },
-  'e': { manner: 'vowel', place: 'mid-front', voiced: true, rounded: false, ipa: 'ɛ' },
-  'i': { manner: 'vowel', place: 'high-front', voiced: true, rounded: false, ipa: 'i' },
-  'o': { manner: 'vowel', place: 'mid-back', voiced: true, rounded: true, ipa: 'o' },
-  'u': { manner: 'vowel', place: 'high-back', voiced: true, rounded: true, ipa: 'u' },
-  
-  // Plosives
-  'p': { manner: 'plosive', place: 'bilabial', voiced: false, ipa: 'p' },
-  'b': { manner: 'plosive', place: 'bilabial', voiced: true, ipa: 'b' },
-  't': { manner: 'plosive', place: 'alveolar', voiced: false, ipa: 't' },
-  'd': { manner: 'plosive', place: 'alveolar', voiced: true, ipa: 'd' },
-  'k': { manner: 'plosive', place: 'velar', voiced: false, ipa: 'k' },
-  'g': { manner: 'plosive', place: 'velar', voiced: true, ipa: 'g' },
-  
-  // Fricatives
-  'f': { manner: 'fricative', place: 'labiodental', voiced: false, ipa: 'f' },
-  'v': { manner: 'fricative', place: 'labiodental', voiced: true, ipa: 'v' },
-  's': { manner: 'fricative', place: 'alveolar', voiced: false, ipa: 's' },
-  'z': { manner: 'fricative', place: 'alveolar', voiced: true, ipa: 'z' },
-  'sh': { manner: 'fricative', place: 'postalveolar', voiced: false, ipa: 'ʃ' },
-  'zh': { manner: 'fricative', place: 'postalveolar', voiced: true, ipa: 'ʒ' },
-  'th': { manner: 'fricative', place: 'dental', voiced: false, ipa: 'θ' },
-  'h': { manner: 'fricative', place: 'glottal', voiced: false, ipa: 'h' },
-  
-  // Affricates
-  'ch': { manner: 'affricate', place: 'postalveolar', voiced: false, ipa: 'tʃ' },
-  'j': { manner: 'affricate', place: 'postalveolar', voiced: true, ipa: 'dʒ' },
-  
-  // Nasals
-  'm': { manner: 'nasal', place: 'bilabial', voiced: true, ipa: 'm' },
-  'n': { manner: 'nasal', place: 'alveolar', voiced: true, ipa: 'n' },
-  'ng': { manner: 'nasal', place: 'velar', voiced: true, ipa: 'ŋ' },
-  
-  // Liquids
-  'l': { manner: 'lateral', place: 'alveolar', voiced: true, ipa: 'l' },
-  'r': { manner: 'approximant', place: 'alveolar', voiced: true, ipa: 'ɹ' },
-  
-  // Glides
-  'w': { manner: 'glide', place: 'bilabial-velar', voiced: true, ipa: 'w' },
-  'y': { manner: 'glide', place: 'palatal', voiced: true, ipa: 'j' },
+export const ARTICULATORY_FEATURES = {
+  // Bilabial
+  'p': { type: 'consonant', place: 'bilabial', manner: 'plosive', voicing: false },
+  'b': { type: 'consonant', place: 'bilabial', manner: 'plosive', voicing: true },
+  'm': { type: 'consonant', place: 'bilabial', manner: 'nasal', voicing: true, nasal: true },
+
+  // Labiodental
+  'f': { type: 'consonant', place: 'labiodental', manner: 'fricative', voicing: false },
+  'v': { type: 'consonant', place: 'labiodental', manner: 'fricative', voicing: true },
+
+  // Alveolar
+  't': { type: 'consonant', place: 'alveolar', manner: 'plosive', voicing: false },
+  'd': { type: 'consonant', place: 'alveolar', manner: 'plosive', voicing: true },
+  's': { type: 'consonant', place: 'alveolar', manner: 'fricative', voicing: false },
+  'z': { type: 'consonant', place: 'alveolar', manner: 'fricative', voicing: true },
+  'n': { type: 'consonant', place: 'alveolar', manner: 'nasal', voicing: true, nasal: true },
+  'l': { type: 'consonant', place: 'alveolar', manner: 'lateral', voicing: true },
+  'r': { type: 'consonant', place: 'alveolar', manner: 'approximant', voicing: true },
+
+  // Velar
+  'k': { type: 'consonant', place: 'velar', manner: 'plosive', voicing: false },
+  'g': { type: 'consonant', place: 'velar', manner: 'plosive', voicing: true },
+  'ŋ': { type: 'consonant', place: 'velar', manner: 'nasal', voicing: true, nasal: true },
+
+  // Front vowels
+  'i': { type: 'vowel', height: 'close', backness: 'front', rounding: false },
+  'ɪ': { type: 'vowel', height: 'near-close', backness: 'front', rounding: false },
+  'e': { type: 'vowel', height: 'close-mid', backness: 'front', rounding: false },
+  'ɛ': { type: 'vowel', height: 'open-mid', backness: 'front', rounding: false },
+
+  // Central vowels
+  'ə': { type: 'vowel', height: 'mid', backness: 'central', rounding: false },
+  'ʌ': { type: 'vowel', height: 'open-mid', backness: 'central', rounding: false },
+
+  // Back vowels
+  'u': { type: 'vowel', height: 'close', backness: 'back', rounding: true },
+  'ʊ': { type: 'vowel', height: 'near-close', backness: 'back', rounding: true },
+  'o': { type: 'vowel', height: 'close-mid', backness: 'back', rounding: true },
+  'ɔ': { type: 'vowel', height: 'open-mid', backness: 'back', rounding: true },
+  'ɑ': { type: 'vowel', height: 'open', backness: 'back', rounding: false },
 };
 
 // =============================================================================
