@@ -39,7 +39,7 @@ const LETTER_PHONEME_MAP = {
 
 /**
  * PHONEME-FIRST: Generate animation data from phoneme analysis
- * This is the primary entry point for both letter and word animation
+ * Consumes LOCKED CONTRACT: { ipaSequence, durationMs }
  * 
  * @param {string} text - Text to animate
  * @param {string} language - Language code
@@ -48,17 +48,12 @@ const LETTER_PHONEME_MAP = {
  * @returns {Object} { frames, phonemeAnalysis, animationData }
  */
 const generateAnimationFromPhonemes = (text, language, mode, speedMultiplier = 1.0) => {
-  // PHONEME ANALYSIS: Single source of truth
+  // PHONEME ANALYSIS: Returns { ipaSequence, durationMs }
   const analysis = analyzePhonemes(text, language, { 
-    mode, 
     speedMultiplier 
   });
   
-  console.log(`[PhonemeAnalysis] "${text}" → "${analysis.romanized}" (${language})`);
-  console.log(`[PhonemeAnalysis] Phonemes:`, analysis.phonemes.map(p => p.symbol));
-  console.log(`[PhonemeAnalysis] IPA:`, analysis.phonemes.map(p => p.ipa));
-  
-  // Convert to animation sequence
+  // Convert to animation sequence (consumes ipaSequence)
   const animationData = toAnimationSequence(analysis);
   
   return {
@@ -68,13 +63,11 @@ const generateAnimationFromPhonemes = (text, language, mode, speedMultiplier = 1
   };
 };
 
-// Legacy: Generate frame sequence for letter practice
-// Now uses phoneme analysis layer internally
+// Generate frame sequence for letter practice
 const generatePhonemeSequence = (letter, language = 'english', speedMultiplier = 1.0) => {
   const letterLower = letter.toLowerCase();
   const phoneme = LETTER_PHONEME_MAP[letterLower] || `${letterLower}a`;
   
-  // Use phoneme analysis for letter
   const { frames, phonemeAnalysis } = generateAnimationFromPhonemes(
     phoneme, 
     language, 
@@ -85,8 +78,7 @@ const generatePhonemeSequence = (letter, language = 'english', speedMultiplier =
   return { frames, phonemeAnalysis };
 };
 
-// Legacy: Convert text to frame sequence for word practice
-// Now uses phoneme analysis layer internally
+// Convert text to frame sequence for word practice
 const textToFrameSequence = (text, language, speedMultiplier = 1.0) => {
   const { frames, phonemeAnalysis, animationData } = generateAnimationFromPhonemes(
     text,
