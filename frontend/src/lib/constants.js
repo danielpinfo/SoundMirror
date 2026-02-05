@@ -119,6 +119,32 @@ export const VISEME_FALLBACK_MAP = {
   'my': 'm',      // palatalized m
   'hy': 'h',      // palatalized h
   
+  // IPA SYMBOLS → Viseme mappings (for normalized phonemes)
+  'ʃ': 'sh',      // IPA sh → sh viseme
+  'ʒ': 'sh',      // IPA zh → sh viseme (similar mouth shape)
+  'θ': 'th',      // IPA voiceless th → th viseme
+  'ð': 'th',      // IPA voiced th → th viseme
+  'tʃ': 'ch',     // IPA ch → ch viseme
+  'dʒ': 'j',      // IPA j → j viseme
+  'ŋ': 'ng',      // IPA ng → ng viseme
+  
+  // IPA vowels → basic vowel visemes
+  'ɪ': 'i',       // near-close front → i
+  'ɛ': 'e',       // open-mid front → e
+  'æ': 'a',       // near-open front → a
+  'ə': 'a',       // schwa → a (neutral)
+  'ʌ': 'a',       // open-mid back → a
+  'ʊ': 'u',       // near-close back → u
+  'ɔ': 'o',       // open-mid back → o
+  'ɑ': 'a',       // open back → a
+  
+  // IPA diphthongs → primary vowel viseme
+  'eɪ': 'e',      // as in "say"
+  'aɪ': 'a',      // as in "my"
+  'ɔɪ': 'o',      // as in "boy"
+  'oʊ': 'o',      // as in "go"
+  'aʊ': 'a',      // as in "how"
+  
   // Chinese (Pinyin) special consonants
   'q': 'ch',      // Pinyin q → ch (aspirated palatal affricate)
   'x': 'sh',      // Pinyin x → sh (voiceless alveolo-palatal fricative)
@@ -155,7 +181,6 @@ export const VISEME_FALLBACK_MAP = {
   // Common consonant clusters
   'ts': 's',      // voiceless alveolar affricate → s
   'dz': 'z',      // voiced alveolar affricate → z
-  'ŋ': 'ng',      // velar nasal
   'ñ': 'n',       // palatal nasal → n
   'gn': 'n',      // palatalized n → n
   
