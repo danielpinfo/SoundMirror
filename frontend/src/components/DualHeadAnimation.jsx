@@ -1,22 +1,34 @@
 import React, { useState, useEffect, useCallback, useRef, forwardRef, useImperativeHandle } from 'react';
 import { SPRITE_URLS, getFrameForPhoneme } from '../lib/constants';
-import { parseWordWithRules, transliterateLetter, transliterate } from '../lib/phonemeRules';
+import { transliterateLetter, transliterate } from '../lib/phonemeRules';
+import { analyzePhonemes, toAnimationSequence } from '../lib/phonemeAnalysis';
 import { getLetterAudio } from '../lib/audio';
 import { useLanguage } from '../context/LanguageContext';
 import { Slider } from '../components/ui/slider';
 import { Button } from '../components/ui/button';
 import { Play, Pause, RotateCcw, Volume2, VolumeX, Gauge } from 'lucide-react';
 
+/**
+ * PHONEME-FIRST ARCHITECTURE
+ * 
+ * Animation is driven by phoneme analysis, NOT audio.
+ * Audio (TTS/MP3) is reference-only - plays alongside but does not control timing.
+ * 
+ * Pipeline:
+ *   Text + Language → analyzePhonemes() → toAnimationSequence() → Frame Animation
+ *                                      ↘ Audio plays as reference only
+ */
+
 // Animation speed settings - controls ANIMATION ONLY, not audio
 const SPEED_SETTINGS = {
-  slow: { frameDuration: 400, label: 'Slow' },
-  normal: { frameDuration: 250, label: 'Normal' },
-  fast: { frameDuration: 150, label: 'Fast' },
-  fastest: { frameDuration: 80, label: 'Fastest' },
+  slow: { frameDuration: 400, speedMultiplier: 0.5, label: 'Slow' },
+  normal: { frameDuration: 250, speedMultiplier: 1.0, label: 'Normal' },
+  fast: { frameDuration: 150, speedMultiplier: 1.5, label: 'Fast' },
+  fastest: { frameDuration: 80, speedMultiplier: 2.5, label: 'Fastest' },
 };
-const DEFAULT_SPEED = 'fast'; // Changed default to fast
+const DEFAULT_SPEED = 'fast';
 
-// Letter to phoneme mapping
+// Letter to phoneme mapping (for letter practice mode)
 const LETTER_PHONEME_MAP = {
   'a': 'ah', 'b': 'ba', 'c': 'ca', 'd': 'da', 'e': 'eh', 'f': 'fa', 'g': 'ga',
   'h': 'ha', 'i': 'ee', 'j': 'ja', 'k': 'ka', 'l': 'la', 'm': 'ma', 'n': 'na',
