@@ -98,8 +98,167 @@ export const PHONEME_FRAME_MAP = {
   'll': 19, 'y': 19,
   
   // Neutral/default
-  '': 0, 'neutral': 0, 'silence': 0, ' ': 0,
+  '': 0, 'neutral': 0, 'silence': 0, ' ': 0, 'rest': 0,
 };
+
+// UNIVERSAL VISEME FALLBACK MAP
+// Maps unsupported phonemes to closest existing viseme based on articulatory similarity
+// (lip rounding, jaw openness, tongue placement) - NOT spelling or script
+export const VISEME_FALLBACK_MAP = {
+  // Affricates / Fricatives (palatal / postalveolar) → Y frame (ll/y)
+  'zh': 'y',      // voiced postalveolar fricative
+  'dj': 'j',      // voiced palatal affricate
+  
+  // Japanese palatalized consonants
+  'ky': 'y',      // palatalized k
+  'gy': 'y',      // palatalized g
+  'ry': 'l',      // palatalized r (Japanese r is similar to l)
+  'ny': 'n',      // palatalized n
+  'py': 'p',      // palatalized p
+  'by': 'b',      // palatalized b
+  'my': 'm',      // palatalized m
+  'hy': 'h',      // palatalized h
+  
+  // Chinese (Pinyin) special consonants
+  'q': 'ch',      // Pinyin q → ch (aspirated palatal affricate)
+  'x': 'sh',      // Pinyin x → sh (voiceless alveolo-palatal fricative)
+  'c': 's',       // Pinyin c → s (aspirated alveolar affricate)
+  'r': 'r',       // Pinyin r (voiced retroflex)
+  
+  // Arabic emphatic/pharyngeal consonants
+  'kh': 'k',      // voiceless uvular fricative → k
+  'gh': 'g',      // voiced uvular fricative → g
+  'ḥ': 'h',       // voiceless pharyngeal fricative → h
+  'ʕ': 'a',       // voiced pharyngeal fricative → open vowel
+  'ʔ': '',        // glottal stop → neutral
+  'dh': 'd',      // emphatic d
+  'ss': 's',      // emphatic s
+  'tt': 't',      // emphatic t
+  'zz': 'z',      // emphatic z
+  'qq': 'k',      // uvular stop → k
+  
+  // Hindi retroflex/aspirated consonants
+  'ṭ': 't',       // retroflex t → t
+  'ḍ': 'd',       // retroflex d → d
+  'ṇ': 'n',       // retroflex n → n
+  'ś': 'sh',      // palatal fricative → sh
+  'ṣ': 'sh',      // retroflex fricative → sh
+  'kh': 'k',      // aspirated k → k
+  'gh': 'g',      // aspirated g → g
+  'ph': 'f',      // aspirated p → f (similar lip position)
+  'bh': 'b',      // aspirated b → b
+  'dh': 'd',      // aspirated d → d
+  'th': 'th',     // aspirated t → th (dental)
+  'jh': 'j',      // aspirated j → j
+  'chh': 'ch',    // aspirated ch → ch
+  
+  // Common consonant clusters
+  'ts': 's',      // voiceless alveolar affricate → s
+  'dz': 'z',      // voiced alveolar affricate → z
+  'ŋ': 'ng',      // velar nasal
+  'ñ': 'n',       // palatal nasal → n
+  'gn': 'n',      // palatalized n → n
+  
+  // Long vowels (same mouth shape as short)
+  'aa': 'a',
+  'ii': 'i',
+  'uu': 'u',
+  'oo': 'o',
+  'ee': 'e',
+  
+  // Diphthongs fallback to primary vowel
+  'ai': 'a',
+  'au': 'a',
+  'ei': 'e',
+  'oi': 'o',
+  'ou': 'o',
+  
+  // Double consonants → single consonant
+  'pp': 'p',
+  'bb': 'b',
+  'tt': 't',
+  'dd': 'd',
+  'kk': 'k',
+  'gg': 'g',
+  'mm': 'm',
+  'nn': 'n',
+  'ss': 's',
+  'ff': 'f',
+  'rr': 'r',
+  'll': 'l',
+  
+  // Spanish/Italian specific
+  'ñ': 'n',
+  'gl': 'l',
+  'gli': 'l',
+  'sc': 'sh',
+  'sce': 'sh',
+  'sci': 'sh',
+  
+  // Portuguese specific
+  'nh': 'n',
+  'lh': 'l',
+  
+  // German specific
+  'ß': 's',
+  'sch': 'sh',
+  'pf': 'f',
+  'tsch': 'ch',
+  
+  // French specific
+  'gn': 'n',
+  'ç': 's',
+  'œ': 'e',
+  'æ': 'a',
+};
+
+/**
+ * MANDATORY Viseme Resolution Function
+ * All animation frame selection MUST pass through this logic
+ * @param {string} phoneme - The phoneme to resolve
+ * @returns {string} - The resolved viseme (phoneme that maps to a frame)
+ */
+export function resolveViseme(phoneme) {
+  if (!phoneme) return 'rest';
+  
+  const normalizedPhoneme = phoneme.toLowerCase().trim();
+  
+  // Direct match in PHONEME_FRAME_MAP
+  if (PHONEME_FRAME_MAP[normalizedPhoneme] !== undefined) {
+    return normalizedPhoneme;
+  }
+  
+  // Fallback match
+  if (VISEME_FALLBACK_MAP[normalizedPhoneme]) {
+    const fallback = VISEME_FALLBACK_MAP[normalizedPhoneme];
+    // Recursively resolve in case fallback also needs resolution
+    return resolveViseme(fallback);
+  }
+  
+  // Character-by-character fallback for unknown multi-char sequences
+  if (normalizedPhoneme.length > 1) {
+    // Try first character
+    const firstChar = normalizedPhoneme[0];
+    if (PHONEME_FRAME_MAP[firstChar] !== undefined) {
+      return firstChar;
+    }
+  }
+  
+  // Last resort: return 'rest' (neutral mouth) - NEVER fail silently
+  console.warn(`[resolveViseme] Unknown phoneme "${phoneme}" → falling back to REST`);
+  return 'rest';
+}
+
+/**
+ * Get frame number for a phoneme using the viseme resolution system
+ * @param {string} phoneme - The phoneme to get frame for
+ * @returns {number} - Frame number (0-19)
+ */
+export function getFrameForPhoneme(phoneme) {
+  const resolvedViseme = resolveViseme(phoneme);
+  const frame = PHONEME_FRAME_MAP[resolvedViseme];
+  return frame !== undefined ? frame : 0; // Default to neutral (0) if somehow undefined
+}
 
 // Frame timing in milliseconds per phoneme
 export const FRAME_DURATION = 200;
