@@ -56,6 +56,12 @@ export const RecordingPanel = ({
   const [recordingTime, setRecordingTime] = useState(0);
   const [faceLandmarkerReady, setFaceLandmarkerReady] = useState(false);
   const recordingTimerRef = useRef(null);
+  
+  // Focus Mode state
+  const [focusModeActive, setFocusModeActive] = useState(false);
+  const [focusPhoneme, setFocusPhoneme] = useState(null);
+  const [focusAttemptCount, setFocusAttemptCount] = useState(0);
+  const [focusPreviousScore, setFocusPreviousScore] = useState(null);
 
   // Load MediaPipe FaceLandmarker
   useEffect(() => {
