@@ -701,52 +701,40 @@ export const RecordingPanel = ({
       )}
 
       {/* No separate camera controls needed - all in one button */}
-      {/* Grading Results */}
+      {/* Grading Results - Clean, encouraging feedback */}
       {grading && !isGrading && (
-        <Card className="bg-slate-800 border-slate-600">
+        <Card className="bg-slate-800/80 border-slate-700">
           <CardContent className="p-4 space-y-3">
-            {/* Overall Score */}
-            <div className="flex justify-between items-center">
-              <span className="text-slate-300 font-medium">Pronunciation Score</span>
-              <span className={`text-3xl font-bold ${getScoreColor(grading.audioScore || grading.audio_score || 0)}`}>
-                {grading.audioScore || grading.audio_score || 0}%
-              </span>
+            {/* Encouraging summary based on score */}
+            <div className="text-center pb-2">
+              {grading.audioScore >= 80 ? (
+                <p className="text-emerald-300 font-medium">Great job! Your pronunciation is on point.</p>
+              ) : grading.audioScore >= 50 ? (
+                <p className="text-blue-300 font-medium">Good effort! A few sounds need attention.</p>
+              ) : grading.audioScore > 0 ? (
+                <p className="text-amber-300 font-medium">Keep practicing — you&apos;re making progress!</p>
+              ) : (
+                <p className="text-slate-400 font-medium">Let&apos;s try that again. Speak clearly into the microphone.</p>
+              )}
             </div>
             
-            {/* Analysis breakdown */}
-            {grading.gradingDetails?.analysis && (
-              <div className="pt-2 border-t border-slate-600 grid grid-cols-2 gap-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Match rate:</span>
-                  <span className="text-green-400">{grading.gradingDetails.analysis.matchRate}%</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Perfect:</span>
-                  <span className="text-green-400">{grading.gradingDetails.analysis.perfectMatches}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Partial:</span>
-                  <span className="text-amber-400">{grading.gradingDetails.analysis.partialMatches}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Alignment:</span>
-                  <span className={`${
-                    grading.gradingDetails.analysis.alignmentQuality === 'good' ? 'text-green-400' :
-                    grading.gradingDetails.analysis.alignmentQuality === 'fair' ? 'text-amber-400' :
-                    'text-red-400'
-                  }`}>{grading.gradingDetails.analysis.alignmentQuality}</span>
-                </div>
+            {/* Feedback tips - actionable guidance */}
+            {grading.suggestions?.length > 0 && grading.audioScore < 100 && (
+              <div className="bg-slate-900/50 rounded-lg p-3 space-y-2">
+                <p className="text-xs text-slate-500 uppercase tracking-wide">Tips to improve</p>
+                {grading.suggestions.slice(0, 2).map((suggestion, idx) => (
+                  <p key={idx} className="text-sm text-slate-300 flex items-start gap-2">
+                    <span className="text-blue-400 mt-0.5">→</span>
+                    <span>{suggestion}</span>
+                  </p>
+                ))}
               </div>
             )}
             
-            {/* Feedback */}
-            {grading.suggestions?.length > 0 && (
-              <div className="pt-2 border-t border-slate-600 space-y-1">
-                {grading.suggestions.slice(0, 3).map((suggestion, idx) => (
-                  <p key={idx} className="text-sm text-slate-300">
-                    {idx === 0 ? '💡 ' : '• '}{suggestion}
-                  </p>
-                ))}
+            {/* Perfect score celebration */}
+            {grading.audioScore === 100 && (
+              <div className="bg-emerald-900/30 rounded-lg p-3 text-center">
+                <p className="text-emerald-300 text-sm">Perfect match! Try another word to keep practicing.</p>
               </div>
             )}
           </CardContent>
