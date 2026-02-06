@@ -1078,7 +1078,7 @@ function generateOverallFeedback(phonemeScores, analysis) {
 export function getPhonemeDisplayInfo(symbol) {
   const viseme = resolveViseme(symbol);
   const frame = getFrameForPhoneme(symbol);
-  const art = ARTICULATORY_FEATURES[symbol] || ARTICULATORY_FEATURES[viseme] || getDefaultArticulatory(symbol);
+  const art = ARTICULATORY_FEATURES[symbol] || ARTICULATORY_FEATURES[viseme] || getDefaultFeatures(symbol);
   
   return {
     symbol,
@@ -1087,7 +1087,7 @@ export function getPhonemeDisplayInfo(symbol) {
     frame,
     manner: art.manner,
     place: art.place,
-    voiced: art.voiced,
+    voiced: art.voicing,
   };
 }
 
