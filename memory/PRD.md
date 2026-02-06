@@ -182,11 +182,12 @@ Build a visual speech articulation training platform that:
 - Custom practice list creation
 
 ## Next Tasks
-1. **Bug Report Backend** - Implement file upload handling and email sending in `/api/bug-reports` endpoint
+1. Test camera/microphone in live browser (requires deployed/native build)
 2. Test Electron desktop build (`yarn electron:build`)
-3. Connect MouthTracker metrics to visual grading score
-4. Add comparison between user mouth shape and target phoneme shape
-5. Test real-time audio streaming for faster feedback
+3. **Bug Report Backend** - Implement file upload handling and email sending in `/api/bug-reports` endpoint
+4. Connect MouthTracker metrics to visual grading score
+5. Add comparison between user mouth shape and target phoneme shape
+6. Test real-time audio streaming for faster feedback
 
 ## Known Blockers
 - **Camera/Microphone** - Preview environment iframe security policy blocks camera/mic access. Support ticket open. Works in deployed/native builds.
