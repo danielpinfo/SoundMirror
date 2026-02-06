@@ -166,7 +166,7 @@ export async function analyzePhonemes(text, language = 'english', audioBlob = nu
   } = options;
   
   // HYBRID DETECTION BRIDGE: If audioBlob provided AND hybrid mode enabled
-  // Extract PCM and send to native detection service (LOGGED ONLY)
+  // Use REAL IPA detection from Allosaurus
   if (audioBlob && HYBRID_DETECTION_ENABLED) {
     try {
       // Step 1: Extract PCM from audio blob
@@ -176,27 +176,34 @@ export async function analyzePhonemes(text, language = 'english', audioBlob = nu
         sampleRate: sampleRate,
       });
       
-      // Step 2: Send to native detection service
+      // Step 2: Send to native detection service (Allosaurus)
       const nativeResult = await detectPhonemesNative(pcmData, sampleRate, language);
       
-      // Step 3: LOG ONLY - do not replace existing ipaSequence logic
-      console.log('[analyzePhonemes] Native detection result (LOGGED ONLY):', {
-        ipaSequenceLength: nativeResult.ipaSequence?.length || 0,
-        durationMs: nativeResult.durationMs,
-        ipaSequence: nativeResult.ipaSequence,
-      });
-      
-      // NOTE: Native result is NOT used yet - existing text-based logic continues below
+      // Step 3: USE native detection result if phonemes were detected
+      if (nativeResult.ipaSequence && nativeResult.ipaSequence.length > 0) {
+        console.log('[analyzePhonemes] USING NATIVE DETECTION RESULT:');
+        console.log('[analyzePhonemes] Detected symbols:', nativeResult.ipaSequence.map(p => p.symbol));
+        console.log('[analyzePhonemes] Duration:', nativeResult.durationMs, 'ms');
+        
+        // Return native result directly (REPLACES text-based ipaSequence)
+        return {
+          ipaSequence: nativeResult.ipaSequence,
+          durationMs: nativeResult.durationMs,
+        };
+      } else {
+        console.log('[analyzePhonemes] Native detection returned empty, falling back to text-based analysis');
+      }
       
     } catch (error) {
-      console.error('[analyzePhonemes] Hybrid detection failed:', error);
+      console.error('[analyzePhonemes] Hybrid detection failed, falling back to text-based:', error);
     }
   }
   
+  // FALLBACK: Text-based phoneme analysis (when no audioBlob or detection failed)
   // Step 1: Transliterate non-Latin scripts
   const romanized = transliterate(text, language);
   
-  // Step 2: Parse into phoneme symbols (PLACEHOLDER logic)
+  // Step 2: Parse into phoneme symbols
   const phonemeSymbols = parseToPhonemeSymbols(romanized, language);
   
   // Step 3: Build ipaSequence with LOCKED CONTRACT structure
@@ -205,7 +212,7 @@ export async function analyzePhonemes(text, language = 'english', audioBlob = nu
     // Get features from ARTICULATORY_FEATURES schema
     const features = ARTICULATORY_FEATURES[symbol] || ARTICULATORY_FEATURES[symbol.toLowerCase()] || getDefaultFeatures(symbol);
     
-    // Calculate timing (PLACEHOLDER: evenly distributed)
+    // Calculate timing (evenly distributed)
     const baseDuration = PHONEME_DURATIONS[symbol] || PHONEME_DURATIONS.default;
     const duration = Math.round(baseDuration / speedMultiplier);
     
@@ -214,7 +221,7 @@ export async function analyzePhonemes(text, language = 'english', audioBlob = nu
       features: features,                // From ARTICULATORY_FEATURES
       startMs: currentMs,                // Estimated start time
       endMs: currentMs + duration,       // Estimated end time
-      confidence: 1.0,                   // PLACEHOLDER: Always 1.0 for target analysis
+      confidence: 1.0,                   // Text-based: always 1.0
     };
     
     currentMs += duration;
@@ -227,6 +234,7 @@ export async function analyzePhonemes(text, language = 'english', audioBlob = nu
   };
   
   // Console log for debugging — shows ipaSequence objects
+  console.log('[analyzePhonemes] Text-based analysis:');
   console.log('[analyzePhonemes] Input:', text, '→ Romanized:', romanized);
   console.log('[analyzePhonemes] ipaSequence:', ipaSequence);
   console.log('[analyzePhonemes] durationMs:', currentMs);
