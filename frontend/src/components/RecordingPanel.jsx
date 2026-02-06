@@ -590,12 +590,6 @@ export const RecordingPanel = ({
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const getScoreColor = (score) => {
-    if (score >= 80) return 'text-green-400';
-    if (score >= 60) return 'text-yellow-400';
-    return 'text-red-400';
-  };
-
   return (
     <div className="space-y-4" data-testid="recording-panel">
       {/* Video/Canvas Display */}
