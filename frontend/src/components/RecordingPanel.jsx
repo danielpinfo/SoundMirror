@@ -598,6 +598,83 @@ export const RecordingPanel = ({
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // =============================================================================
+  // FOCUS MODE HANDLERS
+  // =============================================================================
+  
+  /**
+   * Enter focus mode for a specific phoneme
+   */
+  const enterFocusMode = () => {
+    if (!grading?.gradingDetails) return;
+    
+    const focus = identifyFocusPhoneme(
+      grading.gradingDetails,
+      targetIpaSequence,
+      detectedIpaSequence,
+      language
+    );
+    
+    if (focus) {
+      setFocusPhoneme(focus);
+      setFocusModeActive(true);
+      setFocusAttemptCount(1);
+      setFocusPreviousScore(focus.score);
+      console.log('[RecordingPanel] Entering Focus Mode for:', focus.targetDisplayText);
+    }
+  };
+  
+  /**
+   * Exit focus mode and return to full word view
+   */
+  const exitFocusMode = () => {
+    setFocusModeActive(false);
+    setFocusPhoneme(null);
+    setFocusAttemptCount(0);
+    setFocusPreviousScore(null);
+    console.log('[RecordingPanel] Exiting Focus Mode');
+  };
+  
+  /**
+   * Handle "Try Again" in focus mode - triggers recording for single phoneme
+   */
+  const handleFocusTryAgain = () => {
+    // Store current score before new attempt
+    if (focusPhoneme) {
+      setFocusPreviousScore(focusPhoneme.score);
+    }
+    // Trigger recording (reuses existing flow)
+    startCameraAndRecord();
+  };
+  
+  /**
+   * Update focus phoneme after grading in focus mode
+   */
+  const updateFocusPhonemeAfterGrading = (newGradingDetails) => {
+    if (!focusModeActive || !focusPhoneme) return;
+    
+    // Find the same position in new grading results
+    const newPhonemeScore = newGradingDetails?.phonemeScores?.find(
+      ps => ps.position === focusPhoneme.position
+    );
+    
+    if (newPhonemeScore) {
+      // Get updated detected display
+      const detectedPhoneme = detectedIpaSequence?.[focusPhoneme.position];
+      const detectedDisplay = detectedPhoneme 
+        ? require('../lib/ipaDisplayMapping').ipaToDisplay(detectedPhoneme.symbol, language)
+        : null;
+      
+      setFocusPhoneme(prev => ({
+        ...prev,
+        score: newPhonemeScore.score,
+        detectedDisplayText: detectedDisplay,
+        feedback: newPhonemeScore.feedback,
+      }));
+      setFocusAttemptCount(prev => prev + 1);
+    }
+  };
+
   return (
     <div className="space-y-4" data-testid="recording-panel">
       {/* Video/Canvas Display */}
