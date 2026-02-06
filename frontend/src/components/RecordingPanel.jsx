@@ -4,12 +4,14 @@ import { Card, CardContent } from '../components/ui/card';
 import { useLanguage } from '../context/LanguageContext';
 import { analyzePhonemes, gradePhonemes } from '../lib/phonemeAnalysis';
 import { PhonemeComparisonPanel } from './PhonemeComparisonPanel';
+import { GuidedFocusModePanel, identifyFocusPhoneme } from './GuidedFocusModePanel';
 import { logPhonemeSequences } from '../lib/ipaDisplayMapping';
 import { 
   Mic, 
   Square, 
   Loader2, 
   AlertCircle,
+  Target,
 } from 'lucide-react';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
