@@ -524,12 +524,19 @@ export const RecordingPanel = ({
     setIsGrading(true);
     
     try {
-      // STEP 1: Run native IPA detection via analyzePhonemes
-      // This sends the audioBlob to Allosaurus backend for real phoneme detection
-      console.log('[RecordingPanel] Starting native IPA detection...');
+      // STEP 1: Get target phoneme sequence (text-based analysis)
+      console.log('[RecordingPanel] Starting phoneme grading...');
       console.log('[RecordingPanel] Audio blob:', { type: audioBlob.type, size: audioBlob.size });
       
+      const targetResult = await analyzePhonemes(target, language, null);
+      setTargetIpaSequence(targetResult.ipaSequence);
+      logPhonemeSequences(targetResult.ipaSequence, 'Target', language);
+      
+      // STEP 2: Run native IPA detection via analyzePhonemes with audioBlob
+      // This sends the audioBlob to Allosaurus backend for real phoneme detection
       const detectionResult = await analyzePhonemes(target, language, audioBlob);
+      setDetectedIpaSequence(detectionResult.ipaSequence);
+      logPhonemeSequences(detectionResult.ipaSequence, 'Detected', language);
       
       // Log detected IPA sequence from REAL speech
       console.log('[RecordingPanel] Native IPA detection complete:');
@@ -537,61 +544,43 @@ export const RecordingPanel = ({
       console.log('[RecordingPanel] Detected symbols:', detectionResult.ipaSequence.map(p => p.symbol));
       console.log('[RecordingPanel] Duration:', detectionResult.durationMs, 'ms');
       
-      // STEP 2: Send to grading endpoint (existing flow)
-      const formData = new FormData();
-      formData.append('audio', audioBlob, 'recording.wav');
-      formData.append('target_phoneme', target);
-      formData.append('language', language);
-      // Include detected IPA for potential use by grading
-      formData.append('detected_ipa', JSON.stringify(detectionResult.ipaSequence.map(p => p.symbol)));
-
-      const response = await fetch(`${API_URL}/api/grade-audio`, {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        // Augment result with detected IPA
-        result.detectedIPA = detectionResult.ipaSequence.map(p => p.symbol);
-        setGrading(result);
-        if (onGradingComplete) {
-          onGradingComplete(result);
-        }
-      } else {
-        // Fallback to simple grading endpoint
-        const simpleResponse = await fetch(`${API_URL}/api/grade`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            target_phoneme: target, 
-            language,
-            detected_ipa: detectionResult.ipaSequence.map(p => p.symbol),
-          }),
-        });
-        
-        if (simpleResponse.ok) {
-          const result = await simpleResponse.json();
-          result.detectedIPA = detectionResult.ipaSequence.map(p => p.symbol);
-          setGrading(result);
-          if (onGradingComplete) {
-            onGradingComplete(result);
-          }
-        }
+      // STEP 3: Grade using articulatory feature comparison
+      const gradingResult = gradePhonemes(targetResult, detectionResult);
+      
+      console.log('[RecordingPanel] Grading complete:');
+      console.log('[RecordingPanel] Overall score:', gradingResult.overallScore);
+      console.log('[RecordingPanel] Analysis:', gradingResult.analysis);
+      console.log('[RecordingPanel] Feedback:', gradingResult.feedback);
+      
+      // Transform to display format
+      const displayResult = {
+        audioScore: gradingResult.overallScore,
+        visualScore: gradingResult.overallScore, // Using same score for now
+        phonemeDetected: detectionResult.ipaSequence.map(p => p.symbol).join(' '),
+        suggestions: gradingResult.feedback,
+        detectedIPA: detectionResult.ipaSequence.map(p => p.symbol),
+        gradingDetails: gradingResult, // Include full details for debugging
+      };
+      
+      setGrading(displayResult);
+      if (onGradingComplete) {
+        onGradingComplete(displayResult);
       }
+      
     } catch (error) {
       console.error('[RecordingPanel] Grading error:', error);
-      // Use fallback mock grading
-      const mockResult = {
-        audioScore: Math.round(70 + Math.random() * 20),
-        visualScore: Math.round(70 + Math.random() * 20),
-        phonemeDetected: target,
-        suggestions: ['Keep practicing!'],
+      // Use fallback grading on error
+      const fallbackResult = {
+        audioScore: 0,
+        visualScore: 0,
+        phonemeDetected: '',
+        suggestions: ['Recording failed. Please try again.'],
         detectedIPA: [],
+        gradingDetails: null,
       };
-      setGrading(mockResult);
+      setGrading(fallbackResult);
       if (onGradingComplete) {
-        onGradingComplete(mockResult);
+        onGradingComplete(fallbackResult);
       }
     } finally {
       setIsGrading(false);
