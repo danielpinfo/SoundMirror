@@ -151,6 +151,15 @@ Build a visual speech articulation training platform that:
 - [x] **Updated UI** - Grading results card shows pronunciation score, match breakdown, and actionable feedback
 - [x] **Test Suite** - /app/backend/tests/test_grading_logic.py validates the scoring algorithm
 
+### ✅ Grading UX & Explainability Pass (Feb 6, 2026)
+- [x] **Per-Phoneme Hints** - Human-readable tips below mismatched sounds ("Tongue higher", "Round lips", "Add voice")
+- [x] **Overall Summary Banner** - Encouraging message based on accuracy level (no percentages shown)
+- [x] **Confidence-Safe Language** - Neutral/encouraging tone, never "wrong", uses "different" or "focus here"
+- [x] **Visual Hierarchy** - Target row visually dominant (what to aim for), detected row muted (what was said)
+- [x] **Removed Numeric Breakdowns** - No match rate %, perfect count, alignment quality shown to users
+- [x] **Actionable Tips Panel** - Clean tips section with arrow indicators for improvement areas
+- [x] **Color Scheme** - Emerald for matches, blue for "focus here", amber for encouragement (no red error colors)
+
 ### 📋 Future Features (Backlog)
 - [ ] Real-time streaming phoneme detection via WebSocket
 - [ ] Desktop/mobile native app builds (Electron config exists, needs testing)
