@@ -505,86 +505,485 @@ export function toAnimationSequence(analysis, options = {}) {
 }
 
 // =============================================================================
-// GRADING INTERFACE — Consumes ipaSequence (PLACEHOLDER)
+// GRADING INTERFACE — Consumes aligned ipaSequence
 // =============================================================================
 
 /**
  * @typedef {Object} PhonemeGradingResult
  * @property {number} overallScore - 0-100 overall score
- * @property {Object[]} phonemeScores - Per-phoneme scores
+ * @property {Object[]} phonemeScores - Per-phoneme scores with feature breakdown
  * @property {string[]} feedback - Feedback messages
  * @property {Object} analysis - Detailed analysis
  */
 
 /**
+ * ARTICULATORY FEATURE WEIGHTS
+ * These weights determine how much each feature contributes to the phoneme score.
+ * Features are weighted based on their perceptual importance in speech.
+ */
+const FEATURE_WEIGHTS = {
+  // Consonant features
+  place: 30,      // Place of articulation (bilabial, alveolar, velar, etc.)
+  manner: 30,     // Manner of articulation (plosive, fricative, nasal, etc.)
+  voicing: 20,    // Voiced vs voiceless
+  nasal: 10,      // Nasal feature
+  
+  // Vowel features
+  height: 30,     // Tongue height (close, mid, open)
+  backness: 30,   // Tongue backness (front, central, back)
+  rounding: 20,   // Lip rounding
+  
+  // Base score for matching type (consonant/vowel)
+  typeMatch: 10,
+};
+
+/**
+ * Compare two articulatory feature sets and return a detailed score breakdown
+ * 
+ * @param {Object} targetFeatures - Features from ARTICULATORY_FEATURES
+ * @param {Object} detectedFeatures - Features from ARTICULATORY_FEATURES
+ * @returns {Object} - Score breakdown with total and per-feature scores
+ */
+function compareFeatures(targetFeatures, detectedFeatures) {
+  const breakdown = {
+    total: 0,
+    maxPossible: 0,
+    features: {},
+    explanation: [],
+  };
+  
+  // Handle missing features
+  if (!targetFeatures || !detectedFeatures) {
+    return {
+      ...breakdown,
+      total: 0,
+      maxPossible: 100,
+      explanation: ['Unable to compare features'],
+    };
+  }
+  
+  const targetType = targetFeatures.type;
+  const detectedType = detectedFeatures.type;
+  
+  // Type match check (consonant vs vowel)
+  breakdown.maxPossible += FEATURE_WEIGHTS.typeMatch;
+  if (targetType === detectedType) {
+    breakdown.total += FEATURE_WEIGHTS.typeMatch;
+    breakdown.features.typeMatch = { score: FEATURE_WEIGHTS.typeMatch, max: FEATURE_WEIGHTS.typeMatch, match: true };
+  } else {
+    breakdown.features.typeMatch = { score: 0, max: FEATURE_WEIGHTS.typeMatch, match: false };
+    breakdown.explanation.push(`Type mismatch: expected ${targetType}, detected ${detectedType}`);
+  }
+  
+  // Compare based on phoneme type
+  if (targetType === 'consonant') {
+    // Place of articulation
+    breakdown.maxPossible += FEATURE_WEIGHTS.place;
+    if (targetFeatures.place === detectedFeatures.place) {
+      breakdown.total += FEATURE_WEIGHTS.place;
+      breakdown.features.place = { score: FEATURE_WEIGHTS.place, max: FEATURE_WEIGHTS.place, match: true, value: targetFeatures.place };
+    } else {
+      // Partial credit for nearby places
+      const placeScore = getPartialPlaceScore(targetFeatures.place, detectedFeatures.place);
+      breakdown.total += placeScore;
+      breakdown.features.place = { 
+        score: placeScore, 
+        max: FEATURE_WEIGHTS.place, 
+        match: false, 
+        target: targetFeatures.place, 
+        detected: detectedFeatures.place 
+      };
+      if (placeScore < FEATURE_WEIGHTS.place) {
+        breakdown.explanation.push(`Place: ${detectedFeatures.place || 'unknown'} → ${targetFeatures.place}`);
+      }
+    }
+    
+    // Manner of articulation
+    breakdown.maxPossible += FEATURE_WEIGHTS.manner;
+    if (targetFeatures.manner === detectedFeatures.manner) {
+      breakdown.total += FEATURE_WEIGHTS.manner;
+      breakdown.features.manner = { score: FEATURE_WEIGHTS.manner, max: FEATURE_WEIGHTS.manner, match: true, value: targetFeatures.manner };
+    } else {
+      // Partial credit for similar manners
+      const mannerScore = getPartialMannerScore(targetFeatures.manner, detectedFeatures.manner);
+      breakdown.total += mannerScore;
+      breakdown.features.manner = { 
+        score: mannerScore, 
+        max: FEATURE_WEIGHTS.manner, 
+        match: false, 
+        target: targetFeatures.manner, 
+        detected: detectedFeatures.manner 
+      };
+      if (mannerScore < FEATURE_WEIGHTS.manner) {
+        breakdown.explanation.push(`Manner: ${detectedFeatures.manner || 'unknown'} → ${targetFeatures.manner}`);
+      }
+    }
+    
+    // Voicing
+    breakdown.maxPossible += FEATURE_WEIGHTS.voicing;
+    if (targetFeatures.voicing === detectedFeatures.voicing) {
+      breakdown.total += FEATURE_WEIGHTS.voicing;
+      breakdown.features.voicing = { score: FEATURE_WEIGHTS.voicing, max: FEATURE_WEIGHTS.voicing, match: true };
+    } else {
+      breakdown.features.voicing = { 
+        score: 0, 
+        max: FEATURE_WEIGHTS.voicing, 
+        match: false,
+        target: targetFeatures.voicing,
+        detected: detectedFeatures.voicing
+      };
+      breakdown.explanation.push(targetFeatures.voicing ? 'Add voice' : 'Remove voice');
+    }
+    
+    // Nasal feature (if applicable)
+    if (targetFeatures.nasal !== undefined) {
+      breakdown.maxPossible += FEATURE_WEIGHTS.nasal;
+      if (targetFeatures.nasal === detectedFeatures.nasal) {
+        breakdown.total += FEATURE_WEIGHTS.nasal;
+        breakdown.features.nasal = { score: FEATURE_WEIGHTS.nasal, max: FEATURE_WEIGHTS.nasal, match: true };
+      } else {
+        breakdown.features.nasal = { score: 0, max: FEATURE_WEIGHTS.nasal, match: false };
+        breakdown.explanation.push(targetFeatures.nasal ? 'Let air through nose' : 'Block nasal airflow');
+      }
+    }
+    
+  } else if (targetType === 'vowel') {
+    // Tongue height
+    breakdown.maxPossible += FEATURE_WEIGHTS.height;
+    if (targetFeatures.height === detectedFeatures.height) {
+      breakdown.total += FEATURE_WEIGHTS.height;
+      breakdown.features.height = { score: FEATURE_WEIGHTS.height, max: FEATURE_WEIGHTS.height, match: true, value: targetFeatures.height };
+    } else {
+      const heightScore = getPartialHeightScore(targetFeatures.height, detectedFeatures.height);
+      breakdown.total += heightScore;
+      breakdown.features.height = { 
+        score: heightScore, 
+        max: FEATURE_WEIGHTS.height, 
+        match: false,
+        target: targetFeatures.height,
+        detected: detectedFeatures.height
+      };
+      if (heightScore < FEATURE_WEIGHTS.height) {
+        breakdown.explanation.push(getHeightTip(targetFeatures.height, detectedFeatures.height));
+      }
+    }
+    
+    // Tongue backness
+    breakdown.maxPossible += FEATURE_WEIGHTS.backness;
+    if (targetFeatures.backness === detectedFeatures.backness) {
+      breakdown.total += FEATURE_WEIGHTS.backness;
+      breakdown.features.backness = { score: FEATURE_WEIGHTS.backness, max: FEATURE_WEIGHTS.backness, match: true, value: targetFeatures.backness };
+    } else {
+      const backnessScore = getPartialBacknessScore(targetFeatures.backness, detectedFeatures.backness);
+      breakdown.total += backnessScore;
+      breakdown.features.backness = { 
+        score: backnessScore, 
+        max: FEATURE_WEIGHTS.backness, 
+        match: false,
+        target: targetFeatures.backness,
+        detected: detectedFeatures.backness
+      };
+      if (backnessScore < FEATURE_WEIGHTS.backness) {
+        breakdown.explanation.push(getBacknessTip(targetFeatures.backness, detectedFeatures.backness));
+      }
+    }
+    
+    // Lip rounding
+    breakdown.maxPossible += FEATURE_WEIGHTS.rounding;
+    if (targetFeatures.rounding === detectedFeatures.rounding) {
+      breakdown.total += FEATURE_WEIGHTS.rounding;
+      breakdown.features.rounding = { score: FEATURE_WEIGHTS.rounding, max: FEATURE_WEIGHTS.rounding, match: true };
+    } else {
+      breakdown.features.rounding = { 
+        score: 0, 
+        max: FEATURE_WEIGHTS.rounding, 
+        match: false,
+        target: targetFeatures.rounding,
+        detected: detectedFeatures.rounding
+      };
+      breakdown.explanation.push(targetFeatures.rounding ? 'Round your lips' : 'Spread your lips');
+    }
+  } else {
+    // Unknown type - give base score only
+    breakdown.maxPossible = 100;
+    breakdown.total = 50; // Neutral score for unknown types
+    breakdown.explanation.push('Unknown phoneme type');
+  }
+  
+  return breakdown;
+}
+
+/**
+ * Get partial score for place of articulation based on articulatory distance
+ */
+function getPartialPlaceScore(target, detected) {
+  if (!target || !detected) return 0;
+  
+  // Place adjacency map (closer places get more partial credit)
+  const placeOrder = ['bilabial', 'labiodental', 'dental', 'alveolar', 'postalveolar', 'palatal', 'velar', 'uvular', 'glottal'];
+  const targetIdx = placeOrder.indexOf(target);
+  const detectedIdx = placeOrder.indexOf(detected);
+  
+  if (targetIdx === -1 || detectedIdx === -1) return 0;
+  
+  const distance = Math.abs(targetIdx - detectedIdx);
+  // Adjacent places get 70%, 2 away gets 40%, further gets 0%
+  if (distance === 1) return Math.round(FEATURE_WEIGHTS.place * 0.7);
+  if (distance === 2) return Math.round(FEATURE_WEIGHTS.place * 0.4);
+  return 0;
+}
+
+/**
+ * Get partial score for manner of articulation
+ */
+function getPartialMannerScore(target, detected) {
+  if (!target || !detected) return 0;
+  
+  // Manner similarity groups
+  const mannerGroups = {
+    obstruent: ['plosive', 'fricative', 'affricate'],
+    sonorant: ['nasal', 'approximant', 'lateral', 'trill', 'flap'],
+  };
+  
+  // Same group gets partial credit
+  for (const group of Object.values(mannerGroups)) {
+    if (group.includes(target) && group.includes(detected)) {
+      return Math.round(FEATURE_WEIGHTS.manner * 0.5);
+    }
+  }
+  
+  return 0;
+}
+
+/**
+ * Get partial score for vowel height
+ */
+function getPartialHeightScore(target, detected) {
+  if (!target || !detected) return 0;
+  
+  const heightOrder = ['close', 'near-close', 'close-mid', 'mid', 'open-mid', 'near-open', 'open'];
+  const targetIdx = heightOrder.indexOf(target);
+  const detectedIdx = heightOrder.indexOf(detected);
+  
+  if (targetIdx === -1 || detectedIdx === -1) return 0;
+  
+  const distance = Math.abs(targetIdx - detectedIdx);
+  if (distance === 1) return Math.round(FEATURE_WEIGHTS.height * 0.7);
+  if (distance === 2) return Math.round(FEATURE_WEIGHTS.height * 0.4);
+  return 0;
+}
+
+/**
+ * Get partial score for vowel backness
+ */
+function getPartialBacknessScore(target, detected) {
+  if (!target || !detected) return 0;
+  
+  const backnessOrder = ['front', 'near-front', 'central', 'near-back', 'back'];
+  const targetIdx = backnessOrder.indexOf(target);
+  const detectedIdx = backnessOrder.indexOf(detected);
+  
+  if (targetIdx === -1 || detectedIdx === -1) return 0;
+  
+  const distance = Math.abs(targetIdx - detectedIdx);
+  if (distance === 1) return Math.round(FEATURE_WEIGHTS.backness * 0.7);
+  return 0;
+}
+
+/**
+ * Get user-friendly tip for height adjustment
+ */
+function getHeightTip(target, detected) {
+  const heightOrder = ['close', 'near-close', 'close-mid', 'mid', 'open-mid', 'near-open', 'open'];
+  const targetIdx = heightOrder.indexOf(target);
+  const detectedIdx = heightOrder.indexOf(detected);
+  
+  if (targetIdx < detectedIdx) {
+    return 'Raise your tongue higher';
+  } else if (targetIdx > detectedIdx) {
+    return 'Lower your tongue / open mouth more';
+  }
+  return '';
+}
+
+/**
+ * Get user-friendly tip for backness adjustment
+ */
+function getBacknessTip(target, detected) {
+  const backnessOrder = ['front', 'near-front', 'central', 'near-back', 'back'];
+  const targetIdx = backnessOrder.indexOf(target);
+  const detectedIdx = backnessOrder.indexOf(detected);
+  
+  if (targetIdx < detectedIdx) {
+    return 'Move tongue forward';
+  } else if (targetIdx > detectedIdx) {
+    return 'Pull tongue back';
+  }
+  return '';
+}
+
+/**
+ * Align target and detected sequences using simple index-based alignment
+ * Returns pairs of (target, detected) phonemes for comparison
+ * 
+ * @param {IPAPhoneme[]} targetSeq - Target phoneme sequence
+ * @param {IPAPhoneme[]} detectedSeq - Detected phoneme sequence
+ * @returns {Array<{target: IPAPhoneme|null, detected: IPAPhoneme|null}>}
+ */
+function alignPhonemeSequences(targetSeq, detectedSeq) {
+  const maxLen = Math.max(targetSeq.length, detectedSeq.length);
+  const aligned = [];
+  
+  for (let i = 0; i < maxLen; i++) {
+    aligned.push({
+      target: targetSeq[i] || null,
+      detected: detectedSeq[i] || null,
+    });
+  }
+  
+  return aligned;
+}
+
+/**
  * Compare target ipaSequence with detected ipaSequence for grading
- * PLACEHOLDER: Detection logic will be provided later
+ * Uses articulatory feature comparison for interpretable, explainable scoring.
  * 
  * @param {PhonemeAnalysisResult} targetAnalysis - Expected phoneme sequence (from analyzePhonemes)
- * @param {PhonemeAnalysisResult|null} detectedAnalysis - Detected phonemes from user (placeholder)
+ * @param {PhonemeAnalysisResult|null} detectedAnalysis - Detected phonemes from user's speech
  * @returns {PhonemeGradingResult}
  */
 export function gradePhonemes(targetAnalysis, detectedAnalysis = null) {
-  // PLACEHOLDER: This will be replaced with actual detection comparison
-  // Grading consumes ipaSequence as input
-  
   console.log('[gradePhonemes] Target ipaSequence:', targetAnalysis.ipaSequence);
   console.log('[gradePhonemes] Detected ipaSequence:', detectedAnalysis?.ipaSequence || 'none');
   
-  const phonemeScores = targetAnalysis.ipaSequence.map((target, index) => {
-    // Placeholder: Use detected ipaSequence if provided
-    const detected = detectedAnalysis?.ipaSequence?.[index] || {
-      symbol: target.symbol,
-      features: target.features,
-      confidence: 0.0,  // No actual detection yet
+  const targetSeq = targetAnalysis.ipaSequence || [];
+  const detectedSeq = detectedAnalysis?.ipaSequence || [];
+  
+  // Handle case with no detection
+  if (detectedSeq.length === 0) {
+    return {
+      overallScore: 0,
+      phonemeScores: targetSeq.map((target, index) => ({
+        position: index,
+        target: { symbol: target.symbol, features: target.features },
+        detected: null,
+        score: 0,
+        featureBreakdown: null,
+        feedback: `No sound detected for "${target.symbol}"`,
+      })),
+      feedback: ['No speech detected. Please try recording again.'],
+      analysis: {
+        targetCount: targetSeq.length,
+        detectedCount: 0,
+        matchRate: 0,
+        alignmentQuality: 'none',
+      },
     };
+  }
+  
+  // Align target and detected sequences
+  const aligned = alignPhonemeSequences(targetSeq, detectedSeq);
+  
+  // Score each aligned pair using articulatory feature comparison
+  const phonemeScores = aligned.map((pair, index) => {
+    const { target, detected } = pair;
+    
+    // Case: Missing detection for this position
+    if (!detected) {
+      return {
+        position: index,
+        target: target ? { symbol: target.symbol, features: target.features } : null,
+        detected: null,
+        score: 0,
+        featureBreakdown: null,
+        feedback: target ? `Missing sound: "${target.symbol}"` : null,
+      };
+    }
+    
+    // Case: Extra detected sound (no target)
+    if (!target) {
+      return {
+        position: index,
+        target: null,
+        detected: { symbol: detected.symbol, features: detected.features, confidence: detected.confidence },
+        score: 0,
+        featureBreakdown: null,
+        feedback: `Extra sound detected: "${detected.symbol}"`,
+      };
+    }
+    
+    // Case: Both exist - compare features
+    const targetFeatures = target.features || ARTICULATORY_FEATURES[target.symbol] || getDefaultFeatures(target.symbol);
+    const detectedFeatures = detected.features || ARTICULATORY_FEATURES[detected.symbol] || getDefaultFeatures(detected.symbol);
+    
+    // Exact symbol match = 100%
+    if (target.symbol === detected.symbol) {
+      return {
+        position: index,
+        target: { symbol: target.symbol, features: targetFeatures },
+        detected: { symbol: detected.symbol, features: detectedFeatures, confidence: detected.confidence },
+        score: 100,
+        featureBreakdown: {
+          total: 100,
+          maxPossible: 100,
+          features: { exactMatch: { score: 100, max: 100, match: true } },
+          explanation: [],
+        },
+        feedback: null, // Perfect match, no feedback needed
+      };
+    }
+    
+    // Compare articulatory features
+    const featureBreakdown = compareFeatures(targetFeatures, detectedFeatures);
+    
+    // Calculate percentage score
+    const score = featureBreakdown.maxPossible > 0 
+      ? Math.round((featureBreakdown.total / featureBreakdown.maxPossible) * 100)
+      : 0;
+    
+    // Generate feedback based on feature breakdown
+    const feedback = featureBreakdown.explanation.length > 0
+      ? featureBreakdown.explanation[0] // Most important tip
+      : null;
     
     return {
       position: index,
-      target: {
-        symbol: target.symbol,
-        features: target.features,
-        startMs: target.startMs,
-        endMs: target.endMs,
-      },
-      detected: {
-        symbol: detected.symbol,
-        features: detected.features,
-        confidence: detected.confidence,
-      },
-      match: detected.symbol === target.symbol,
-      score: detected.confidence * 100,
-      feedback: generatePhonemeFeedback(target, detected),
+      target: { symbol: target.symbol, features: targetFeatures },
+      detected: { symbol: detected.symbol, features: detectedFeatures, confidence: detected.confidence },
+      score,
+      featureBreakdown,
+      feedback,
     };
   });
   
-  // Calculate overall score
-  const totalScore = phonemeScores.reduce((sum, ps) => sum + ps.score, 0);
-  const overallScore = phonemeScores.length > 0 
-    ? Math.round(totalScore / phonemeScores.length) 
+  // Calculate overall score (average of all phoneme scores)
+  const validScores = phonemeScores.filter(ps => ps.target !== null);
+  const totalScore = validScores.reduce((sum, ps) => sum + ps.score, 0);
+  const overallScore = validScores.length > 0 
+    ? Math.round(totalScore / validScores.length) 
     : 0;
   
   // Generate overall feedback
   const feedback = generateOverallFeedback(phonemeScores, targetAnalysis);
+  
+  // Calculate alignment quality
+  const matchCount = phonemeScores.filter(ps => ps.score === 100).length;
+  const alignmentQuality = targetSeq.length === detectedSeq.length ? 'good' : 
+    Math.abs(targetSeq.length - detectedSeq.length) <= 2 ? 'fair' : 'poor';
   
   return {
     overallScore,
     phonemeScores,
     feedback,
     analysis: {
-      targetCount: targetAnalysis.ipaSequence.length,
-      detectedCount: detectedAnalysis?.ipaSequence?.length || 0,
-      matchRate: calculateMatchRate(phonemeScores),
-    },
-    // PLACEHOLDER fields for future implementation
-    _placeholder: {
-      note: 'Detection logic will be provided later',
-      expectedDetectedFormat: {
-        ipaSequence: [
-          { symbol: 'string', features: 'object', startMs: 'number', endMs: 'number', confidence: 'number 0-1' }
-        ],
-        durationMs: 'number'
-      },
+      targetCount: targetSeq.length,
+      detectedCount: detectedSeq.length,
+      matchRate: validScores.length > 0 ? Math.round((matchCount / validScores.length) * 100) : 0,
+      alignmentQuality,
+      perfectMatches: matchCount,
+      partialMatches: validScores.filter(ps => ps.score > 0 && ps.score < 100).length,
+      misses: phonemeScores.filter(ps => !ps.detected).length,
+      extras: phonemeScores.filter(ps => !ps.target).length,
     },
   };
 }
