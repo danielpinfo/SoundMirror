@@ -794,17 +794,35 @@ export const RecordingPanel = ({
       </div>
 
       {/* Phoneme Comparison Panel - Shows user-friendly display (NEVER IPA) */}
-      {(targetIpaSequence.length > 0 || detectedIpaSequence.length > 0) && (
+      {/* Hide when Focus Mode is active */}
+      {!focusModeActive && (targetIpaSequence.length > 0 || detectedIpaSequence.length > 0) && (
         <PhonemeComparisonPanel
           targetIpaSequence={targetIpaSequence}
           detectedIpaSequence={detectedIpaSequence}
           language={language}
         />
       )}
+      
+      {/* GUIDED FOCUS MODE PANEL */}
+      {focusModeActive && focusPhoneme && (
+        <GuidedFocusModePanel
+          focusPhoneme={focusPhoneme}
+          targetDisplayText={focusPhoneme.targetDisplayText}
+          detectedDisplayText={focusPhoneme.detectedDisplayText}
+          previousScore={focusPreviousScore}
+          currentScore={focusPhoneme.score}
+          coachingTip={focusPhoneme.coachingTip}
+          onTryAgain={handleFocusTryAgain}
+          onExit={exitFocusMode}
+          isRecording={isRecording}
+          isGrading={isGrading}
+          attemptCount={focusAttemptCount}
+        />
+      )}
 
-      {/* No separate camera controls needed - all in one button */}
       {/* Grading Results - Clean, encouraging feedback */}
-      {grading && !isGrading && (
+      {/* Hide when Focus Mode is active */}
+      {grading && !isGrading && !focusModeActive && (
         <Card className="bg-slate-800/80 border-slate-700">
           <CardContent className="p-4 space-y-3">
             {/* Encouraging summary based on score */}
@@ -837,6 +855,22 @@ export const RecordingPanel = ({
             {grading.audioScore === 100 && (
               <div className="bg-emerald-900/30 rounded-lg p-3 text-center">
                 <p className="text-emerald-300 text-sm">Perfect match! Try another word to keep practicing.</p>
+              </div>
+            )}
+            
+            {/* FOCUS MODE ENTRY - "Practice this sound" button */}
+            {grading.audioScore < 100 && grading.gradingDetails?.phonemeScores?.some(ps => ps.score < 100) && (
+              <div className="pt-2 border-t border-slate-700/50">
+                <Button
+                  onClick={enterFocusMode}
+                  variant="outline"
+                  size="sm"
+                  className="w-full border-blue-600/50 text-blue-300 hover:bg-blue-900/30 hover:text-blue-200"
+                  data-testid="enter-focus-mode-btn"
+                >
+                  <Target className="w-4 h-4 mr-2" />
+                  Practice this sound
+                </Button>
               </div>
             )}
           </CardContent>
