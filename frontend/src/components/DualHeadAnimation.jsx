@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef, forwardRef, useImperat
 import { SPRITE_URLS, getFrameForPhoneme } from '../lib/constants';
 import { transliterateLetter, transliterate } from '../lib/phonemeRules';
 import { analyzePhonemes, toAnimationSequence } from '../lib/phonemeAnalysis';
+import { ipaSequenceToDisplay } from '../lib/ipaDisplayMapping';
 import { getLetterAudio } from '../lib/audio';
 import { useLanguage } from '../context/LanguageContext';
 import { Slider } from '../components/ui/slider';
@@ -13,6 +14,8 @@ import { Play, Pause, RotateCcw, Volume2, VolumeX, Gauge } from 'lucide-react';
  * 
  * Animation is driven by phoneme analysis, NOT audio.
  * Audio (TTS/MP3) is reference-only - plays alongside but does not control timing.
+ * 
+ * UI DISPLAY: Uses user-friendly display format (sh, th, ee) - NEVER IPA symbols.
  * 
  * Pipeline:
  *   Text + Language → analyzePhonemes() → toAnimationSequence() → Frame Animation
