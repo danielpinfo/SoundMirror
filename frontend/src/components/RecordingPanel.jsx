@@ -3,6 +3,8 @@ import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
 import { useLanguage } from '../context/LanguageContext';
 import { analyzePhonemes } from '../lib/phonemeAnalysis';
+import { PhonemeComparisonPanel } from './PhonemeComparisonPanel';
+import { logPhonemeSequences } from '../lib/ipaDisplayMapping';
 import { 
   Video, 
   Mic, 
@@ -31,6 +33,10 @@ export const RecordingPanel = ({
   language = 'english',
 }) => {
   const { t } = useLanguage();
+  
+  // Phoneme comparison state
+  const [targetIpaSequence, setTargetIpaSequence] = useState([]);
+  const [detectedIpaSequence, setDetectedIpaSequence] = useState([]);
   
   // Refs
   const videoRef = useRef(null);
