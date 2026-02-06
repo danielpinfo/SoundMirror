@@ -389,23 +389,23 @@ export const DualHeadAnimation = forwardRef(({
               </span>
               <span className="text-2xl font-bold text-green-300 font-mono">{phoneticDisplay}</span>
             </div>
-            {/* IPA Display from ipaSequence */}
+            {/* Sounds Display - User-friendly format (NEVER IPA) */}
             {ipaDisplay && mode === 'word' && (
               <>
                 <div className="text-blue-400/50 text-2xl">|</div>
                 <div>
                   <span className="text-xs text-purple-400 uppercase tracking-wider block mb-1">
-                    IPA
+                    Sounds
                   </span>
                   <span className="text-lg font-bold text-purple-300 font-mono">{ipaDisplay}</span>
                 </div>
               </>
             )}
           </div>
-          {/* ipaSequence info from LOCKED CONTRACT */}
+          {/* Phoneme count info */}
           {currentPhonemeAnalysis?.ipaSequence && (
             <div className="mt-2 text-xs text-blue-400/70">
-              {currentPhonemeAnalysis.ipaSequence.length} phonemes • {currentPhonemeAnalysis.durationMs}ms
+              {currentPhonemeAnalysis.ipaSequence.length} sounds • {currentPhonemeAnalysis.durationMs}ms
             </div>
           )}
         </div>
