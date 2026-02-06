@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
 import { useLanguage } from '../context/LanguageContext';
+import { analyzePhonemes } from '../lib/phonemeAnalysis';
 import { 
   Video, 
   Mic, 
