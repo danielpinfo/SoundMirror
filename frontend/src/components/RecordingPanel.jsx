@@ -568,6 +568,32 @@ export const RecordingPanel = ({
       };
       
       setGrading(displayResult);
+      
+      // Update focus mode if active
+      if (focusModeActive && focusPhoneme) {
+        // Find the same position in new grading results
+        const newPhonemeScore = gradingResult.phonemeScores?.find(
+          ps => ps.position === focusPhoneme.position
+        );
+        
+        if (newPhonemeScore) {
+          // Get updated detected display using ipaToDisplay directly
+          const detectedPhoneme = detectionResult.ipaSequence?.[focusPhoneme.position];
+          const { ipaToDisplay } = require('../lib/ipaDisplayMapping');
+          const detectedDisplay = detectedPhoneme 
+            ? ipaToDisplay(detectedPhoneme.symbol, language)
+            : null;
+          
+          setFocusPhoneme(prev => ({
+            ...prev,
+            score: newPhonemeScore.score,
+            detectedDisplayText: detectedDisplay,
+            feedback: newPhonemeScore.feedback,
+          }));
+          setFocusAttemptCount(prev => prev + 1);
+        }
+      }
+      
       if (onGradingComplete) {
         onGradingComplete(displayResult);
       }
