@@ -339,9 +339,17 @@ export const RecordingPanel = ({
                 // Still run IPA detection for logging, but skip grading API calls
                 console.log('[RecordingPanel] GRADING_ENABLED=false, running IPA detection only');
                 try {
+                  // Get target IPA sequence (text-based)
+                  const targetResult = await analyzePhonemes(target, language, null);
+                  setTargetIpaSequence(targetResult.ipaSequence);
+                  logPhonemeSequences(targetResult.ipaSequence, 'Target', language);
+                  
+                  // Get detected IPA sequence (from Allosaurus)
                   const detectionResult = await analyzePhonemes(target, language, wavBlob);
-                  console.log('[RecordingPanel] IPA detection complete (grading skipped):');
-                  console.log('[RecordingPanel] Detected symbols:', detectionResult.ipaSequence.map(p => p.symbol));
+                  setDetectedIpaSequence(detectionResult.ipaSequence);
+                  logPhonemeSequences(detectionResult.ipaSequence, 'Detected', language);
+                  
+                  console.log('[RecordingPanel] IPA detection complete (grading skipped)');
                   console.log('[RecordingPanel] Duration:', detectionResult.durationMs, 'ms');
                 } catch (err) {
                   console.error('[RecordingPanel] IPA detection error:', err);
