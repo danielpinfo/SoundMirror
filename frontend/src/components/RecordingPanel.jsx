@@ -672,34 +672,6 @@ export const RecordingPanel = ({
     // Trigger recording (reuses existing flow)
     startCameraAndRecord();
   };
-  
-  /**
-   * Update focus phoneme after grading in focus mode
-   */
-  const updateFocusPhonemeAfterGrading = (newGradingDetails) => {
-    if (!focusModeActive || !focusPhoneme) return;
-    
-    // Find the same position in new grading results
-    const newPhonemeScore = newGradingDetails?.phonemeScores?.find(
-      ps => ps.position === focusPhoneme.position
-    );
-    
-    if (newPhonemeScore) {
-      // Get updated detected display
-      const detectedPhoneme = detectedIpaSequence?.[focusPhoneme.position];
-      const detectedDisplay = detectedPhoneme 
-        ? require('../lib/ipaDisplayMapping').ipaToDisplay(detectedPhoneme.symbol, language)
-        : null;
-      
-      setFocusPhoneme(prev => ({
-        ...prev,
-        score: newPhonemeScore.score,
-        detectedDisplayText: detectedDisplay,
-        feedback: newPhonemeScore.feedback,
-      }));
-      setFocusAttemptCount(prev => prev + 1);
-    }
-  };
 
   return (
     <div className="space-y-4" data-testid="recording-panel">
