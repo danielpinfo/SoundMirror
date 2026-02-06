@@ -160,6 +160,18 @@ Build a visual speech articulation training platform that:
 - [x] **Actionable Tips Panel** - Clean tips section with arrow indicators for improvement areas
 - [x] **Color Scheme** - Emerald for matches, blue for "focus here", amber for encouragement (no red error colors)
 
+### ✅ Guided Focus Mode (Feb 6, 2026)
+- [x] **Single-Phoneme Practice** - `GuidedFocusModePanel.jsx` for focused practice on ONE problematic sound
+- [x] **Automatic Focus Selection** - Identifies lowest-scoring phoneme after grading (earliest if tie)
+- [x] **Focus Mode Entry** - "Practice this sound" button appears below grading results when imperfect
+- [x] **Coaching Tips** - Articulatory guidance based on phoneme features (place, manner, voicing, height, rounding)
+- [x] **Target vs Detected Display** - Side-by-side comparison using display phonemes only (no IPA)
+- [x] **Improvement Tracking** - Shows encouraging messages based on score change ("Yes — that's closer", "Perfect! You got it!")
+- [x] **Attempt Counter** - Tracks attempts within focus mode session
+- [x] **Easy Exit** - "Back to full word" button to return to standard view
+- [x] **Re-recording Flow** - "Try Again" button reuses existing recording pipeline
+- [x] **No Numeric Scores** - Only supportive, non-evaluative feedback shown
+
 ### 📋 Future Features (Backlog)
 - [ ] Real-time streaming phoneme detection via WebSocket
 - [ ] Desktop/mobile native app builds (Electron config exists, needs testing)
