@@ -15,6 +15,12 @@ import {
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
+// =============================================================================
+// GRADING GATE — Temporarily disabled for IPA detection testing
+// Set to true to re-enable grading API calls after recording
+// =============================================================================
+const GRADING_ENABLED = false;
+
 // Lip landmark indices for drawing overlay
 const LIP_OUTER = [61, 146, 91, 181, 84, 17, 314, 405, 321, 375, 291, 409, 270, 269, 267, 0, 37, 39, 40, 185];
 
