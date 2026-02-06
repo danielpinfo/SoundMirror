@@ -705,29 +705,48 @@ export const RecordingPanel = ({
       {grading && !isGrading && (
         <Card className="bg-slate-800 border-slate-600">
           <CardContent className="p-4 space-y-3">
+            {/* Overall Score */}
             <div className="flex justify-between items-center">
-              <span className="text-slate-300">Audio Score</span>
-              <span className={`text-2xl font-bold ${getScoreColor(grading.audioScore || grading.audio_score)}`}>
-                {grading.audioScore || grading.audio_score}%
+              <span className="text-slate-300 font-medium">Pronunciation Score</span>
+              <span className={`text-3xl font-bold ${getScoreColor(grading.audioScore || grading.audio_score || 0)}`}>
+                {grading.audioScore || grading.audio_score || 0}%
               </span>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-slate-300">Visual Score</span>
-              <span className={`text-2xl font-bold ${getScoreColor(grading.visualScore || grading.visual_score)}`}>
-                {grading.visualScore || grading.visual_score}%
-              </span>
-            </div>
-            {(grading.phonemeDetected || grading.phoneme_detected) && (
-              <div className="flex justify-between items-center pt-2 border-t border-slate-600">
-                <span className="text-slate-300">Detected</span>
-                <span className="text-lg font-mono text-blue-400">
-                  {grading.phonemeDetected || grading.phoneme_detected}
-                </span>
+            
+            {/* Analysis breakdown */}
+            {grading.gradingDetails?.analysis && (
+              <div className="pt-2 border-t border-slate-600 grid grid-cols-2 gap-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Match rate:</span>
+                  <span className="text-green-400">{grading.gradingDetails.analysis.matchRate}%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Perfect:</span>
+                  <span className="text-green-400">{grading.gradingDetails.analysis.perfectMatches}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Partial:</span>
+                  <span className="text-amber-400">{grading.gradingDetails.analysis.partialMatches}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Alignment:</span>
+                  <span className={`${
+                    grading.gradingDetails.analysis.alignmentQuality === 'good' ? 'text-green-400' :
+                    grading.gradingDetails.analysis.alignmentQuality === 'fair' ? 'text-amber-400' :
+                    'text-red-400'
+                  }`}>{grading.gradingDetails.analysis.alignmentQuality}</span>
+                </div>
               </div>
             )}
+            
+            {/* Feedback */}
             {grading.suggestions?.length > 0 && (
-              <div className="pt-2 border-t border-slate-600">
-                <p className="text-sm text-slate-400">{grading.suggestions[0]}</p>
+              <div className="pt-2 border-t border-slate-600 space-y-1">
+                {grading.suggestions.slice(0, 3).map((suggestion, idx) => (
+                  <p key={idx} className="text-sm text-slate-300">
+                    {idx === 0 ? '💡 ' : '• '}{suggestion}
+                  </p>
+                ))}
               </div>
             )}
           </CardContent>
