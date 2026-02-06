@@ -15,6 +15,9 @@ import boto3
 from botocore.exceptions import ClientError
 import json
 from emergentintegrations.llm.chat import LlmChat
+import numpy as np
+import tempfile
+import wave
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -39,6 +42,17 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+# ============ ALLOSAURUS PHONEME RECOGNIZER ============
+# Initialize once at startup for efficiency
+allosaurus_model = None
+try:
+    from allosaurus.app import read_recognizer
+    allosaurus_model = read_recognizer()
+    logger.info("Allosaurus phoneme recognizer initialized successfully")
+except Exception as e:
+    logger.warning(f"Failed to initialize Allosaurus: {e}")
+    allosaurus_model = None
 
 # Gemini AI client for grading
 EMERGENT_API_KEY = os.environ.get('EMERGENT_API_KEY', '')
