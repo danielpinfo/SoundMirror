@@ -989,73 +989,83 @@ export function gradePhonemes(targetAnalysis, detectedAnalysis = null) {
 }
 
 /**
- * Generate feedback for a single phoneme comparison
- * Uses features from ARTICULATORY_FEATURES schema
- */
-function generatePhonemeFeedback(target, detected) {
-  if (!detected || detected.confidence === 0) {
-    return `Practice the "${target.symbol}" sound`;
-  }
-  
-  if (detected.symbol === target.symbol && detected.confidence > 0.8) {
-    return null; // Good match, no feedback needed
-  }
-  
-  const features = target.features;
-  const tips = [];
-  
-  // Generate articulatory guidance based on IPA features schema
-  if (features.type === 'vowel') {
-    if (features.height === 'close') tips.push('Raise your tongue higher');
-    if (features.height === 'open') tips.push('Open your mouth wider');
-    if (features.rounding) tips.push('Round your lips');
-    if (features.backness === 'front') tips.push('Move tongue forward');
-    if (features.backness === 'back') tips.push('Pull tongue back');
-  } else if (features.type === 'consonant') {
-    if (features.manner === 'plosive') tips.push('Make a quick, explosive sound');
-    if (features.manner === 'fricative') tips.push('Create friction with continuous airflow');
-    if (features.manner === 'nasal') tips.push('Let air flow through your nose');
-    if (features.place === 'bilabial') tips.push('Press your lips together');
-    if (features.place === 'labiodental') tips.push('Touch teeth to lower lip');
-    if (features.place === 'alveolar') tips.push('Touch tongue to ridge behind teeth');
-  }
-  
-  return tips.length > 0 ? tips.join('. ') : `Focus on the "${target.symbol}" sound`;
-}
-
-/**
- * Generate overall grading feedback
+ * Generate overall grading feedback based on phoneme scores
+ * Provides actionable, user-friendly feedback
  */
 function generateOverallFeedback(phonemeScores, analysis) {
   const feedback = [];
   
-  // Find problem areas
-  const lowScores = phonemeScores.filter(ps => ps.score < 60);
-  const mediumScores = phonemeScores.filter(ps => ps.score >= 60 && ps.score < 80);
+  // Filter to only scored phonemes (with targets)
+  const scoredPhonemes = phonemeScores.filter(ps => ps.target !== null);
   
-  if (lowScores.length === 0 && mediumScores.length === 0) {
-    feedback.push('Excellent pronunciation!');
+  // Categorize by score
+  const excellent = scoredPhonemes.filter(ps => ps.score >= 90);
+  const good = scoredPhonemes.filter(ps => ps.score >= 70 && ps.score < 90);
+  const needsWork = scoredPhonemes.filter(ps => ps.score >= 40 && ps.score < 70);
+  const poor = scoredPhonemes.filter(ps => ps.score < 40);
+  
+  // Overall assessment
+  if (poor.length === 0 && needsWork.length === 0) {
+    if (excellent.length === scoredPhonemes.length) {
+      feedback.push('Perfect pronunciation! Excellent work.');
+    } else {
+      feedback.push('Great pronunciation! Minor refinements possible.');
+    }
+  } else if (poor.length > scoredPhonemes.length / 2) {
+    feedback.push('Keep practicing - focus on the basics first.');
   } else {
-    if (lowScores.length > 0) {
-      const problemSounds = [...new Set(lowScores.map(ps => ps.target.symbol))];
-      feedback.push(`Focus on these sounds: ${problemSounds.join(', ')}`);
+    // Identify specific problem areas
+    const problemPhonemes = [...poor, ...needsWork];
+    
+    // Group by feature issues
+    const placeIssues = problemPhonemes.filter(ps => 
+      ps.featureBreakdown?.features?.place?.match === false
+    );
+    const mannerIssues = problemPhonemes.filter(ps => 
+      ps.featureBreakdown?.features?.manner?.match === false
+    );
+    const voicingIssues = problemPhonemes.filter(ps => 
+      ps.featureBreakdown?.features?.voicing?.match === false
+    );
+    const heightIssues = problemPhonemes.filter(ps => 
+      ps.featureBreakdown?.features?.height?.match === false
+    );
+    
+    // Prioritize feedback by most common issue
+    if (placeIssues.length >= 2) {
+      feedback.push('Focus on tongue and lip positioning.');
+    }
+    if (voicingIssues.length >= 2) {
+      feedback.push('Pay attention to voiced vs. voiceless sounds.');
+    }
+    if (heightIssues.length >= 2) {
+      feedback.push('Work on mouth openness for vowels.');
     }
     
-    if (mediumScores.length > 0) {
-      feedback.push('Good progress! Keep practicing for clarity.');
+    // Specific sounds to practice
+    const uniqueProblemSymbols = [...new Set(problemPhonemes.map(ps => ps.target?.symbol).filter(Boolean))];
+    if (uniqueProblemSymbols.length > 0 && uniqueProblemSymbols.length <= 3) {
+      feedback.push(`Practice these sounds: ${uniqueProblemSymbols.join(', ')}`);
     }
   }
   
+  // Check for missing/extra sounds
+  const missing = phonemeScores.filter(ps => !ps.detected);
+  const extras = phonemeScores.filter(ps => !ps.target);
+  
+  if (missing.length > 0) {
+    feedback.push(`${missing.length} sound(s) not detected - speak more clearly.`);
+  }
+  if (extras.length > 2) {
+    feedback.push('Extra sounds detected - try to be more precise.');
+  }
+  
+  // Default if no specific feedback generated
+  if (feedback.length === 0) {
+    feedback.push('Good effort! Keep practicing.');
+  }
+  
   return feedback;
-}
-
-/**
- * Calculate match rate between target and detected
- */
-function calculateMatchRate(phonemeScores) {
-  if (phonemeScores.length === 0) return 0;
-  const matches = phonemeScores.filter(ps => ps.match).length;
-  return Math.round((matches / phonemeScores.length) * 100);
 }
 
 // =============================================================================
