@@ -463,16 +463,31 @@ export const RecordingPanel = ({
     return arrayBuffer;
   };
 
-  // Perform grading
+  // Perform grading with REAL IPA detection via hybrid bridge
   const performGrading = async (audioBlob) => {
     setIsGrading(true);
     
     try {
-      // Create form data with audio
+      // STEP 1: Run native IPA detection via analyzePhonemes
+      // This sends the audioBlob to Allosaurus backend for real phoneme detection
+      console.log('[RecordingPanel] Starting native IPA detection...');
+      console.log('[RecordingPanel] Audio blob:', { type: audioBlob.type, size: audioBlob.size });
+      
+      const detectionResult = await analyzePhonemes(target, language, audioBlob);
+      
+      // Log detected IPA sequence from REAL speech
+      console.log('[RecordingPanel] Native IPA detection complete:');
+      console.log('[RecordingPanel] Detected ipaSequence:', detectionResult.ipaSequence);
+      console.log('[RecordingPanel] Detected symbols:', detectionResult.ipaSequence.map(p => p.symbol));
+      console.log('[RecordingPanel] Duration:', detectionResult.durationMs, 'ms');
+      
+      // STEP 2: Send to grading endpoint (existing flow)
       const formData = new FormData();
       formData.append('audio', audioBlob, 'recording.wav');
       formData.append('target_phoneme', target);
       formData.append('language', language);
+      // Include detected IPA for potential use by grading
+      formData.append('detected_ipa', JSON.stringify(detectionResult.ipaSequence.map(p => p.symbol)));
 
       const response = await fetch(`${API_URL}/api/grade-audio`, {
         method: 'POST',
@@ -481,6 +496,8 @@ export const RecordingPanel = ({
 
       if (response.ok) {
         const result = await response.json();
+        // Augment result with detected IPA
+        result.detectedIPA = detectionResult.ipaSequence.map(p => p.symbol);
         setGrading(result);
         if (onGradingComplete) {
           onGradingComplete(result);
@@ -490,11 +507,16 @@ export const RecordingPanel = ({
         const simpleResponse = await fetch(`${API_URL}/api/grade`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ target_phoneme: target, language }),
+          body: JSON.stringify({ 
+            target_phoneme: target, 
+            language,
+            detected_ipa: detectionResult.ipaSequence.map(p => p.symbol),
+          }),
         });
         
         if (simpleResponse.ok) {
           const result = await simpleResponse.json();
+          result.detectedIPA = detectionResult.ipaSequence.map(p => p.symbol);
           setGrading(result);
           if (onGradingComplete) {
             onGradingComplete(result);
@@ -502,13 +524,14 @@ export const RecordingPanel = ({
         }
       }
     } catch (error) {
-      console.error('Grading error:', error);
+      console.error('[RecordingPanel] Grading error:', error);
       // Use fallback mock grading
       const mockResult = {
         audioScore: Math.round(70 + Math.random() * 20),
         visualScore: Math.round(70 + Math.random() * 20),
         phonemeDetected: target,
         suggestions: ['Keep practicing!'],
+        detectedIPA: [],
       };
       setGrading(mockResult);
       if (onGradingComplete) {
