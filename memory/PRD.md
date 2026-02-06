@@ -163,6 +163,7 @@ Build a visual speech articulation training platform that:
 - ✅ Implement actual audio phoneme detection using Gemini AI
 - ✅ Improve animation speed for visual learning
 - ✅ Add MouthTracker for visual feedback
+- ✅ **Implement Real Grading Logic** - Articulatory feature-based scoring with interpretable feedback
 
 ### P1 (High) 
 - Test camera/microphone in live browser with permissions granted
