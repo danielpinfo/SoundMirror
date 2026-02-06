@@ -703,6 +703,15 @@ export const RecordingPanel = ({
         )}
       </div>
 
+      {/* Phoneme Comparison Panel - Shows user-friendly display (NEVER IPA) */}
+      {(targetIpaSequence.length > 0 || detectedIpaSequence.length > 0) && (
+        <PhonemeComparisonPanel
+          targetIpaSequence={targetIpaSequence}
+          detectedIpaSequence={detectedIpaSequence}
+          language={language}
+        />
+      )}
+
       {/* No separate camera controls needed - all in one button */}
       {/* Grading Results */}
       {grading && !isGrading && (
