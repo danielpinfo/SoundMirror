@@ -6,13 +6,10 @@ import { analyzePhonemes, gradePhonemes } from '../lib/phonemeAnalysis';
 import { PhonemeComparisonPanel } from './PhonemeComparisonPanel';
 import { logPhonemeSequences } from '../lib/ipaDisplayMapping';
 import { 
-  Video, 
   Mic, 
   Square, 
   Loader2, 
   AlertCircle,
-  CheckCircle,
-  XCircle,
 } from 'lucide-react';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
