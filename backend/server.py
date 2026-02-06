@@ -520,17 +520,32 @@ async def get_phoneme_map():
 async def get_frame_info():
     return {"frames": FRAME_INFO}
 
-# ============ PHONEME DETECTION BRIDGE ============
+# ============ PHONEME DETECTION BRIDGE (ALLOSAURUS) ============
+
+def pcm_to_wav_file(pcm_data: List[float], sample_rate: int) -> str:
+    """Convert PCM float data to a temporary WAV file for Allosaurus"""
+    # Convert float PCM (-1.0 to 1.0) to int16
+    pcm_array = np.array(pcm_data, dtype=np.float32)
+    pcm_int16 = (pcm_array * 32767).astype(np.int16)
+    
+    # Create temporary WAV file
+    temp_file = tempfile.NamedTemporaryFile(suffix='.wav', delete=False)
+    
+    with wave.open(temp_file.name, 'w') as wav_file:
+        wav_file.setnchannels(1)  # Mono
+        wav_file.setsampwidth(2)  # 16-bit
+        wav_file.setframerate(sample_rate)
+        wav_file.writeframes(pcm_int16.tobytes())
+    
+    return temp_file.name
 
 @api_router.post("/phoneme/detect", response_model=PhonemeDetectionResponse)
 async def detect_phonemes(request: PhonemeDetectionRequest):
     """
-    HYBRID NATIVE DETECTION BRIDGE
+    HYBRID NATIVE DETECTION BRIDGE — ALLOSAURUS
     
     Accepts PCM audio data and returns detected IPA phoneme sequence.
-    PLACEHOLDER: Returns mock response, no real detection yet.
-    
-    Future: This endpoint will call a native IPA detection engine.
+    Uses Allosaurus multilingual phoneme recognizer for REAL detection.
     """
     pcm_length = len(request.pcmData)
     sample_rate = request.sampleRate
@@ -544,16 +559,75 @@ async def detect_phonemes(request: PhonemeDetectionRequest):
     logger.info(f"[PhonemeDetection] Received PCM data: length={pcm_length}, sampleRate={sample_rate}, language={language}")
     logger.info(f"[PhonemeDetection] Audio duration: {duration_seconds:.2f}s ({duration_ms:.0f}ms)")
     
-    # PLACEHOLDER: Return mock response
-    # No detection logic yet - ipaSequence is empty
-    response = PhonemeDetectionResponse(
-        ipaSequence=[],  # Empty - no detection implemented
-        durationMs=duration_ms
-    )
+    # Check if Allosaurus is available
+    if allosaurus_model is None:
+        logger.warning("[PhonemeDetection] Allosaurus not available, returning empty sequence")
+        return PhonemeDetectionResponse(
+            ipaSequence=[],
+            durationMs=duration_ms
+        )
     
-    logger.info(f"[PhonemeDetection] Returning mock response: ipaSequence=[], durationMs={duration_ms:.0f}")
+    # Check minimum audio length (need at least 0.1s for meaningful detection)
+    if duration_seconds < 0.1:
+        logger.warning(f"[PhonemeDetection] Audio too short ({duration_seconds:.3f}s), returning empty sequence")
+        return PhonemeDetectionResponse(
+            ipaSequence=[],
+            durationMs=duration_ms
+        )
     
-    return response
+    temp_wav_path = None
+    try:
+        # Convert PCM to WAV file for Allosaurus
+        temp_wav_path = pcm_to_wav_file(request.pcmData, sample_rate)
+        logger.info(f"[PhonemeDetection] Created temp WAV file: {temp_wav_path}")
+        
+        # Run Allosaurus phoneme recognition
+        # Returns space-separated IPA symbols
+        detected_ipa = allosaurus_model.recognize(temp_wav_path)
+        logger.info(f"[PhonemeDetection] Allosaurus raw output: '{detected_ipa}'")
+        
+        # Parse IPA symbols into sequence
+        ipa_symbols = detected_ipa.strip().split() if detected_ipa else []
+        
+        # Build ipaSequence with timing (evenly distributed for v1)
+        ipa_sequence = []
+        if ipa_symbols:
+            # Evenly distribute phonemes across duration
+            phoneme_duration_ms = duration_ms / len(ipa_symbols)
+            
+            for i, symbol in enumerate(ipa_symbols):
+                start_ms = i * phoneme_duration_ms
+                end_ms = (i + 1) * phoneme_duration_ms
+                
+                ipa_sequence.append(IPAPhoneme(
+                    symbol=symbol,
+                    features={},  # Features not provided by Allosaurus
+                    startMs=start_ms,
+                    endMs=end_ms,
+                    confidence=0.8  # Placeholder confidence
+                ))
+        
+        logger.info(f"[PhonemeDetection] Detected {len(ipa_sequence)} phonemes: {[p.symbol for p in ipa_sequence]}")
+        
+        return PhonemeDetectionResponse(
+            ipaSequence=ipa_sequence,
+            durationMs=duration_ms
+        )
+        
+    except Exception as e:
+        logger.error(f"[PhonemeDetection] Allosaurus error: {e}")
+        return PhonemeDetectionResponse(
+            ipaSequence=[],
+            durationMs=duration_ms
+        )
+    
+    finally:
+        # Clean up temp file
+        if temp_wav_path and os.path.exists(temp_wav_path):
+            try:
+                os.unlink(temp_wav_path)
+            except Exception:
+                pass
 
 @api_router.get("/phoneme-to-frame/{phoneme}")
 async def get_phoneme_frame(phoneme: str):
