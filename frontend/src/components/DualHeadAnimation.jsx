@@ -150,11 +150,12 @@ export const DualHeadAnimation = forwardRef(({
           result = await textToFrameSequence(target, language, speedMultiplier);
           setPhonemeDisplay(target);
           
-          // Display IPA from ipaSequence (LOCKED CONTRACT)
+          // Display user-friendly format (NEVER IPA symbols)
           if (result.phonemeAnalysis?.ipaSequence) {
-            const symbols = result.phonemeAnalysis.ipaSequence.map(p => p.symbol);
-            setPhoneticDisplay(symbols.join(''));
-            setIpaDisplay(symbols.join(' '));
+            // Convert IPA to display format for UI
+            const displaySymbols = ipaSequenceToDisplay(result.phonemeAnalysis.ipaSequence, language);
+            setPhoneticDisplay(displaySymbols.join(''));
+            setIpaDisplay(displaySymbols.join(' '));  // Renamed but now shows display format
           }
           
           setAudioUrl(null);  // Word mode uses TTS
