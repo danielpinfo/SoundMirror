@@ -318,7 +318,21 @@ export const RecordingPanel = ({
             const audioBlob = new Blob(audioChunksRef.current);
             const wavBlob = await convertToWav(audioBlob);
             if (wavBlob) {
-              await performGrading(wavBlob);
+              // GRADING GATE: Only call grading if enabled
+              if (GRADING_ENABLED) {
+                await performGrading(wavBlob);
+              } else {
+                // Still run IPA detection for logging, but skip grading API calls
+                console.log('[RecordingPanel] GRADING_ENABLED=false, running IPA detection only');
+                try {
+                  const detectionResult = await analyzePhonemes(target, language, wavBlob);
+                  console.log('[RecordingPanel] IPA detection complete (grading skipped):');
+                  console.log('[RecordingPanel] Detected symbols:', detectionResult.ipaSequence.map(p => p.symbol));
+                  console.log('[RecordingPanel] Duration:', detectionResult.durationMs, 'ms');
+                } catch (err) {
+                  console.error('[RecordingPanel] IPA detection error:', err);
+                }
+              }
             }
           };
 
