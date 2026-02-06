@@ -138,6 +138,19 @@ Build a visual speech articulation training platform that:
 - [x] **Audio as Reference Only** - TTS/MP3 plays alongside animation but does NOT drive timing
 - [x] **Pipeline**: Text → Transliteration → Phoneme Analysis → Viseme Resolution → Animation (+ Audio reference)
 
+### ✅ Real Grading Logic Implementation (Feb 6, 2026)
+- [x] **Articulatory Feature Comparison** - Grading based on place, manner, voicing (consonants) and height, backness, rounding (vowels)
+- [x] **Feature Weights** - Place: 30%, Manner: 30%, Voicing: 20%, Nasal: 10%, Type Match: 10%
+- [x] **Partial Credit System** - Adjacent articulatory features receive partial credit (70% for 1 step, 40% for 2 steps)
+- [x] **Interpretable Scoring** - Each phoneme gets a breakdown showing which features matched/mismatched
+- [x] **Explainable Feedback** - User-friendly tips generated from feature mismatches ("Round your lips", "Raise tongue higher")
+- [x] **Sequence Alignment** - Target and detected phoneme sequences aligned for comparison
+- [x] **Overall Score Calculation** - Average of all phoneme scores
+- [x] **Analysis Metrics** - Match rate, perfect matches, partial matches, alignment quality
+- [x] **GRADING_ENABLED = true** - Grading now active in RecordingPanel
+- [x] **Updated UI** - Grading results card shows pronunciation score, match breakdown, and actionable feedback
+- [x] **Test Suite** - /app/backend/tests/test_grading_logic.py validates the scoring algorithm
+
 ### 📋 Future Features (Backlog)
 - [ ] Real-time streaming phoneme detection via WebSocket
 - [ ] Desktop/mobile native app builds (Electron config exists, needs testing)
