@@ -140,24 +140,27 @@ export const DualHeadAnimation = forwardRef(({
         let result;
         
         if (mode === 'letter') {
-          // Letter practice
+          // Letter practice - use simple letter phonetic
           result = await generatePhonemeSequence(target, language, speedMultiplier);
-          const letterLower = target.toLowerCase();
-          const phoneme = LETTER_PHONEME_MAP[letterLower] || `${letterLower}a`;
+          const letterPhonetic = getLetterPhonetic(target);
           setPhonemeDisplay(target.toUpperCase());
-          setPhoneticDisplay(phoneme);
+          setPhoneticDisplay(letterPhonetic);
           fetchLetterAudio(target);
         } else {
-          // Word practice - uses phoneme analysis layer
+          // Word practice - use readable phonetic display (BASE44 style)
           result = await textToFrameSequence(target, language, speedMultiplier);
           setPhonemeDisplay(target);
           
-          // Display user-friendly format (NEVER IPA symbols)
+          // Use simple text-to-phonetic conversion (not complex IPA mapping)
+          const readablePhonetic = textToPhonetic(target, language);
+          setPhoneticDisplay(readablePhonetic);
+          
+          // Show individual sounds in readable format
           if (result.phonemeAnalysis?.ipaSequence) {
-            // Convert IPA to display format for UI
-            const displaySymbols = ipaSequenceToDisplay(result.phonemeAnalysis.ipaSequence, language);
-            setPhoneticDisplay(displaySymbols.join(''));
-            setIpaDisplay(displaySymbols.join(' '));  // Renamed but now shows display format
+            const readableSounds = ipaSequenceToReadable(result.phonemeAnalysis.ipaSequence);
+            setIpaDisplay(readableSounds.join(' '));
+          } else {
+            setIpaDisplay('');
           }
           
           setAudioUrl(null);  // Word mode uses TTS
