@@ -252,19 +252,26 @@ export const RecordingPanel = ({
       
       let errorMessage = 'Could not access camera/microphone';
       
-      if (err.name === 'NotAllowedError') {
-        errorMessage = 'Permission denied. Please allow camera/microphone access in your browser settings.';
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        // Check if we're on HTTPS (required for getUserMedia)
+        const isSecure = window.location.protocol === 'https:' || window.location.hostname === 'localhost';
+        if (!isSecure) {
+          errorMessage = 'Camera requires a secure (HTTPS) connection. Please access this site via HTTPS.';
+        } else {
+          errorMessage = 'Camera/microphone access was blocked. Please click the camera icon in your browser\'s address bar to allow access, then try again.';
+        }
       } else if (err.name === 'NotFoundError') {
         errorMessage = 'No camera or microphone found. Please connect a device and try again.';
       } else if (err.name === 'NotReadableError') {
         errorMessage = 'Camera/microphone is already in use by another application. Please close other apps using the camera.';
       } else if (err.name === 'OverconstrainedError') {
         errorMessage = 'Camera settings not supported. Trying with default settings...';
-        // Try again with minimal constraints
         setTimeout(() => {
           tryWithMinimalConstraints();
         }, 1000);
         return;
+      } else if (err.name === 'AbortError') {
+        errorMessage = 'Camera request was interrupted. Please try again.';
       } else {
         errorMessage = `Error: ${err.message || err.name || 'Unknown error'}`;
       }
