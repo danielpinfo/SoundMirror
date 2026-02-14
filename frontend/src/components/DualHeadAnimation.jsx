@@ -486,18 +486,17 @@ export const DualHeadAnimation = forwardRef(({
 
       {showControls && (
         <div className="mt-6 space-y-4">
+          {/* Current Phoneme Display - Large, prominent */}
+          <div className="flex justify-center mb-4">
+            <div className="bg-gradient-to-r from-blue-600/30 to-purple-600/30 border-2 border-blue-500/50 rounded-xl px-8 py-4 text-center min-w-[160px]">
+              <span className="text-xs text-blue-300 uppercase tracking-wider block mb-1">Current Sound</span>
+              <span className="text-3xl font-bold text-white font-mono" data-testid="current-phoneme-display">
+                {FRAME_TO_PHONEME_DISPLAY[currentFrame] || 'neutral'}
+              </span>
+            </div>
+          </div>
+          
           <div className="flex items-center justify-center gap-3">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={reset}
-              className="rounded-full w-10 h-10 bg-white/10 border-blue-500/30 text-blue-300 hover:bg-blue-600/20"
-              data-testid="reset-animation-btn"
-              title="Reset"
-            >
-              <RotateCcw className="w-4 h-4" />
-            </Button>
-            
             <Button
               onClick={togglePlay}
               disabled={isLoadingAudio && mode === 'letter'}
