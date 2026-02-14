@@ -72,14 +72,14 @@ export default function HomePage() {
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-8 max-w-4xl">
-        {/* Logo - Double size (2x larger) */}
-        <div className="text-center mt-2 mb-2">
+      {/* Main Content - Compact layout */}
+      <main className="container mx-auto px-4 py-4 max-w-4xl">
+        {/* Logo - Double size, minimal top margin */}
+        <div className="text-center mb-2">
           <img 
             src={LOGO_URL}
             alt="SoundMirror"
-            className="h-96 md:h-[28rem] mx-auto"
+            className="h-72 md:h-80 mx-auto"
           />
         </div>
 
