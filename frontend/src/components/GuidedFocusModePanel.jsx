@@ -15,7 +15,7 @@
 import React from 'react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
-import { ipaToDisplay } from '../lib/ipaDisplayMapping';
+import { ipaToReadable } from '../lib/phoneticDisplay';
 import { Target, ArrowLeft, RefreshCw, Sparkles } from 'lucide-react';
 
 /**
