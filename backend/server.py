@@ -801,7 +801,7 @@ async def get_word_audio(data: Dict[str, str]):
                         "audio_url": url,
                         "frame": PHONEME_FRAME_MAP.get(digraph[0], 0)
                     })
-                except:
+                except Exception:
                     audio_sequence.append({
                         "char": digraph,
                         "phoneme": phoneme,
