@@ -472,6 +472,20 @@ const WORD_PHONETICS = {
   "pour": "pohr",
   "your": "yohr",
 
+  // === MISSING COMMON WORDS ===
+  "later": "leh-ter",
+  "never": "neh-ver",
+  "ever": "eh-ver",
+  "over": "oh-ver",
+  "under": "un-der",
+  "after": "af-ter",
+  "better": "beh-ter",
+  "letter": "leh-ter",
+  "matter": "ma-ter",
+  "water": "waa-ter",
+  "together": "too-geh-ther",
+  "another": "a-nuh-ther",
+
   // === MULTILINGUAL COMMON WORDS ===
   // Spanish
   "hola": "oh-lah",
