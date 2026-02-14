@@ -561,6 +561,7 @@ async def detect_phonemes(request: PhonemeDetectionRequest):
     
     Accepts PCM audio data and returns detected IPA phoneme sequence.
     Uses Allosaurus multilingual phoneme recognizer for REAL detection.
+    Improved with audio normalization and language-specific detection.
     """
     pcm_length = len(request.pcmData)
     sample_rate = request.sampleRate
@@ -590,27 +591,60 @@ async def detect_phonemes(request: PhonemeDetectionRequest):
             durationMs=duration_ms
         )
     
+    # Map language to Allosaurus language code (ISO 639-3)
+    # Allosaurus uses ISO 639-3 codes for language-specific models
+    LANGUAGE_TO_ISO = {
+        "english": "eng",
+        "spanish": "spa",
+        "italian": "ita",
+        "portuguese": "por",
+        "german": "deu",
+        "french": "fra",
+        "japanese": "jpn",
+        "chinese": "cmn",
+        "hindi": "hin",
+        "arabic": "ara",
+    }
+    lang_code = LANGUAGE_TO_ISO.get(language, "eng")
+    
     temp_wav_path = None
     try:
-        # Convert PCM to WAV file for Allosaurus
+        # Convert PCM to WAV file for Allosaurus (with normalization)
         temp_wav_path = pcm_to_wav_file(request.pcmData, sample_rate)
         logger.info(f"[PhonemeDetection] Created temp WAV file: {temp_wav_path}")
         
-        # Run Allosaurus phoneme recognition
-        # Returns space-separated IPA symbols
-        detected_ipa = allosaurus_model.recognize(temp_wav_path)
+        # Run Allosaurus phoneme recognition with language hint
+        # Try language-specific model first, fall back to universal if not available
+        try:
+            detected_ipa = allosaurus_model.recognize(temp_wav_path, lang_id=lang_code)
+        except Exception:
+            # Fall back to universal model
+            detected_ipa = allosaurus_model.recognize(temp_wav_path)
+            
         logger.info(f"[PhonemeDetection] Allosaurus raw output: '{detected_ipa}'")
         
         # Parse IPA symbols into sequence
         ipa_symbols = detected_ipa.strip().split() if detected_ipa else []
         
+        # Post-process: merge very short adjacent identical phonemes
+        # and filter out noise artifacts
+        cleaned_symbols = []
+        for symbol in ipa_symbols:
+            # Skip empty or very short symbols that might be noise
+            if not symbol or symbol in ['', ' ']:
+                continue
+            # Don't add duplicates if the last symbol was the same
+            if cleaned_symbols and cleaned_symbols[-1] == symbol:
+                continue
+            cleaned_symbols.append(symbol)
+        
         # Build ipaSequence with timing (evenly distributed for v1)
         ipa_sequence = []
-        if ipa_symbols:
+        if cleaned_symbols:
             # Evenly distribute phonemes across duration
-            phoneme_duration_ms = duration_ms / len(ipa_symbols)
+            phoneme_duration_ms = duration_ms / len(cleaned_symbols)
             
-            for i, symbol in enumerate(ipa_symbols):
+            for i, symbol in enumerate(cleaned_symbols):
                 start_ms = i * phoneme_duration_ms
                 end_ms = (i + 1) * phoneme_duration_ms
                 
