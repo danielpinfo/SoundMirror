@@ -57,29 +57,29 @@ const IPA_TO_DISPLAY = {
   'l': 'l',
   'r': 'r',
   
-  // Vowels - Front
-  'i': 'ee',      // close front unrounded
-  'ɪ': 'i',       // near-close front unrounded
-  'e': 'ay',      // close-mid front unrounded
-  'ɛ': 'eh',      // open-mid front unrounded
-  'æ': 'a',       // near-open front unrounded
+  // Vowels - Front (FIXED: clearer display without diphthong confusion)
+  'i': 'ee',      // close front unrounded (as in "see")
+  'ɪ': 'i',       // near-close front unrounded (as in "sit")
+  'e': 'e',       // close-mid front unrounded (as in "bed") - NOT "ay"
+  'ɛ': 'e',       // open-mid front unrounded (as in "pet")
+  'æ': 'a',       // near-open front unrounded (as in "cat")
   
   // Vowels - Central
-  'ə': 'uh',      // schwa
-  'ɜ': 'er',      // open-mid central
-  'ʌ': 'uh',      // open-mid back unrounded
+  'ə': 'uh',      // schwa (as in "about")
+  'ɜ': 'er',      // open-mid central (as in "bird")
+  'ʌ': 'u',       // open-mid back unrounded (as in "cup")
   'ɐ': 'uh',      // near-open central
   
   // Vowels - Back
-  'u': 'oo',      // close back rounded
-  'ʊ': 'oo',      // near-close back rounded
-  'o': 'oh',      // close-mid back rounded
-  'ɔ': 'aw',      // open-mid back rounded
-  'ɑ': 'ah',      // open back unrounded
-  'ɒ': 'ah',      // open back rounded
+  'u': 'oo',      // close back rounded (as in "boot")
+  'ʊ': 'oo',      // near-close back rounded (as in "put")
+  'o': 'o',       // close-mid back rounded (as in "go")
+  'ɔ': 'aw',      // open-mid back rounded (as in "law")
+  'ɑ': 'ah',      // open back unrounded (as in "father")
+  'ɒ': 'o',       // open back rounded (as in British "lot")
   'a': 'ah',      // open front unrounded
   
-  // Diphthongs
+  // Diphthongs (only when specifically detected as diphthongs)
   'eɪ': 'ay',     // as in "say"
   'aɪ': 'eye',    // as in "my"
   'ɔɪ': 'oy',     // as in "boy"
