@@ -29,6 +29,7 @@ export const RecordingPanel = ({
   onGradingComplete,
   target = '',
   language = 'english',
+  horizontalLayout = false,  // NEW: Layout mode
 }) => {
   const { t } = useLanguage();
   
