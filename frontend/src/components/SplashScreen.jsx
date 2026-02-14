@@ -171,8 +171,8 @@ export const SplashScreen = ({ onComplete }) => {
   return (
     <div 
       data-testid="splash-screen"
-      className="fixed inset-0 w-full h-screen overflow-hidden" 
-      style={{ background: '#0a0a0a' }}
+      className="fixed inset-0 w-full h-screen overflow-hidden z-[9999]" 
+      style={{ background: '#0a0a0a', pointerEvents: 'all' }}
     >
       <WaterDropCanvas onComplete={onComplete} />
     </div>
