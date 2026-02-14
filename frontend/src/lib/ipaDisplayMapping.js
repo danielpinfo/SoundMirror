@@ -1,101 +1,199 @@
 /**
  * IPA TO DISPLAY MAPPING
  * 
- * Converts internal IPA symbols to user-friendly display representations.
- * NEVER expose IPA symbols (ʃ, θ, ɒ, etc.) in the UI.
- * ALWAYS show plain letters users would recognize (sh, th, ee, etc.)
+ * EMERGENT IPA → TTS PRONUNCIATION RULE SHEET
+ * "If IPA is supplied, Emergent must render exactly those sounds—no more, no less—
+ * regardless of language, spelling, or English bias."
  * 
- * Internal IPA is preserved for detection, alignment, animation, and grading.
- * This module handles UI-only display conversion.
+ * Converts internal IPA symbols to user-friendly display representations.
+ * NEVER expose IPA symbols (ʃ, θ, ɒ, ʔ, ŋ, etc.) in the UI.
+ * ALWAYS show plain letters users would recognize (sh, th, ng, etc.)
+ * 
+ * Core Philosophy:
+ * - What you see must equal what you hear
+ * - No guessing, only exactly what is heard
+ * - One glyph = one sound
  */
 
 // =============================================================================
-// IPA → DISPLAY MAPPING TABLE
+// IPA → DISPLAY MAPPING TABLE (User-Friendly Alphabet)
 // =============================================================================
 
 const IPA_TO_DISPLAY = {
-  // Consonants - Fricatives
+  // =========================================================================
+  // VOWELS - Pure, No Drift (following rule sheet)
+  // =========================================================================
+  
+  // Close front
+  'i': 'ee',      // Always "ee" (machine-pure, no glide) - as in "see"
+  'iː': 'ee',     // Long ee
+  'ɪ': 'i',       // Short i - as in "sit"
+  
+  // Close-mid front  
+  'e': 'eh',      // Pure "eh", NEVER "ay" - as in "bed"
+  'eː': 'eh',     // Long eh
+  'ɛ': 'eh',      // Open-mid front - as in "pet"
+  
+  // Open front
+  'æ': 'a',       // Near-open front - as in "cat"
+  'a': 'ah',      // Open front - pure "ah", NEVER "uh"
+  'aː': 'ah',     // Long ah
+  
+  // Central vowels
+  'ə': 'uh',      // Schwa - as in "about"
+  'ɜ': 'er',      // Open-mid central - as in "bird"
+  'ɜː': 'er',     // Long er
+  'ʌ': 'uh',      // Open-mid back unrounded - as in "cup"
+  'ɐ': 'uh',      // Near-open central
+  
+  // Close back
+  'u': 'oo',      // Pure "oo", NEVER centralized - as in "boot"
+  'uː': 'oo',     // Long oo
+  'ʊ': 'oo',      // Near-close back - as in "put"
+  
+  // Close-mid back
+  'o': 'oh',      // Pure "oh", NEVER "ow" - as in "go"
+  'oː': 'oh',     // Long oh
+  'ɔ': 'aw',      // Open-mid back - as in "law"
+  'ɔː': 'aw',     // Long aw
+  
+  // Open back
+  'ɑ': 'ah',      // Open back unrounded - as in "father"
+  'ɑː': 'ah',     // Long ah
+  'ɒ': 'o',       // Open back rounded - British "lot"
+  
+  // =========================================================================
+  // DIPHTHONGS (English-specific combinations)
+  // =========================================================================
+  'eɪ': 'ay',     // as in "say"
+  'aɪ': 'ai',     // as in "my" 
+  'ɔɪ': 'oy',     // as in "boy"
+  'oʊ': 'oh',     // as in "go" - NOT "ow"
+  'əʊ': 'oh',     // British variant - as in "go"
+  'aʊ': 'ow',     // as in "how", "cow"
+  'ɪə': 'eer',    // as in "near"
+  'eə': 'air',    // as in "care"
+  'ʊə': 'oor',    // as in "tour"
+  'juː': 'yoo',   // as in "you", "use" - CRITICAL FIX
+  'ju': 'yoo',    // Short version
+  
+  // =========================================================================
+  // CONSONANTS - Fricatives
+  // =========================================================================
   'ʃ': 'sh',      // voiceless postalveolar fricative
-  'ʒ': 'zh',      // voiced postalveolar fricative
-  'θ': 'th',      // voiceless dental fricative
-  'ð': 'th',      // voiced dental fricative (same display as voiceless)
+  'ʒ': 'zh',      // voiced postalveolar fricative  
+  'θ': 'th',      // voiceless dental fricative - as in "think"
+  'ð': 'th',      // voiced dental fricative - as in "this"
+  'f': 'f',
+  'v': 'v',
+  's': 's',
+  'z': 'z',
+  'h': 'h',       // Always audible
+  'x': 'kh',      // voiceless velar fricative
+  'ɣ': 'gh',      // voiced velar fricative
+  'ç': 'h',       // voiceless palatal fricative (German ich)
+  'ʁ': 'r',       // voiced uvular fricative (French R)
+  'χ': 'kh',      // voiceless uvular fricative
+  'ħ': 'h',       // voiceless pharyngeal (Arabic)
+  'ʕ': 'ah',      // voiced pharyngeal (Arabic)
   
-  // Consonants - Affricates
-  'tʃ': 'ch',     // voiceless postalveolar affricate
-  'dʒ': 'j',      // voiced postalveolar affricate
+  // =========================================================================
+  // CONSONANTS - Affricates
+  // =========================================================================
+  'tʃ': 'ch',     // voiceless postalveolar affricate - as in "church"
+  'dʒ': 'j',      // voiced postalveolar affricate - as in "judge"
+  'ts': 'ts',     // voiceless alveolar affricate
+  'dz': 'dz',     // voiced alveolar affricate
   
-  // Consonants - Nasals
-  'ŋ': 'ng',      // velar nasal
-  'ɲ': 'ny',      // palatal nasal
+  // =========================================================================
+  // CONSONANTS - Nasals
+  // =========================================================================
+  'ŋ': 'ng',      // velar nasal - as in "sing"
+  'ɲ': 'ny',      // palatal nasal - Spanish ñ
+  'm': 'm',
+  'n': 'n',
+  'n̩': 'n',       // syllabic n - display as plain n
+  'm̩': 'm',       // syllabic m - display as plain m
   
-  // Consonants - Approximants
-  'ɹ': 'r',       // alveolar approximant
-  'j': 'y',       // palatal approximant
-  'w': 'w',       // labial-velar approximant
-  
-  // Consonants - Laterals
-  'ɫ': 'l',       // velarized alveolar lateral
-  'ʎ': 'ly',      // palatal lateral
-  
-  // Consonants - Stops (usually same as orthographic)
+  // =========================================================================
+  // CONSONANTS - Stops/Plosives
+  // =========================================================================
   'p': 'p',
   'b': 'b',
   't': 't',
   'd': 'd',
   'k': 'k',
   'g': 'g',
-  'ʔ': '',        // glottal stop - silent
+  'ʔ': '',        // glottal stop - audible but no letter display
+  'pʰ': 'p',      // aspirated p
+  'tʰ': 't',      // aspirated t
+  'kʰ': 'k',      // aspirated k
   
-  // Consonants - Other
-  'h': 'h',
-  'f': 'f',
-  'v': 'v',
-  's': 's',
-  'z': 'z',
-  'm': 'm',
-  'n': 'n',
+  // =========================================================================
+  // CONSONANTS - Approximants
+  // =========================================================================
+  'ɹ': 'r',       // alveolar approximant (English R)
+  'r': 'r',       // trilled r
+  'ɾ': 'r',       // alveolar tap (Spanish single r)
+  'j': 'y',       // palatal approximant - as in "yes"
+  'w': 'w',       // labial-velar approximant
+  'ʍ': 'wh',      // voiceless labial-velar (some dialects)
+  
+  // =========================================================================
+  // CONSONANTS - Laterals
+  // =========================================================================
   'l': 'l',
-  'r': 'r',
+  'ɫ': 'l',       // velarized lateral (dark L)
+  'ʎ': 'ly',      // palatal lateral
+  'ɬ': 'l',       // voiceless lateral fricative
   
-  // Vowels - Front (FIXED: clearer display without diphthong confusion)
-  'i': 'ee',      // close front unrounded (as in "see")
-  'ɪ': 'i',       // near-close front unrounded (as in "sit")
-  'e': 'e',       // close-mid front unrounded (as in "bed") - NOT "ay"
-  'ɛ': 'e',       // open-mid front unrounded (as in "pet")
-  'æ': 'a',       // near-open front unrounded (as in "cat")
+  // =========================================================================
+  // CONSONANTS - Retroflex (Hindi, etc.)
+  // =========================================================================
+  'ʈ': 't',       // retroflex t
+  'ɖ': 'd',       // retroflex d
+  'ɳ': 'n',       // retroflex n
+  'ɽ': 'r',       // retroflex flap
   
-  // Vowels - Central
-  'ə': 'uh',      // schwa (as in "about")
-  'ɜ': 'er',      // open-mid central (as in "bird")
-  'ʌ': 'u',       // open-mid back unrounded (as in "cup")
-  'ɐ': 'uh',      // near-open central
-  
-  // Vowels - Back
-  'u': 'oo',      // close back rounded (as in "boot")
-  'ʊ': 'oo',      // near-close back rounded (as in "put")
-  'o': 'o',       // close-mid back rounded (as in "go")
-  'ɔ': 'aw',      // open-mid back rounded (as in "law")
-  'ɑ': 'ah',      // open back unrounded (as in "father")
-  'ɒ': 'o',       // open back rounded (as in British "lot")
-  'a': 'ah',      // open front unrounded
-  
-  // Diphthongs (only when specifically detected as diphthongs)
-  'eɪ': 'ay',     // as in "say"
-  'aɪ': 'eye',    // as in "my"
-  'ɔɪ': 'oy',     // as in "boy"
-  'oʊ': 'oh',     // as in "go"
-  'aʊ': 'ow',     // as in "how"
-  'ɪə': 'eer',    // as in "near"
-  'eə': 'air',    // as in "care"
-  'ʊə': 'oor',    // as in "tour"
-  
-  // Common variations
-  'y': 'y',
-  'x': 'kh',      // voiceless velar fricative
-  'ɣ': 'gh',      // voiced velar fricative
-  'ç': 'h',       // voiceless palatal fricative
-  'ʁ': 'r',       // voiced uvular fricative
-  'χ': 'kh',      // voiceless uvular fricative
+  // =========================================================================
+  // Special markers (display as empty or minimal)
+  // =========================================================================
+  'ˈ': '',        // primary stress marker - don't display
+  'ˌ': '',        // secondary stress marker - don't display
+  'ː': '',        // length marker (handled in vowel mapping)
+  '.': '',        // syllable break
+  ' ': ' ',       // space preserved
+};
+
+// =============================================================================
+// LANGUAGE-SPECIFIC OVERRIDES
+// =============================================================================
+
+const LANGUAGE_OVERRIDES = {
+  english: {
+    // English-specific rules
+    'juː': 'yoo',  // "you"
+    'oʊ': 'oh',    // "go" - not "ow"
+  },
+  spanish: {
+    // 5 pure vowels only, rolled r vs tapped r
+    'r': 'rr',     // trilled
+    'ɾ': 'r',      // tapped
+  },
+  german: {
+    'y': 'ue',     // ü
+    'ø': 'oe',     // ö
+    'ç': 'ch',     // ich-sound
+  },
+  french: {
+    'ɑ̃': 'an',     // nasal ah
+    'ɔ̃': 'on',     // nasal aw
+    'ɛ̃': 'an',     // nasal eh
+    'œ̃': 'un',     // nasal oe
+  },
+  japanese: {
+    'ɾ': 'r',      // tap, not R or L
+  },
 };
 
 /**
