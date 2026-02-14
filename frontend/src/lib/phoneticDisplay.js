@@ -1,16 +1,19 @@
 /**
- * PHONETIC DISPLAY - BASE44-STYLE APPROACH
+ * PHONETIC DISPLAY - "HOW IT SOUNDS" PRONUNCIATION RULE SHEET
  * 
- * Core Philosophy:
- * - Show READABLE phonetics that match what users hear
- * - "What you see = what you hear"
- * - Simple, easy-to-pronounce representations
- * - NO complex IPA symbols exposed to users
+ * Core Principle (NON-NEGOTIABLE):
+ *   "Vowels must be pronounced clearly, separately, and long —
+ *    never compressed into English diphthongs."
  * 
- * Based on Base44 SoundMirror system:
- * - Letters show simple phonetics (A = "ah", B = "buh", M = "muh")
- * - Words show readable pronunciation (hello = "heh-loh")
- * - Detected speech shows what was heard in readable form
+ * This module converts text into READABLE phonetics that match
+ * what users should HEAR when practicing pronunciation.
+ * 
+ * Rules:
+ *   - Vowels stay separate unless explicitly tied
+ *   - No English diphthong collapse (ai ≠ "eye", ay ≠ "eye")
+ *   - Vowel length is mandatory, not optional
+ *   - Consonants do NOT steal vowel energy
+ *   - Cross-language safe (English is the outlier, not the default)
  */
 
 // =============================================================================
@@ -19,12 +22,11 @@
 
 export const LETTER_PHONETICS = {
   'A': 'ah', 'B': 'buh', 'C': 'kuh', 'D': 'duh', 'E': 'eh',
-  'F': 'fuh', 'G': 'guh', 'H': 'huh', 'I': 'ih', 'J': 'juh',
+  'F': 'fuh', 'G': 'guh', 'H': 'huh', 'I': 'ee', 'J': 'juh',
   'K': 'kuh', 'L': 'luh', 'M': 'muh', 'N': 'nuh', 'O': 'oh',
   'P': 'puh', 'Q': 'koo', 'R': 'ruh', 'S': 'sss', 'T': 'tuh',
   'U': 'oo', 'V': 'vuh', 'W': 'wuh', 'X': 'ks', 'Y': 'yuh', 'Z': 'zzz',
-  // Special characters
-  'Ñ': 'enye', 'LL': 'yeh', 'CH': 'chuh', 'SH': 'shuh', 'TH': 'thuh',
+  'CH': 'chuh', 'SH': 'shuh', 'TH': 'thuh', 'LL': 'yeh',
 };
 
 /**
@@ -37,53 +39,498 @@ export function getLetterPhonetic(letter) {
 }
 
 // =============================================================================
-// WORD/PHRASE PHONETIC DISPLAY
+// WORD/PHRASE PHONETIC DISPLAY — "HOW IT SOUNDS" RENDERING
 // =============================================================================
 
 /**
- * Simple phonetic rules for English words
- * Maps common letter patterns to readable pronunciations
+ * Word-level phonetic dictionary.
+ * These follow the Pronunciation Rule Sheet exactly.
+ * 
+ * KEY RULE: Vowels are separated, long, and pure.
+ *   "I" = Aeem (long open + high vowel, NOT a glide)
+ *   "fine" = faeen (fa + een, NOT /faɪn/)
  */
-const PHONETIC_PATTERNS = [
-  // Special word replacements (handle these first)
-  { word: "i'm", phonetic: "aym" },
-  { word: "i", phonetic: "ay" },
-  { word: "you", phonetic: "yoo" },
-  { word: "the", phonetic: "thuh" },
-  { word: "to", phonetic: "too" },
-  { word: "are", phonetic: "ar" },
-  { word: "is", phonetic: "iz" },
-  { word: "fine", phonetic: "fyn" },
-  { word: "hello", phonetic: "heh-loh" },
-  { word: "water", phonetic: "wah-ter" },
-  { word: "please", phonetic: "pleez" },
-  { word: "thank", phonetic: "thank" },
-  { word: "good", phonetic: "good" },
-  { word: "morning", phonetic: "mor-ning" },
-  { word: "how", phonetic: "how" },
-  { word: "nice", phonetic: "nys" },
-  { word: "meet", phonetic: "meet" },
-  { word: "see", phonetic: "see" },
-  { word: "later", phonetic: "lay-ter" },
-  { word: "yes", phonetic: "yes" },
-  { word: "no", phonetic: "noh" },
-  { word: "food", phonetic: "food" },
-  { word: "help", phonetic: "help" },
-];
+const WORD_PHONETICS = {
+  // === PRONOUNS & ARTICLES ===
+  "i": "Aeem",
+  "i'm": "Aeem",
+  "i'll": "Aeel",
+  "i've": "Aeev",
+  "i'd": "Aeed",
+  "me": "mee",
+  "my": "ma-ee",
+  "you": "yoo",
+  "your": "yoor",
+  "you're": "yoor",
+  "he": "hee",
+  "she": "shee",
+  "we": "wee",
+  "they": "theh-ee",
+  "the": "thuh",
+  "a": "ah",
+  "an": "an",
+
+  // === COMMON VERBS ===
+  "to": "too",
+  "is": "eez",
+  "are": "aar",
+  "was": "woz",
+  "be": "bee",
+  "do": "doo",
+  "go": "goh",
+  "no": "noh",
+  "so": "soh",
+  "say": "seh-ee",
+  "see": "see",
+  "come": "kum",
+  "have": "hav",
+  "give": "geev",
+  "live": "leev",
+  "move": "moov",
+  "love": "luv",
+  "make": "meh-eek",
+  "take": "teh-eek",
+  "like": "la-eek",
+  "ride": "ra-eed",
+  "hide": "ha-eed",
+  "side": "sa-eed",
+  "wide": "wa-eed",
+  "know": "noh",
+  "show": "shoh",
+  "grow": "groh",
+  "blow": "bloh",
+  "flow": "floh",
+  "slow": "sloh",
+
+  // === "MAGIC E" WORDS (i_e pattern) ===
+  "fine": "faeen",
+  "mine": "maeen",
+  "wine": "waeen",
+  "line": "laeen",
+  "nine": "naeen",
+  "pine": "paeen",
+  "dine": "daeen",
+  "vine": "vaeen",
+  "time": "taeem",
+  "lime": "laeem",
+  "dime": "daeem",
+  "life": "laeef",
+  "wife": "waeef",
+  "knife": "naeef",
+  "five": "faeev",
+  "dive": "daeev",
+  "hive": "haeev",
+  "nice": "naees",
+  "rice": "raees",
+  "dice": "daees",
+  "ice": "aees",
+  "price": "praees",
+  "twice": "twaees",
+  "smile": "smaeel",
+  "while": "waeel",
+  "mile": "maeel",
+  "file": "faeel",
+  "tile": "taeel",
+  "fire": "faeer",
+  "tire": "taeer",
+  "wire": "waeer",
+  "hire": "haeer",
+  "bite": "baeet",
+  "kite": "kaeet",
+  "site": "saeet",
+  "white": "waeet",
+  "write": "raeet",
+  "quite": "kwaeet",
+
+  // === "MAGIC E" WORDS (a_e pattern) ===
+  "name": "neh-eem",
+  "came": "keh-eem",
+  "same": "seh-eem",
+  "game": "geh-eem",
+  "fame": "feh-eem",
+  "blame": "bleh-eem",
+  "flame": "fleh-eem",
+  "made": "meh-eed",
+  "fade": "feh-eed",
+  "shade": "sheh-eed",
+  "trade": "treh-eed",
+  "grade": "greh-eed",
+  "place": "pleh-ees",
+  "face": "feh-ees",
+  "race": "reh-ees",
+  "space": "speh-ees",
+  "safe": "seh-eef",
+  "late": "leh-eet",
+  "gate": "geh-eet",
+  "fate": "feh-eet",
+  "state": "steh-eet",
+  "date": "deh-eet",
+  "make": "meh-eek",
+  "take": "teh-eek",
+  "bake": "beh-eek",
+  "cake": "keh-eek",
+  "lake": "leh-eek",
+  "wake": "weh-eek",
+  "shake": "sheh-eek",
+  "brake": "breh-eek",
+  "save": "seh-eev",
+  "wave": "weh-eev",
+  "brave": "breh-eev",
+  "gave": "geh-eev",
+  "cave": "keh-eev",
+  "sale": "seh-eel",
+  "tale": "teh-eel",
+  "pale": "peh-eel",
+  "male": "meh-eel",
+  "whale": "weh-eel",
+  "scale": "skeh-eel",
+
+  // === "MAGIC E" WORDS (o_e pattern) ===
+  "home": "hohm",
+  "bone": "bohn",
+  "tone": "tohn",
+  "stone": "stohn",
+  "alone": "a-lohn",
+  "phone": "fohn",
+  "zone": "zohn",
+  "hope": "hohp",
+  "rope": "rohp",
+  "note": "noht",
+  "vote": "voht",
+  "those": "thohz",
+  "close": "klohz",
+  "nose": "nohz",
+  "rose": "rohz",
+  "chose": "chohz",
+  "hole": "hohl",
+  "role": "rohl",
+  "pole": "pohl",
+  "sole": "sohl",
+  "whole": "hohl",
+  "more": "mohr",
+  "store": "stohr",
+  "before": "bee-fohr",
+  "core": "kohr",
+
+  // === -Y WORDS (long i sound) ===
+  "hi": "ha-ee",
+  "by": "ba-ee",
+  "my": "ma-ee",
+  "why": "wa-ee",
+  "try": "tra-ee",
+  "cry": "kra-ee",
+  "dry": "dra-ee",
+  "fly": "fla-ee",
+  "sky": "ska-ee",
+  "buy": "ba-ee",
+  "guy": "ga-ee",
+  "eye": "a-ee",
+  "pie": "pa-ee",
+  "tie": "ta-ee",
+  "die": "da-ee",
+  "lie": "la-ee",
+  "bye": "ba-ee",
+  "shy": "sha-ee",
+  "sly": "sla-ee",
+  "spy": "spa-ee",
+  "pry": "pra-ee",
+  "fry": "fra-ee",
+  "reply": "ree-pla-ee",
+
+  // === COMMON EVERYDAY WORDS ===
+  "hello": "heh-loh",
+  "water": "waa-ter",
+  "please": "pleez",
+  "thank": "thangk",
+  "thanks": "thangks",
+  "good": "good",
+  "morning": "mor-neeng",
+  "night": "na-eet",
+  "right": "ra-eet",
+  "light": "la-eet",
+  "might": "ma-eet",
+  "sight": "sa-eet",
+  "tight": "ta-eet",
+  "fight": "fa-eet",
+  "bright": "bra-eet",
+  "flight": "fla-eet",
+  "high": "ha-ee",
+  "sigh": "sa-ee",
+  "thigh": "tha-ee",
+  "how": "ha-oo",
+  "now": "na-oo",
+  "cow": "ka-oo",
+  "wow": "wa-oo",
+  "down": "da-oon",
+  "town": "ta-oon",
+  "brown": "bra-oon",
+  "crown": "kra-oon",
+  "found": "fa-oond",
+  "sound": "sa-oond",
+  "round": "ra-oond",
+  "ground": "gra-oond",
+  "out": "a-oot",
+  "about": "a-ba-oot",
+  "shout": "sha-oot",
+  "house": "ha-oos",
+  "mouse": "ma-oos",
+  "loud": "la-ood",
+  "cloud": "kla-ood",
+  "proud": "pra-ood",
+  "boy": "bo-ee",
+  "joy": "jo-ee",
+  "toy": "to-ee",
+  "enjoy": "en-jo-ee",
+  "oil": "o-eel",
+  "boil": "bo-eel",
+  "soil": "so-eel",
+  "coin": "ko-een",
+  "join": "jo-een",
+  "point": "po-eent",
+  "day": "deh-ee",
+  "way": "weh-ee",
+  "play": "pleh-ee",
+  "stay": "steh-ee",
+  "away": "a-weh-ee",
+  "today": "too-deh-ee",
+  "may": "meh-ee",
+  "pay": "peh-ee",
+  "rain": "reh-een",
+  "pain": "peh-een",
+  "main": "meh-een",
+  "brain": "breh-een",
+  "train": "treh-een",
+  "again": "a-geh-een",
+  "wait": "weh-eet",
+  "great": "greh-eet",
+  "eat": "eet",
+  "meet": "meet",
+  "feet": "feet",
+  "street": "street",
+  "sweet": "sweet",
+  "sleep": "sleep",
+  "keep": "keep",
+  "deep": "deep",
+  "feel": "feel",
+  "real": "reel",
+  "meal": "meel",
+  "deal": "deel",
+  "heal": "heel",
+  "read": "reed",
+  "need": "need",
+  "feed": "feed",
+  "seed": "seed",
+  "speed": "speed",
+  "tree": "tree",
+  "free": "free",
+  "three": "three",
+  "green": "green",
+  "seen": "seen",
+  "been": "been",
+  "food": "food",
+  "mood": "mood",
+  "cool": "kool",
+  "pool": "pool",
+  "school": "skool",
+  "tool": "tool",
+  "room": "room",
+  "moon": "moon",
+  "soon": "soon",
+  "noon": "noon",
+  "spoon": "spoon",
+  "blue": "bloo",
+  "true": "troo",
+  "new": "noo",
+  "few": "foo",
+  "knew": "noo",
+  "flew": "floo",
+  "grew": "groo",
+  "drew": "droo",
+  "help": "help",
+  "yes": "yes",
+  "let": "let",
+  "get": "get",
+  "set": "set",
+  "yet": "yet",
+  "wet": "wet",
+  "bed": "bed",
+  "red": "red",
+  "said": "sed",
+  "head": "hed",
+  "bread": "bred",
+  "dead": "ded",
+  "read": "reed",
+  "lead": "leed",
+  "friend": "frend",
+  "one": "wun",
+  "done": "dun",
+  "gone": "gon",
+  "son": "sun",
+  "won": "wun",
+  "fun": "fun",
+  "run": "run",
+  "sun": "sun",
+  "but": "but",
+  "cut": "kut",
+  "put": "poot",
+  "up": "up",
+  "cup": "kup",
+  "just": "just",
+  "must": "must",
+  "much": "much",
+  "such": "such",
+  "touch": "tuch",
+  "world": "wurld",
+  "word": "wurd",
+  "work": "wurk",
+  "girl": "gurl",
+  "first": "furst",
+  "bird": "burd",
+  "turn": "turn",
+  "learn": "lurn",
+  "earth": "urth",
+  "heart": "hart",
+  "start": "start",
+  "part": "part",
+  "far": "far",
+  "car": "kar",
+  "star": "star",
+  "hard": "hard",
+  "arm": "arm",
+  "warm": "worm",
+  "from": "from",
+  "what": "wot",
+  "that": "that",
+  "this": "this",
+  "with": "with",
+  "will": "wil",
+  "can": "kan",
+  "man": "man",
+  "hand": "hand",
+  "land": "land",
+  "stand": "stand",
+  "than": "than",
+  "back": "bak",
+  "black": "blak",
+  "all": "awl",
+  "call": "kawl",
+  "fall": "fawl",
+  "tall": "tawl",
+  "small": "smawl",
+  "wall": "wawl",
+  "ball": "bawl",
+  "also": "awl-soh",
+  "always": "awl-weh-eez",
+  "talk": "tawk",
+  "walk": "wawk",
+  "thought": "thawt",
+  "caught": "kawt",
+  "taught": "tawt",
+  "because": "bee-kawz",
+  "people": "pee-pul",
+  "only": "ohn-lee",
+  "very": "veh-ree",
+  "every": "ev-ree",
+  "other": "uh-ther",
+  "after": "af-ter",
+  "over": "oh-ver",
+  "under": "un-der",
+  "never": "neh-ver",
+  "even": "ee-ven",
+  "open": "oh-pen",
+  "little": "li-tul",
+  "big": "big",
+  "long": "long",
+  "old": "ohld",
+  "new": "noo",
+  "many": "meh-nee",
+  "some": "sum",
+  "would": "wood",
+  "could": "kood",
+  "should": "shood",
+  "their": "thehr",
+  "there": "thehr",
+  "where": "wehr",
+  "here": "heer",
+  "when": "wen",
+  "then": "then",
+  "again": "a-geh-een",
+  "year": "yeer",
+  "each": "eech",
+  "which": "wich",
+  "think": "thingk",
+  "look": "look",
+  "book": "book",
+  "took": "took",
+  "cook": "kook",
+  "good": "good",
+  "foot": "foot",
+  "wood": "wood",
+  "door": "dohr",
+  "floor": "flohr",
+  "four": "fohr",
+  "pour": "pohr",
+  "your": "yohr",
+
+  // === MULTILINGUAL COMMON WORDS ===
+  // Spanish
+  "hola": "oh-lah",
+  "gracias": "grah-see-ahs",
+  "por": "pohr",
+  "favor": "fah-vohr",
+  "amigo": "ah-mee-goh",
+  // French
+  "oui": "oo-ee",
+  "bonjour": "bon-zhoor",
+  "merci": "mehr-see",
+  // German
+  "nein": "na-een",
+  "danke": "dahn-keh",
+  "bitte": "bi-teh",
+  // Italian
+  "ciao": "chah-oh",
+  "buono": "boo-oh-noh",
+};
 
 /**
- * Letter pattern replacements for phonetic conversion
+ * Pattern-based vowel rules for unknown words.
+ * Applied in order (longest patterns first).
+ * 
+ * CRITICAL: Vowels are SEPARATED, never compressed.
+ *   ai → "a-ee" NOT "eye"
+ *   ay → "eh-ee" NOT "eye"  
+ *   ei → "eh-ee" NOT "ay"
+ *   au → "a-oo" NOT "ow"
+ *   oi/oy → "o-ee" NOT "oy"
  */
-const LETTER_PATTERN_RULES = [
-  // Vowel digraphs (longer patterns first)
+const PHONETIC_PATTERNS = [
+  // Longest multi-letter patterns first
+  { pattern: 'ight', replace: 'a-eet' },
   { pattern: 'ough', replace: 'oh' },
   { pattern: 'tion', replace: 'shun' },
   { pattern: 'sion', replace: 'zhun' },
-  { pattern: 'ight', replace: 'yt' },
   { pattern: 'ould', replace: 'ood' },
-  { pattern: 'ough', replace: 'uf' },
-  
-  // Common digraphs
+
+  // Vowel digraphs — SEPARATED, NEVER compressed
+  { pattern: 'ai', replace: 'eh-ee' },
+  { pattern: 'ay', replace: 'eh-ee' },
+  { pattern: 'ei', replace: 'eh-ee' },
+  { pattern: 'ey', replace: 'eh-ee' },
+  { pattern: 'oi', replace: 'o-ee' },
+  { pattern: 'oy', replace: 'o-ee' },
+  { pattern: 'au', replace: 'a-oo' },
+  { pattern: 'aw', replace: 'a-oo' },
+  { pattern: 'ou', replace: 'a-oo' },
+  { pattern: 'ow', replace: 'oh' },
+  { pattern: 'oa', replace: 'oh-ah' },
+  { pattern: 'oe', replace: 'o-eh' },
+
+  // Pure long vowels (no compression)
+  { pattern: 'ee', replace: 'ee' },
+  { pattern: 'ea', replace: 'ee' },
+  { pattern: 'oo', replace: 'oo' },
+
+  // Consonant digraphs
   { pattern: 'th', replace: 'th' },
   { pattern: 'ch', replace: 'ch' },
   { pattern: 'sh', replace: 'sh' },
@@ -94,26 +541,8 @@ const LETTER_PATTERN_RULES = [
   { pattern: 'wr', replace: 'r' },
   { pattern: 'kn', replace: 'n' },
   { pattern: 'gn', replace: 'n' },
-  { pattern: 'mb', replace: 'm' },
-  
-  // Vowel patterns
-  { pattern: 'ee', replace: 'ee' },
-  { pattern: 'ea', replace: 'ee' },
-  { pattern: 'oo', replace: 'oo' },
-  { pattern: 'ou', replace: 'ow' },
-  { pattern: 'ow', replace: 'oh' },
-  { pattern: 'ai', replace: 'ay' },
-  { pattern: 'ay', replace: 'ay' },
-  { pattern: 'ei', replace: 'ay' },
-  { pattern: 'ey', replace: 'ee' },
-  { pattern: 'ie', replace: 'ee' },
-  { pattern: 'oa', replace: 'oh' },
-  { pattern: 'oi', replace: 'oy' },
-  { pattern: 'oy', replace: 'oy' },
-  { pattern: 'au', replace: 'aw' },
-  { pattern: 'aw', replace: 'aw' },
-  
-  // Double consonants (simplify)
+
+  // Double consonants → single
   { pattern: 'll', replace: 'l' },
   { pattern: 'ss', replace: 's' },
   { pattern: 'tt', replace: 't' },
@@ -130,31 +559,117 @@ const LETTER_PATTERN_RULES = [
 ];
 
 /**
- * Convert text to readable phonetic display
+ * Handle "magic e" rule: consonant+e at end of word changes vowel pronunciation.
+ * e.g., "fine" → the 'i' becomes long (a-ee sound), silent 'e'
+ *       "made" → the 'a' becomes long (eh-ee sound), silent 'e'
+ */
+function handleMagicE(word) {
+  // Must end in consonant + e, and be at least 3 chars
+  if (word.length < 3 || !word.endsWith('e')) return null;
+
+  const beforeE = word[word.length - 2];
+  const consonants = 'bcdfghjklmnpqrstvwxyz';
+  if (!consonants.includes(beforeE)) return null;
+
+  // Find the main vowel before the final consonant+e
+  const stem = word.slice(0, -1); // remove silent 'e'
+  let vowelIdx = -1;
+  for (let i = stem.length - 2; i >= 0; i--) {
+    if ('aeiou'.includes(stem[i])) {
+      vowelIdx = i;
+      break;
+    }
+  }
+
+  if (vowelIdx === -1) return null;
+
+  const vowel = stem[vowelIdx];
+  const before = stem.slice(0, vowelIdx);
+  const after = stem.slice(vowelIdx + 1);
+
+  // Long vowel sounds (separated, never compressed)
+  const longVowels = {
+    'a': 'eh-ee',  // "made" → "meh-eed"
+    'e': 'ee',     // "these" → "theez"
+    'i': 'aee',    // "fine" → "faeen"
+    'o': 'oh',     // "home" → "hohm"
+    'u': 'oo',     // "cute" → "koot"
+  };
+
+  const longSound = longVowels[vowel];
+  if (!longSound) return null;
+
+  return before + longSound + after;
+}
+
+/**
+ * Apply pattern-based rules to a word for phonetic rendering.
+ * Used as fallback when word is not in the dictionary.
+ */
+function applyPatternRules(word) {
+  // Try magic-e first
+  const magicE = handleMagicE(word);
+  if (magicE) return magicE;
+
+  let result = word;
+  // Sort patterns by length (longest first) for greedy matching
+  const sorted = [...PHONETIC_PATTERNS].sort((a, b) => b.pattern.length - a.pattern.length);
+
+  for (const rule of sorted) {
+    result = result.split(rule.pattern).join(rule.replace);
+  }
+
+  // Remove silent trailing 'e' that wasn't caught by magic-e
+  if (result.endsWith('e') && result.length > 2) {
+    const beforeLast = result[result.length - 2];
+    if (!'aeiou'.includes(beforeLast)) {
+      result = result.slice(0, -1);
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Convert text to readable phonetic display.
+ * Follows the "How-It-Sounds" Pronunciation Rule Sheet.
  * 
- * @param {string} text - Input text (word or phrase)
+ * Examples:
+ *   "I'm fine" → "Aeem faeen"
+ *   "I" → "Aeem"
+ *   "my" → "ma-ee"
+ *   "you" → "yoo"
+ *   "say" → "seh-ee"
+ *   "no" → "noh"
+ * 
+ * @param {string} text - Input text
  * @param {string} language - Language code
  * @returns {string} - Readable phonetic representation
  */
 export function textToPhonetic(text, language = 'english') {
   if (!text) return '';
-  
-  const words = text.toLowerCase().trim().split(/\s+/);
+
+  const words = text.trim().split(/\s+/);
   const phoneticWords = words.map(word => {
-    // Check for exact word match first
-    const exactMatch = PHONETIC_PATTERNS.find(p => p.word === word);
-    if (exactMatch) return exactMatch.phonetic;
-    
-    // Apply letter pattern rules
-    let phonetic = word;
-    for (const rule of LETTER_PATTERN_RULES) {
-      phonetic = phonetic.replace(new RegExp(rule.pattern, 'g'), rule.replace);
+    const lower = word.toLowerCase().replace(/[^a-z']/g, '');
+    if (!lower) return '';
+
+    // 1. Check exact word match in dictionary
+    if (WORD_PHONETICS[lower]) {
+      return WORD_PHONETICS[lower];
     }
-    
-    return phonetic;
+
+    // 2. Check without apostrophe (e.g., "i'm" → look up "im" too)
+    const noApostrophe = lower.replace(/'/g, '');
+    if (WORD_PHONETICS[noApostrophe]) {
+      return WORD_PHONETICS[noApostrophe];
+    }
+
+    // 3. Apply pattern-based rules for unknown words
+    return applyPatternRules(lower);
   });
-  
-  return phoneticWords.join(' ');
+
+  return phoneticWords.filter(w => w).join(' ');
 }
 
 // =============================================================================
@@ -162,66 +677,59 @@ export function textToPhonetic(text, language = 'english') {
 // =============================================================================
 
 /**
- * Map IPA symbols to readable display
- * Used when converting detected phonemes to user-friendly format
- * COMPREHENSIVE mapping for better phoneme detection display
+ * IPA to readable display mapping.
+ * CRITICAL: Diphthongs are SEPARATED per the rule sheet.
+ *   aɪ → "a-ee" NOT "ai"
+ *   eɪ → "eh-ee" NOT "ay"
+ *   ɔɪ → "o-ee" NOT "oy"
+ *   aʊ → "a-oo" NOT "ow"
  */
 const IPA_TO_READABLE = {
-  // ===== VOWELS =====
-  // Close vowels
+  // === VOWELS ===
   'i': 'ee', 'iː': 'ee', 'ɪ': 'i',
   'y': 'oo', 'yː': 'oo', 'ʏ': 'oo',
   'ɨ': 'ih', 'ʉ': 'oo',
   'ɯ': 'oo', 'u': 'oo', 'uː': 'oo', 'ʊ': 'oo',
-  
-  // Close-mid vowels
-  'e': 'e', 'eː': 'e', 
+  'e': 'eh', 'eː': 'eh',
   'ø': 'ur', 'øː': 'ur',
   'ɘ': 'uh', 'ɵ': 'ur',
   'ɤ': 'uh', 'o': 'oh', 'oː': 'oh',
-  
-  // Mid vowel (schwa)
   'ə': 'uh', 'ɚ': 'er',
-  
-  // Open-mid vowels
-  'ɛ': 'e', 'ɜ': 'er', 'ɝ': 'er',
+  'ɛ': 'eh', 'ɜ': 'er', 'ɝ': 'er',
   'œ': 'ur', 'ɞ': 'ur',
   'ʌ': 'uh', 'ɔ': 'aw', 'ɔː': 'aw',
-  
-  // Open vowels
   'æ': 'a', 'ɐ': 'uh',
   'a': 'ah', 'aː': 'ah', 'ɑ': 'ah', 'ɑː': 'ah',
   'ɒ': 'o', 'ɒː': 'o',
-  
-  // ===== DIPHTHONGS =====
-  'eɪ': 'ay', 'aɪ': 'ai', 'ɔɪ': 'oy',
-  'oʊ': 'oh', 'əʊ': 'oh', 'aʊ': 'ow',
-  'ɪə': 'eer', 'eə': 'air', 'ʊə': 'oor',
-  'juː': 'yoo', 'ju': 'yoo',
-  'aɪə': 'ire', 'aʊə': 'our',
-  
-  // ===== CONSONANTS =====
-  // Plosives/Stops
+
+  // === DIPHTHONGS — SEPARATED (Rule Sheet compliance) ===
+  'eɪ': 'eh-ee',     // NOT "ay"
+  'aɪ': 'a-ee',      // NOT "ai" or "eye"
+  'ɔɪ': 'o-ee',      // NOT "oy"
+  'oʊ': 'oh',        // Pure long o
+  'əʊ': 'oh',        // Pure long o
+  'aʊ': 'a-oo',      // NOT "ow"
+  'ɪə': 'ee-er',
+  'eə': 'eh-er',
+  'ʊə': 'oo-er',
+  'juː': 'yoo',
+  'ju': 'yoo',
+  'aɪə': 'a-ee-er',
+  'aʊə': 'a-oo-er',
+
+  // === CONSONANTS ===
   'p': 'p', 'b': 'b',
   't': 't', 'd': 'd',
   'ʈ': 't', 'ɖ': 'd',
   'c': 'k', 'ɟ': 'j',
   'k': 'k', 'g': 'g',
   'q': 'k', 'ɢ': 'g',
-  'ʔ': '',  // Glottal stop - silent
-  
-  // Nasals
+  'ʔ': '',
   'm': 'm', 'ɱ': 'm',
   'n': 'n', 'ɳ': 'n', 'ɲ': 'ny',
   'ŋ': 'ng', 'ɴ': 'ng',
-  
-  // Trills
   'ʙ': 'br', 'r': 'r', 'ʀ': 'r',
-  
-  // Taps/Flaps
   'ⱱ': 'v', 'ɾ': 'r', 'ɽ': 'r',
-  
-  // Fricatives
   'ɸ': 'f', 'β': 'v',
   'f': 'f', 'v': 'v',
   'θ': 'th', 'ð': 'th',
@@ -233,97 +741,79 @@ const IPA_TO_READABLE = {
   'χ': 'kh', 'ʁ': 'r',
   'ħ': 'h', 'ʕ': 'ah',
   'h': 'h', 'ɦ': 'h',
-  
-  // Affricates
   'tʃ': 'ch', 'dʒ': 'j',
   'ts': 'ts', 'dz': 'dz',
   'tɕ': 'ch', 'dʑ': 'j',
-  
-  // Approximants
   'ʋ': 'v', 'ɹ': 'r', 'ɻ': 'r',
   'j': 'y', 'ɰ': 'w',
   'w': 'w', 'ʍ': 'wh',
-  
-  // Lateral approximants
   'l': 'l', 'ɭ': 'l', 'ʎ': 'ly', 'ʟ': 'l',
-  
-  // ===== MODIFIERS (usually remove) =====
-  'ˈ': '', 'ˌ': '',  // Stress marks
-  'ː': '',           // Length mark
-  '.': '',           // Syllable boundary
-  '̃': '',           // Nasalization (combining)
-  '̩': '',           // Syllabic (combining)
-  'ʷ': 'w',          // Labialization
-  'ʲ': 'y',          // Palatalization
-  'ˠ': '',           // Velarization
-  'ˤ': '',           // Pharyngealization
-  '̪': '',           // Dental (combining)
-  '̺': '',           // Apical (combining)
-  '̻': '',           // Laminal (combining)
+
+  // === MODIFIERS (remove) ===
+  'ˈ': '', 'ˌ': '',
+  'ː': '',
+  '.': '',
+  'ʷ': 'w',
+  'ʲ': 'y',
+  'ˠ': '', 'ˤ': '',
 };
 
 /**
- * Convert IPA symbol to readable display
- * 
- * @param {string} ipa - IPA symbol
- * @returns {string} - Readable representation
+ * Convert a single IPA symbol to readable display
  */
 export function ipaToReadable(ipa) {
   if (!ipa) return '';
-  
-  // Clean input
+
   const clean = ipa.replace(/[ˈˌː.]/g, '').trim();
   if (!clean) return '';
-  
+
   // Direct lookup
-  if (IPA_TO_READABLE[clean]) {
-    return IPA_TO_READABLE[clean];
-  }
-  
+  if (IPA_TO_READABLE[clean]) return IPA_TO_READABLE[clean];
+
   // Try lowercase
-  if (IPA_TO_READABLE[clean.toLowerCase()]) {
-    return IPA_TO_READABLE[clean.toLowerCase()];
-  }
-  
-  // For simple letters, return as-is
-  if (/^[a-z]$/i.test(clean)) {
-    return clean.toLowerCase();
-  }
-  
-  // For multi-character, try character by character
+  if (IPA_TO_READABLE[clean.toLowerCase()]) return IPA_TO_READABLE[clean.toLowerCase()];
+
+  // Simple ASCII letter
+  if (/^[a-z]$/i.test(clean)) return clean.toLowerCase();
+
+  // Multi-character: try 3-char, 2-char, then 1-char combos
   if (clean.length > 1) {
     let result = '';
     let i = 0;
     while (i < clean.length) {
-      // Try 2-char combos first
+      // Try 3-char
+      if (i + 2 < clean.length) {
+        const three = clean.slice(i, i + 3);
+        if (IPA_TO_READABLE[three]) {
+          result += IPA_TO_READABLE[three];
+          i += 3;
+          continue;
+        }
+      }
+      // Try 2-char
       if (i + 1 < clean.length) {
-        const twoChar = clean.slice(i, i + 2);
-        if (IPA_TO_READABLE[twoChar]) {
-          result += IPA_TO_READABLE[twoChar];
+        const two = clean.slice(i, i + 2);
+        if (IPA_TO_READABLE[two]) {
+          result += IPA_TO_READABLE[two];
           i += 2;
           continue;
         }
       }
       // Single char
-      const oneChar = clean[i];
-      result += IPA_TO_READABLE[oneChar] || oneChar;
+      result += IPA_TO_READABLE[clean[i]] || clean[i];
       i++;
     }
     return result;
   }
-  
+
   return clean;
 }
 
 /**
- * Convert IPA sequence to readable display
- * 
- * @param {Array} ipaSequence - Array of IPA phoneme objects
- * @returns {string[]} - Array of readable strings
+ * Convert IPA sequence to readable display array
  */
 export function ipaSequenceToReadable(ipaSequence) {
   if (!ipaSequence || !Array.isArray(ipaSequence)) return [];
-  
   return ipaSequence
     .map(p => ipaToReadable(p.symbol || p))
     .filter(s => s.length > 0);
@@ -331,49 +821,38 @@ export function ipaSequenceToReadable(ipaSequence) {
 
 /**
  * Join IPA sequence as readable phonetic string
- * 
- * @param {Array} ipaSequence - Array of IPA phoneme objects
- * @returns {string} - Readable phonetic string
  */
 export function ipaSequenceToPhoneticString(ipaSequence) {
-  const readable = ipaSequenceToReadable(ipaSequence);
-  return readable.join('');
+  return ipaSequenceToReadable(ipaSequence).join('');
 }
 
 // =============================================================================
 // FRAME TO SOUND NAME (for animation display)
 // =============================================================================
 
-/**
- * Frame index to readable sound name
- * Shows what sound the mouth shape represents
- */
 export const FRAME_TO_SOUND_NAME = {
   0: 'neutral',
-  1: 'ah/oo',      // a, u
-  2: 'eh',         // e
-  3: 'ee',         // ee, z, x
-  4: 'ue',         // ü
-  5: 'oh',         // oo, o, ou, w
-  6: 'k/g',        // c, k, q, g
-  7: 't/d',        // t, tsk, d, j
-  8: 'p/b/m',      // b, p, m
-  9: 'n',          // n
-  10: 'ng',        // ng
-  11: 's',         // s
-  12: 'sh',        // sh
-  13: 'th',        // th
-  14: 'f/v',       // f, v
-  15: 'ch',        // ch
-  16: 'h',         // h
-  17: 'r',         // r
-  18: 'l',         // L
-  19: 'y',         // LL, y
+  1: 'ah/oo',
+  2: 'eh',
+  3: 'ee',
+  4: 'ue',
+  5: 'oh',
+  6: 'k/g',
+  7: 't/d',
+  8: 'p/b/m',
+  9: 'n',
+  10: 'ng',
+  11: 's',
+  12: 'sh',
+  13: 'th',
+  14: 'f/v',
+  15: 'ch',
+  16: 'h',
+  17: 'r',
+  18: 'l',
+  19: 'y',
 };
 
-/**
- * Get readable sound name for a frame index
- */
 export function getFrameSoundName(frameIndex) {
   return FRAME_TO_SOUND_NAME[frameIndex] || 'neutral';
 }
