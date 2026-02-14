@@ -527,9 +527,20 @@ async def get_frame_info():
 # ============ PHONEME DETECTION BRIDGE (ALLOSAURUS) ============
 
 def pcm_to_wav_file(pcm_data: List[float], sample_rate: int) -> str:
-    """Convert PCM float data to a temporary WAV file for Allosaurus"""
-    # Convert float PCM (-1.0 to 1.0) to int16
+    """Convert PCM float data to a normalized temporary WAV file for Allosaurus"""
+    # Convert float PCM (-1.0 to 1.0) to numpy array
     pcm_array = np.array(pcm_data, dtype=np.float32)
+    
+    # Normalize audio - boost quiet signals
+    max_val = np.max(np.abs(pcm_array))
+    if max_val > 0.01:  # Only normalize if there's actual audio
+        pcm_array = pcm_array / max_val * 0.95  # Normalize to 95% to avoid clipping
+    
+    # Apply simple noise gate (remove very quiet samples that might be noise)
+    noise_threshold = 0.02
+    pcm_array = np.where(np.abs(pcm_array) < noise_threshold, 0, pcm_array)
+    
+    # Convert to int16
     pcm_int16 = (pcm_array * 32767).astype(np.int16)
     
     # Create temporary WAV file
