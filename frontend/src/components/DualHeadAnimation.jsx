@@ -459,7 +459,7 @@ export const DualHeadAnimation = forwardRef(({
           </div>
         </div>
 
-        {/* Side View */}
+        {/* Side View - Zoomed out 25% for airflow animation space */}
         <div className="relative">
           {!hideViewLabels && (
             <div className="absolute top-2 left-2 z-10 px-2 py-1 bg-slate-600/90 text-white text-xs font-semibold rounded">
@@ -474,7 +474,7 @@ export const DualHeadAnimation = forwardRef(({
               src={SPRITE_URLS.side[currentFrame] || SPRITE_URLS.side[0]}
               alt={`Side view frame ${currentFrame}`}
               className="w-full h-full object-cover"
-              style={{ transform: 'scale(1.5)', transformOrigin: 'center center' }}
+              style={{ transform: 'scale(1.125)', transformOrigin: 'center center' }}
               data-testid="side-view-image"
             />
           </div>
