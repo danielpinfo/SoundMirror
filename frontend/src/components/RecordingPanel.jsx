@@ -578,11 +578,10 @@ export const RecordingPanel = ({
         );
         
         if (newPhonemeScore) {
-          // Get updated detected display using ipaToDisplay directly
+          // Get updated detected display using ipaToReadable
           const detectedPhoneme = detectionResult.ipaSequence?.[focusPhoneme.position];
-          const { ipaToDisplay } = require('../lib/ipaDisplayMapping');
           const detectedDisplay = detectedPhoneme 
-            ? ipaToDisplay(detectedPhoneme.symbol, language)
+            ? ipaToReadable(detectedPhoneme.symbol)
             : null;
           
           setFocusPhoneme(prev => ({
