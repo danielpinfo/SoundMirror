@@ -267,9 +267,9 @@ export function identifyFocusPhoneme(gradingDetails, targetIpaSequence, detected
   const detectedPhoneme = detectedIpaSequence?.[position];
   
   // Convert to display text (NEVER show IPA)
-  const targetDisplay = ipaToDisplay(targetPhoneme?.symbol || lowestScoring.target?.symbol, language);
+  const targetDisplay = ipaToReadable(targetPhoneme?.symbol || lowestScoring.target?.symbol);
   const detectedDisplay = detectedPhoneme 
-    ? ipaToDisplay(detectedPhoneme.symbol, language) 
+    ? ipaToReadable(detectedPhoneme.symbol) 
     : null;
   
   // Get features for coaching
