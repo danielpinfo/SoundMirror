@@ -864,7 +864,7 @@ async def get_available_audio(language: str):
         try:
             s3_client.head_object(Bucket=S3_BUCKET, Key=s3_key)
             available_phonemes.append(phoneme)
-        except:
+        except Exception:
             pass
     
     return {
