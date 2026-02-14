@@ -295,10 +295,16 @@ const NORMALIZATION_RULES = {
       'ai': 'eɪ',   // diphthong
       'ay': 'eɪ',   // diphthong
       'oa': 'oʊ',   // diphthong
-      'ou': 'aʊ',   // diphthong (as in "out")
+      'ou': 'aʊ',   // diphthong (as in "out") - note: context matters for "you" vs "out"
       'ow': 'aʊ',   // diphthong (as in "how")
       'oi': 'ɔɪ',   // diphthong
       'oy': 'ɔɪ',   // diphthong
+    },
+    
+    // Special word patterns (whole words)
+    words: {
+      'you': 'juː',  // "you" = yoo
+      'your': 'jɔːr', // "your" = yor
     },
   },
   
