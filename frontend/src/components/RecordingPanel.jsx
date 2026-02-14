@@ -5,7 +5,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { analyzePhonemes, gradePhonemes } from '../lib/phonemeAnalysis';
 import { PhonemeComparisonPanel } from './PhonemeComparisonPanel';
 import { GuidedFocusModePanel, identifyFocusPhoneme } from './GuidedFocusModePanel';
-import { logPhonemeSequences } from '../lib/ipaDisplayMapping';
+import { ipaSequenceToReadable, ipaToReadable } from '../lib/phoneticDisplay';
 import { 
   Mic, 
   Square, 
