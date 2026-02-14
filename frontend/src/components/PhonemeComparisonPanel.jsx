@@ -259,16 +259,16 @@ export const PhonemeComparisonPanel = ({
   detectedIpaSequence = [],
   language = 'english',
 }) => {
-  // Convert IPA to display representations
-  const targetDisplay = ipaSequenceToDisplay(targetIpaSequence, language);
-  const detectedDisplay = ipaSequenceToDisplay(detectedIpaSequence, language);
+  // Convert IPA to readable display (BASE44 style - no IPA symbols)
+  const targetDisplay = ipaSequenceToReadable(targetIpaSequence);
+  const detectedDisplay = ipaSequenceToReadable(detectedIpaSequence);
   
   // Log for debugging (console only)
   if (targetIpaSequence.length > 0) {
-    logPhonemeSequences(targetIpaSequence, 'Target', language);
+    console.log('[PhonemeComparison] Target:', targetIpaSequence.map(p => p.symbol || p), '→', targetDisplay);
   }
   if (detectedIpaSequence.length > 0) {
-    logPhonemeSequences(detectedIpaSequence, 'Detected', language);
+    console.log('[PhonemeComparison] Detected:', detectedIpaSequence.map(p => p.symbol || p), '→', detectedDisplay);
   }
   
   // Align sequences for comparison
