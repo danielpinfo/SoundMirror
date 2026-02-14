@@ -1115,6 +1115,45 @@ async def get_bug_reports(limit: int = 100):
     reports = await db.bug_reports.find({}, {"_id": 0}).sort("timestamp", -1).to_list(limit)
     return reports
 
+@api_router.post("/test-email")
+async def send_test_email():
+    """Send a test email to verify email configuration"""
+    try:
+        import resend
+        resend_api_key = os.environ.get('RESEND_API_KEY')
+        sender_email = os.environ.get('SENDER_EMAIL', 'onboarding@resend.dev')
+        
+        if not resend_api_key:
+            return {"status": "error", "message": "RESEND_API_KEY not configured in backend/.env"}
+            
+        resend.api_key = resend_api_key
+        
+        html_content = f"""
+        <html>
+        <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #0047AB;">SoundMirror Test Email</h2>
+            <p>This is a test email from the SoundMirror bug reporting system.</p>
+            <p>If you received this, your email configuration is working correctly!</p>
+            <p style="color: #888; font-size: 12px;">Sent at: {datetime.now(timezone.utc).isoformat()}</p>
+        </body>
+        </html>
+        """
+        
+        params = {
+            "from": sender_email,
+            "to": [DEBUG_BUG_REPORT_EMAIL],
+            "subject": "[SoundMirror] Test Email - Configuration Verified",
+            "html": html_content
+        }
+        
+        email_result = await asyncio.to_thread(resend.Emails.send, params)
+        logger.info(f"Test email sent to {DEBUG_BUG_REPORT_EMAIL}, ID: {email_result.get('id')}")
+        return {"status": "success", "message": f"Test email sent to {DEBUG_BUG_REPORT_EMAIL}", "email_id": email_result.get('id')}
+        
+    except Exception as e:
+        logger.error(f"Failed to send test email: {str(e)}")
+        return {"status": "error", "message": str(e)}
+
 # Include the router
 app.include_router(api_router)
 
