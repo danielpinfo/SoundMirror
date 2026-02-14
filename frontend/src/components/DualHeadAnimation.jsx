@@ -472,7 +472,7 @@ export const DualHeadAnimation = forwardRef(({
             <div className="bg-gradient-to-r from-blue-600/30 to-purple-600/30 border-2 border-blue-500/50 rounded-xl px-8 py-4 text-center min-w-[160px]">
               <span className="text-xs text-blue-300 uppercase tracking-wider block mb-1">Current Sound</span>
               <span className="text-3xl font-bold text-white font-mono" data-testid="current-phoneme-display">
-                {FRAME_TO_PHONEME_DISPLAY[currentFrame] || 'neutral'}
+                {getFrameSoundName(currentFrame)}
               </span>
             </div>
           </div>
