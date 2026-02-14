@@ -18,6 +18,10 @@ from emergentintegrations.llm.chat import LlmChat
 import numpy as np
 import tempfile
 import wave
+import asyncio
+
+# Debug bug report email recipient
+DEBUG_BUG_REPORT_EMAIL = "daniel@soundmirrortech.com"
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
