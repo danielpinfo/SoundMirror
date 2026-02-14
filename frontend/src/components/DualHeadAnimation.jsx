@@ -7,7 +7,7 @@ import { getLetterAudio } from '../lib/audio';
 import { useLanguage } from '../context/LanguageContext';
 import { Slider } from '../components/ui/slider';
 import { Button } from '../components/ui/button';
-import { Play, Pause, RotateCcw, Volume2, VolumeX, Gauge } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, Gauge } from 'lucide-react';
 
 /**
  * PHONEME-FIRST ARCHITECTURE
