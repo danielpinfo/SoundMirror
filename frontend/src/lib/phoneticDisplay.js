@@ -164,10 +164,103 @@ export function textToPhonetic(text, language = 'english') {
 /**
  * Map IPA symbols to readable display
  * Used when converting detected phonemes to user-friendly format
+ * COMPREHENSIVE mapping for better phoneme detection display
  */
 const IPA_TO_READABLE = {
-  // Vowels - simple, readable
+  // ===== VOWELS =====
+  // Close vowels
   'i': 'ee', 'iː': 'ee', 'ɪ': 'i',
+  'y': 'oo', 'yː': 'oo', 'ʏ': 'oo',
+  'ɨ': 'ih', 'ʉ': 'oo',
+  'ɯ': 'oo', 'u': 'oo', 'uː': 'oo', 'ʊ': 'oo',
+  
+  // Close-mid vowels
+  'e': 'e', 'eː': 'e', 
+  'ø': 'ur', 'øː': 'ur',
+  'ɘ': 'uh', 'ɵ': 'ur',
+  'ɤ': 'uh', 'o': 'oh', 'oː': 'oh',
+  
+  // Mid vowel (schwa)
+  'ə': 'uh', 'ɚ': 'er',
+  
+  // Open-mid vowels
+  'ɛ': 'e', 'ɜ': 'er', 'ɝ': 'er',
+  'œ': 'ur', 'ɞ': 'ur',
+  'ʌ': 'uh', 'ɔ': 'aw', 'ɔː': 'aw',
+  
+  // Open vowels
+  'æ': 'a', 'ɐ': 'uh',
+  'a': 'ah', 'aː': 'ah', 'ɑ': 'ah', 'ɑː': 'ah',
+  'ɒ': 'o', 'ɒː': 'o',
+  
+  // ===== DIPHTHONGS =====
+  'eɪ': 'ay', 'aɪ': 'ai', 'ɔɪ': 'oy',
+  'oʊ': 'oh', 'əʊ': 'oh', 'aʊ': 'ow',
+  'ɪə': 'eer', 'eə': 'air', 'ʊə': 'oor',
+  'juː': 'yoo', 'ju': 'yoo',
+  'aɪə': 'ire', 'aʊə': 'our',
+  
+  // ===== CONSONANTS =====
+  // Plosives/Stops
+  'p': 'p', 'b': 'b',
+  't': 't', 'd': 'd',
+  'ʈ': 't', 'ɖ': 'd',
+  'c': 'k', 'ɟ': 'j',
+  'k': 'k', 'g': 'g',
+  'q': 'k', 'ɢ': 'g',
+  'ʔ': '',  // Glottal stop - silent
+  
+  // Nasals
+  'm': 'm', 'ɱ': 'm',
+  'n': 'n', 'ɳ': 'n', 'ɲ': 'ny',
+  'ŋ': 'ng', 'ɴ': 'ng',
+  
+  // Trills
+  'ʙ': 'br', 'r': 'r', 'ʀ': 'r',
+  
+  // Taps/Flaps
+  'ⱱ': 'v', 'ɾ': 'r', 'ɽ': 'r',
+  
+  // Fricatives
+  'ɸ': 'f', 'β': 'v',
+  'f': 'f', 'v': 'v',
+  'θ': 'th', 'ð': 'th',
+  's': 's', 'z': 'z',
+  'ʃ': 'sh', 'ʒ': 'zh',
+  'ʂ': 'sh', 'ʐ': 'zh',
+  'ç': 'h', 'ʝ': 'y',
+  'x': 'kh', 'ɣ': 'gh',
+  'χ': 'kh', 'ʁ': 'r',
+  'ħ': 'h', 'ʕ': 'ah',
+  'h': 'h', 'ɦ': 'h',
+  
+  // Affricates
+  'tʃ': 'ch', 'dʒ': 'j',
+  'ts': 'ts', 'dz': 'dz',
+  'tɕ': 'ch', 'dʑ': 'j',
+  
+  // Approximants
+  'ʋ': 'v', 'ɹ': 'r', 'ɻ': 'r',
+  'j': 'y', 'ɰ': 'w',
+  'w': 'w', 'ʍ': 'wh',
+  
+  // Lateral approximants
+  'l': 'l', 'ɭ': 'l', 'ʎ': 'ly', 'ʟ': 'l',
+  
+  // ===== MODIFIERS (usually remove) =====
+  'ˈ': '', 'ˌ': '',  // Stress marks
+  'ː': '',           // Length mark
+  '.': '',           // Syllable boundary
+  '̃': '',           // Nasalization (combining)
+  '̩': '',           // Syllabic (combining)
+  'ʷ': 'w',          // Labialization
+  'ʲ': 'y',          // Palatalization
+  'ˠ': '',           // Velarization
+  'ˤ': '',           // Pharyngealization
+  '̪': '',           // Dental (combining)
+  '̺': '',           // Apical (combining)
+  '̻': '',           // Laminal (combining)
+};
   'e': 'e', 'eː': 'e', 'ɛ': 'e',
   'æ': 'a', 'a': 'ah', 'aː': 'ah',
   'ə': 'uh', 'ɜ': 'er', 'ʌ': 'uh', 'ɐ': 'uh',
