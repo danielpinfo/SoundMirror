@@ -334,7 +334,9 @@ function getNormalizationRules(language) {
   }
   
   // Flatten grouped rules into single object
+  // Words first (for whole word matching), then digraphs, doubles, vowels
   return {
+    ...(rules.words || {}),
     ...rules.digraphs,
     ...rules.doubles,
     ...rules.vowels,
