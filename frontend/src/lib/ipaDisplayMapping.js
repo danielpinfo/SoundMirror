@@ -30,9 +30,9 @@ const IPA_TO_DISPLAY = {
   'ɪ': 'i',       // Short i - as in "sit"
   
   // Close-mid front  
-  'e': 'eh',      // Pure "eh", NEVER "ay" - as in "bed"
-  'eː': 'eh',     // Long eh
-  'ɛ': 'eh',      // Open-mid front - as in "pet"
+  'e': 'e',       // Pure "e" - as in "bed" (keep short for display)
+  'eː': 'e',      // Long e
+  'ɛ': 'e',       // Open-mid front - as in "pet"
   
   // Open front
   'æ': 'a',       // Near-open front - as in "cat"
@@ -52,8 +52,8 @@ const IPA_TO_DISPLAY = {
   'ʊ': 'oo',      // Near-close back - as in "put"
   
   // Close-mid back
-  'o': 'oh',      // Pure "oh", NEVER "ow" - as in "go"
-  'oː': 'oh',     // Long oh
+  'o': 'o',       // Pure "o" - as in "go" (keep short for display)
+  'oː': 'o',      // Long o
   'ɔ': 'aw',      // Open-mid back - as in "law"
   'ɔː': 'aw',     // Long aw
   
