@@ -146,6 +146,13 @@ export const RecordingPanel = ({
     setIsCameraLoading(true);
     setCameraError(null);
 
+    // Check if mediaDevices API is available
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      setCameraError('Camera/microphone API not available. Please use a modern browser with HTTPS.');
+      setIsCameraLoading(false);
+      return;
+    }
+
     try {
       console.log('[RecordingPanel] Requesting media permissions...');
       const stream = await navigator.mediaDevices.getUserMedia({
