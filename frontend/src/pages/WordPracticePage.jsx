@@ -146,14 +146,14 @@ export default function WordPracticePage() {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-4 max-w-7xl">
         {/* Page Title */}
-        <h1 className="text-2xl md:text-3xl font-bold text-white mb-6 text-center" style={{ fontFamily: 'Manrope, sans-serif' }}>
+        <h1 className="text-2xl md:text-3xl font-bold text-white mb-4 text-center" style={{ fontFamily: 'Manrope, sans-serif' }}>
           Word Practice
         </h1>
 
-        {/* Practice Input Section */}
-        <Card className="mb-6 shadow-lg bg-cobalt-surface border-blue-500/20">
+        {/* Practice Input Section - Compact */}
+        <Card className="mb-4 shadow-lg bg-cobalt-surface border-blue-500/20">
           <CardContent className="p-4">
-            <form onSubmit={handleInputSubmit} className="flex gap-3 mb-4">
+            <form onSubmit={handleInputSubmit} className="flex gap-3 mb-3">
               <Input
                 type="text"
                 placeholder={t('input_practice')}
@@ -172,6 +172,14 @@ export default function WordPracticePage() {
                 <ArrowRight className="w-4 h-4" />
               </Button>
             </form>
+            
+            {/* On-Screen Keyboard - Elongated, between input and quick practice */}
+            <div className="mb-3">
+              <AlphabetKeyboard
+                onKeySelect={handleKeySelect}
+                compact={false}
+              />
+            </div>
             
             {/* Quick Practice Words */}
             <div className="mb-3">
@@ -219,8 +227,8 @@ export default function WordPracticePage() {
           </div>
         )}
 
-        {/* Animation Section - No "Reference Animation" heading, no Front/Side labels */}
-        <div className="bg-cobalt-surface rounded-2xl border border-blue-500/20 shadow-sm p-6 mb-6">
+        {/* Animation Section */}
+        <div className="bg-cobalt-surface rounded-2xl border border-blue-500/20 shadow-sm p-4 mb-4">
           <div className="max-w-4xl mx-auto">
             <DualHeadAnimation
               ref={animationRef}
@@ -234,35 +242,23 @@ export default function WordPracticePage() {
           </div>
         </div>
 
-        {/* Recording Panel and Keyboard - Side by Side */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Recording Panel - Camera, Mouth Tracking, and Grading all enabled */}
-          <div className="bg-cobalt-surface rounded-2xl border border-blue-500/20 shadow-sm p-5">
-            <h3 className="text-lg font-semibold text-white mb-4">Your Practice</h3>
-            {practiceWord ? (
-              <RecordingPanel
-                target={practiceWord}
-                language={language}
-                onGradingComplete={handleGradingComplete}
-              />
-            ) : (
-              <div className="aspect-video bg-[#0a1628] rounded-xl flex items-center justify-center border border-blue-500/20">
-                <p className="text-blue-300 text-center px-4">
-                  Enter a word or sentence above to begin
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* Keyboard Section - Always visible */}
-          <div>
-            <h3 className="text-sm font-semibold text-blue-300 uppercase tracking-wider mb-3">
-              On-Screen Keyboard
-            </h3>
-            <AlphabetKeyboard
-              onKeySelect={handleKeySelect}
+        {/* Recording Panel - Full width, results beside camera */}
+        <div className="bg-cobalt-surface rounded-2xl border border-blue-500/20 shadow-sm p-5">
+          <h3 className="text-lg font-semibold text-white mb-4">Your Practice</h3>
+          {practiceWord ? (
+            <RecordingPanel
+              target={practiceWord}
+              language={language}
+              onGradingComplete={handleGradingComplete}
+              horizontalLayout={true}
             />
-          </div>
+          ) : (
+            <div className="aspect-video bg-[#0a1628] rounded-xl flex items-center justify-center border border-blue-500/20 max-w-md">
+              <p className="text-blue-300 text-center px-4">
+                Enter a word or sentence above to begin
+              </p>
+            </div>
+          )}
         </div>
       </main>
     </div>
