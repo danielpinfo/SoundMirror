@@ -172,6 +172,15 @@ Build a visual speech articulation training platform that:
 - [x] **Re-recording Flow** - "Try Again" button reuses existing recording pipeline
 - [x] **No Numeric Scores** - Only supportive, non-evaluative feedback shown
 
+### ✅ New Animation Frames & UI Fixes (Feb 14, 2026)
+- [x] **New Animation Frames** - Downloaded 20 front + 20 side frames from GitHub (danielpinfo/SoundMirror Heads_front-_side branch)
+- [x] **Updated Frame Mapping** - SPRITE_URLS and PHONEME_FRAME_MAP updated to use new frame naming (front_XX, side_XX)
+- [x] **Phonetic Display Fix** - Fixed IPA_TO_DISPLAY mapping: 'e' now shows 'e' (not 'ay'), vowels display cleanly
+- [x] **Examples**: "hello" → "helo" (was "hayloh"), "water" → "wahter" (was "wahtayr"), "please" → "pleese" (was "plaesay")
+- [x] **Splash Screen Fix** - Added z-index:9999 and pointer-events:all to prevent play button bleed-through
+- [x] **HomePage Layout** - Reduced dead space: logo size h-72/h-80, compact margins, all content fits on screen
+- [x] **Bug Report Email** - Backend configured to send email notifications to daniel@soundmirrortech.com (requires RESEND_API_KEY)
+
 ### 📋 Future Features (Backlog)
 - [ ] Real-time streaming phoneme detection via WebSocket
 - [ ] Desktop/mobile native app builds (Electron config exists, needs testing)
