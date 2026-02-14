@@ -31,29 +31,7 @@ const SPEED_SETTINGS = {
 };
 const DEFAULT_SPEED = 'fast';
 
-// Frame to phoneme display mapping (what sound each frame represents)
-const FRAME_TO_PHONEME_DISPLAY = {
-  0: 'neutral',      // neutral/rest
-  1: 'ah/oo',        // a, u
-  2: 'eh',           // e
-  3: 'ee/z/x',       // ee, z, x
-  4: 'ue',           // ü
-  5: 'oh/oo/w',      // oo, o, ou, w
-  6: 'k/g',          // c, k, q, g
-  7: 't/d/j',        // t, tsk, d, j
-  8: 'b/p/m',        // b, p, m
-  9: 'n',            // n
-  10: 'ng',          // ng
-  11: 's',           // s
-  12: 'sh',          // sh
-  13: 'th',          // th
-  14: 'f/v',         // f, v
-  15: 'ch',          // ch
-  16: 'h',           // h
-  17: 'r',           // r
-  18: 'l',           // L
-  19: 'll/y',        // LL, y
-};
+// Frame to phoneme display - use the imported function from phoneticDisplay.js
 
 // Letter to phoneme mapping (for letter practice mode)
 const LETTER_PHONEME_MAP = {
