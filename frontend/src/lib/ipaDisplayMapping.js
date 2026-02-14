@@ -199,37 +199,74 @@ const LANGUAGE_OVERRIDES = {
 /**
  * Convert an IPA symbol to user-friendly display representation
  * 
+ * RULE: What you see must equal what you hear - no guessing, only exactly what is heard
+ * 
  * @param {string} symbol - IPA symbol (e.g., 'ʃ', 'θ', 'ɒ')
- * @param {string} language - Language code (for future language-specific mappings)
+ * @param {string} language - Language code (for language-specific mappings)
  * @returns {string} - Display representation (e.g., 'sh', 'th', 'ah')
  */
 export function ipaToDisplay(symbol, language = 'english') {
   if (!symbol) return '';
   
-  // Check direct mapping first
-  if (IPA_TO_DISPLAY[symbol]) {
-    return IPA_TO_DISPLAY[symbol];
+  // Strip diacritics that shouldn't affect display
+  const cleanSymbol = symbol.replace(/[ˈˌː.]/g, '');
+  if (!cleanSymbol) return '';
+  
+  // Check language-specific overrides first
+  const langOverrides = LANGUAGE_OVERRIDES[language] || {};
+  if (langOverrides[cleanSymbol]) {
+    return langOverrides[cleanSymbol];
+  }
+  
+  // Check direct mapping
+  if (IPA_TO_DISPLAY[cleanSymbol]) {
+    return IPA_TO_DISPLAY[cleanSymbol];
   }
   
   // Check lowercase version
-  const lower = symbol.toLowerCase();
+  const lower = cleanSymbol.toLowerCase();
   if (IPA_TO_DISPLAY[lower]) {
     return IPA_TO_DISPLAY[lower];
   }
   
-  // For unknown symbols, return the symbol if it's a basic letter
-  if (/^[a-z]$/i.test(symbol)) {
-    return symbol.toLowerCase();
+  // For basic Latin letters, return as-is
+  if (/^[a-z]$/i.test(cleanSymbol)) {
+    return cleanSymbol.toLowerCase();
   }
   
-  // For multi-character unknown symbols, try to map each character
-  if (symbol.length > 1) {
-    return symbol.split('').map(c => ipaToDisplay(c, language)).join('');
+  // For multi-character symbols (like diphthongs), try the full symbol first
+  // then fall back to character-by-character
+  if (cleanSymbol.length > 1) {
+    // Try common multi-char patterns
+    const multiChar = cleanSymbol.slice(0, 2);
+    if (IPA_TO_DISPLAY[multiChar]) {
+      const rest = cleanSymbol.slice(2);
+      return IPA_TO_DISPLAY[multiChar] + (rest ? ipaToDisplay(rest, language) : '');
+    }
+    // Fall back to char-by-char
+    return cleanSymbol.split('').map(c => ipaToDisplay(c, language)).join('');
   }
   
-  // Last resort: return as-is (shouldn't happen with proper IPA)
-  console.warn(`[ipaToDisplay] Unknown IPA symbol: ${symbol}`);
-  return symbol;
+  // For completely unknown IPA symbols, provide a sensible fallback
+  // Map common unknown symbols to readable approximations
+  const unknownFallbacks = {
+    'ʔ': '',       // glottal stop
+    'ˈ': '',       // stress
+    'ˌ': '',       // secondary stress  
+    'ː': '',       // length
+    '̩': '',        // syllabic marker
+    '̃': '',        // nasalization
+    '̥': '',        // voiceless
+    'ʰ': '',       // aspiration
+  };
+  
+  if (unknownFallbacks[cleanSymbol] !== undefined) {
+    return unknownFallbacks[cleanSymbol];
+  }
+  
+  // Last resort: log and return empty to avoid showing IPA
+  console.warn(`[ipaToDisplay] Unknown IPA symbol: "${symbol}" - hiding from display`);
+  return '';
 }
 
 /**
