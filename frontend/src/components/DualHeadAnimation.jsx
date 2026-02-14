@@ -35,11 +35,11 @@ const DEFAULT_SPEED = 'fast';
 
 // Letter to phoneme mapping (for letter practice mode)
 const LETTER_PHONEME_MAP = {
-  'a': 'ah', 'b': 'ba', 'c': 'ca', 'd': 'da', 'e': 'eh', 'f': 'fa', 'g': 'ga',
-  'h': 'ha', 'i': 'ee', 'j': 'ja', 'k': 'ka', 'l': 'la', 'm': 'ma', 'n': 'na',
-  'o': 'oh', 'p': 'pa', 'q': 'ka', 'r': 'ra', 's': 'sa', 't': 'ta', 'u': 'oo',
-  'v': 'va', 'w': 'wa', 'x': 'za', 'y': 'ya', 'z': 'za',
-  'ch': 'cha', 'sh': 'sha', 'th': 'tha',
+  'a': 'ah', 'b': 'buh', 'c': 'kuh', 'd': 'duh', 'e': 'eh', 'f': 'fuh', 'g': 'guh',
+  'h': 'huh', 'i': 'ee', 'j': 'juh', 'k': 'kuh', 'l': 'luh', 'm': 'muh', 'n': 'nuh',
+  'o': 'oh', 'p': 'puh', 'q': 'koo', 'r': 'ruh', 's': 'sss', 't': 'tuh', 'u': 'oo',
+  'v': 'vuh', 'w': 'wuh', 'x': 'ks', 'y': 'yuh', 'z': 'zzz',
+  'ch': 'chuh', 'sh': 'shuh', 'th': 'thuh',
 };
 
 /**
