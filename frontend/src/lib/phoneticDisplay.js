@@ -261,31 +261,6 @@ const IPA_TO_READABLE = {
   '̺': '',           // Apical (combining)
   '̻': '',           // Laminal (combining)
 };
-  'e': 'e', 'eː': 'e', 'ɛ': 'e',
-  'æ': 'a', 'a': 'ah', 'aː': 'ah',
-  'ə': 'uh', 'ɜ': 'er', 'ʌ': 'uh', 'ɐ': 'uh',
-  'u': 'oo', 'uː': 'oo', 'ʊ': 'oo',
-  'o': 'oh', 'oː': 'oh', 'ɔ': 'aw', 'ɒ': 'o',
-  'ɑ': 'ah',
-  
-  // Diphthongs
-  'eɪ': 'ay', 'aɪ': 'ai', 'ɔɪ': 'oy',
-  'oʊ': 'oh', 'əʊ': 'oh', 'aʊ': 'ow',
-  'ɪə': 'eer', 'eə': 'air', 'ʊə': 'oor',
-  'juː': 'yoo', 'ju': 'yoo',
-  
-  // Consonants - keep simple
-  'p': 'p', 'b': 'b', 't': 't', 'd': 'd', 'k': 'k', 'g': 'g',
-  'f': 'f', 'v': 'v', 's': 's', 'z': 'z', 'h': 'h',
-  'ʃ': 'sh', 'ʒ': 'zh', 'θ': 'th', 'ð': 'th',
-  'tʃ': 'ch', 'dʒ': 'j',
-  'm': 'm', 'n': 'n', 'ŋ': 'ng',
-  'l': 'l', 'r': 'r', 'ɹ': 'r', 'ɾ': 'r',
-  'j': 'y', 'w': 'w',
-  
-  // Special
-  'ʔ': '', 'ˈ': '', 'ˌ': '', 'ː': '',
-};
 
 /**
  * Convert IPA symbol to readable display
