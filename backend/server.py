@@ -1022,12 +1022,92 @@ Respond in JSON format:
     )
 
 # Bug report endpoints
+async def send_bug_report_email(report: BugReport):
+    """Send email notification for new bug report"""
+    try:
+        import resend
+        resend_api_key = os.environ.get('RESEND_API_KEY')
+        sender_email = os.environ.get('SENDER_EMAIL', 'onboarding@resend.dev')
+        
+        if not resend_api_key:
+            logger.warning("RESEND_API_KEY not configured, skipping email notification")
+            return False
+            
+        resend.api_key = resend_api_key
+        
+        # Format HTML email
+        html_content = f"""
+        <html>
+        <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #0047AB;">New SoundMirror Bug Report</h2>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr style="background: #f5f5f5;">
+                    <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">ID</td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">{report.id}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Severity</td>
+                    <td style="padding: 8px; border: 1px solid #ddd; color: {'red' if report.severity == 'Critical' else 'orange' if report.severity == 'High' else 'black'};">{report.severity}</td>
+                </tr>
+                <tr style="background: #f5f5f5;">
+                    <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Platform</td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">{report.platform}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Page</td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">{report.page}</td>
+                </tr>
+                <tr style="background: #f5f5f5;">
+                    <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Feature Area</td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">{report.feature_area}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Browser</td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">{report.browser or 'Not specified'}</td>
+                </tr>
+                <tr style="background: #f5f5f5;">
+                    <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">OS</td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">{report.os_info or 'Not specified'}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Timestamp</td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">{report.timestamp}</td>
+                </tr>
+            </table>
+            <h3 style="color: #333; margin-top: 20px;">Description</h3>
+            <p style="background: #f9f9f9; padding: 15px; border-left: 4px solid #0047AB;">{report.description}</p>
+            <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
+            <p style="color: #888; font-size: 12px;">This is an automated message from SoundMirror Bug Reporting System</p>
+        </body>
+        </html>
+        """
+        
+        params = {
+            "from": sender_email,
+            "to": [DEBUG_BUG_REPORT_EMAIL],
+            "subject": f"[SoundMirror Bug] {report.severity}: {report.feature_area} - {report.page}",
+            "html": html_content
+        }
+        
+        # Run sync SDK in thread to keep FastAPI non-blocking
+        email_result = await asyncio.to_thread(resend.Emails.send, params)
+        logger.info(f"Bug report email sent to {DEBUG_BUG_REPORT_EMAIL}, ID: {email_result.get('id')}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Failed to send bug report email: {str(e)}")
+        return False
+
 @api_router.post("/bug-reports", response_model=BugReport)
 async def create_bug_report(report_data: BugReportCreate):
     report = BugReport(**report_data.model_dump())
     doc = report.model_dump()
     await db.bug_reports.insert_one(doc)
     logger.info(f"Bug report submitted: {report.id}")
+    
+    # Send email notification (non-blocking)
+    asyncio.create_task(send_bug_report_email(report))
+    
     return report
 
 @api_router.get("/bug-reports", response_model=List[BugReport])
