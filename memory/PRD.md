@@ -1,257 +1,73 @@
 # SoundMirror - Product Requirements Document
 
-## Project Overview
-**SoundMirror** is a visual speech articulation training platform designed for deaf users, language learners, and speech therapy education. The core function is to visually demonstrate how speech is physically formed in the mouth through anatomical animations, then record and grade user attempts.
-
 ## Original Problem Statement
-Build a visual speech articulation training platform that:
-- Animates anatomical mouth, tongue, jaw, and airflow positions using PNG sprite frames
-- Supports 10 languages (English, Spanish, Italian, Portuguese, German, French, Japanese, Chinese, Hindi, Arabic)
-- Records user audio/video attempts and grades both visual articulation and audio output
-- Detects actual phonemes produced (not speech-to-text intent recognition)
+SoundMirror is a tool designed to help mute individuals practice speech by providing visual and phonetic feedback. The application shows animated mouth/face positions synchronized with phoneme analysis, allowing users to see how sounds should be formed and compare their speech attempts against target pronunciations.
 
-## Target Audience
-- **Primary**: Deaf users learning speech articulation
-- **Secondary**: Language learners, speech therapy patients and educators
-- **Tertiary**: Pronunciation coaches and ESL students
+## Core Mission
+Provide accurate, understandable, and immediate feedback on pronunciation across 10 languages.
 
-## Core Requirements
-1. **Splash Screen**: 6-second water drop animation with silver raindrop, white splash, concentric ripples at 45°, logo fade-in
-2. **Home Page**: Large logo (4X), no "Visual Speech Training" header, larger instructions (3X), Quick Practice (8 single words), Phrases (multi-word), cobalt blue buttons with gold text
-3. **Letter Practice**: Dual talking head animation, alphabet keyboard, recording, grading
-4. **Word Practice**: "Word Practice" title, no FRONT/SIDE VIEW labels, always-visible keyboard, Quick Practice/Phrases, camera recording
-5. **History Library**: Merged Progress, Sessions, and Reports tabs with download/print functionality
-6. **Bug Report**: Structured feedback submission
+## Architecture
+- **Frontend**: React + Tailwind CSS + Shadcn UI
+- **Backend**: FastAPI + Allosaurus (phoneme recognition) + MongoDB
+- **Key Libraries**: MediaPipe (face landmarks), Web Audio API
 
-## Technical Architecture
+## What's Been Implemented
 
-### Frontend (React)
-- `/app/frontend/src/pages/`
-  - HomePage.jsx - Large logo, Quick Practice words, Phrases, cobalt buttons
-  - LetterPracticePage.jsx
-  - WordPracticePage.jsx - Always-visible keyboard, no view labels
-  - HistoryPage.jsx - Merged with Reports functionality
-  - BugReportPage.jsx
-- `/app/frontend/src/components/`
-  - SplashScreen.jsx - 6-second animation
-  - DualHeadAnimation.jsx - Speed control, HOLD indicator, hideViewLabels prop
-  - RecordingPanel.jsx - Camera/audio recording with autoEnableCamera
-  - MouthTracker.jsx - MediaPipe face tracking
-  - NavigationBar.jsx
+### P0 Critical - Phonetic Display (COMPLETED - Feb 14, 2026)
+- Completely rewrote `/app/frontend/src/lib/phoneticDisplay.js` following the user's "Pronunciation Rule Sheet"
+- Vowels are separated, long, and pure — never compressed into English diphthongs
+- "I'm fine" → "Aeem faeen" (verified ✅)
+- "No" → "noh", "you" → "yoo", "say" → "seh-ee", "my" → "ma-ee"
+- 300+ word dictionary with magic-e handling and pattern-based fallback
+- IPA_TO_READABLE mapping updated: aɪ→"a-ee", eɪ→"eh-ee", aʊ→"a-oo", ɔɪ→"o-ee"
 
-### Backend (FastAPI + MongoDB)
-- `/app/backend/server.py` - Main API server
-- Endpoints: /api/languages, /api/alphabet, /api/phoneme-map, /api/grade, /api/sessions, /api/bug-reports
+### P0 Critical - Camera/Microphone (IMPROVED - Feb 14, 2026)
+- Enhanced error handling in RecordingPanel.jsx with specific permission guidance
+- Added mediaDevices API availability check
+- Added Permissions-Policy meta tag to index.html
+- Better error messages guiding users to browser address bar permission settings
+- NOTE: Camera permissions are per-origin in browsers. User may need to grant permission for new preview URL.
 
-### Assets (Local Storage for Native App)
-- `/app/frontend/public/assets/heads/front/` - 20 PNG front view sprites
-- `/app/frontend/public/assets/heads/side/` - 20 PNG side view sprites
-- `/app/frontend/public/assets/audio/` - 240 MP3 phoneme audio files (10 languages)
+### Backend (Working)
+- Allosaurus phoneme recognizer initialized and healthy
+- All 19 backend API tests passing (health, languages, phoneme detection, sessions, grading, bug reports)
+- Phoneme detection endpoint `/api/phoneme/detect` working with PCM audio data
 
-### Integrations
-- **Gemini AI** (via Emergent LLM key): Phoneme analysis and grading
-- **MediaPipe**: Real-time visual mouth tracking
-
-## What's Been Implemented (Feb 5, 2026)
-
-### ✅ Completed
-- [x] Home page with SoundMirror branding and language selector
-- [x] 10 language support with UI translations
-- [x] Letter Practice page with dual head animation (MASTER/SLAVE)
-- [x] 40 PNG sprite images downloaded and stored locally
-- [x] 240 MP3 audio files downloaded from S3 and stored locally
-- [x] constants.js updated to use local asset paths
-- [x] Alphabet keyboard with special characters (CH, SH, TH, etc.)
-- [x] Word Practice page structure
-- [x] History Library page with Progress Tracker dashboard
-- [x] Progress Tracker: Day streaks, phoneme mastery, achievements
-- [x] Weekly activity chart visualization
-- [x] 8 gamified achievements (First Step, Dedicated Learner, etc.)
-- [x] Bug Report page with structured form
-- [x] Backend API (21 endpoints - all passing)
-- [x] Gemini AI integration for grading (with fallback mock grading)
-- [x] Practice session storage in MongoDB
-- [x] Animation controls (play, pause, scrubber)
-- [x] Enhanced RecordingPanel with video/audio recording
-- [x] Recording timer display
-- [x] Real API grading integration sending audio to Gemini AI
-- [x] Color-coded score feedback (green 80%+, yellow 60-79%, red <60%)
-- [x] Audio playback of recordings
-- [x] Target vs Detected phoneme comparison display
-- [x] Sound Performance table with mastery status
-- [x] Mastered Sounds and Focus Areas sections
-- [x] Personalized tips based on progress
-- [x] **Smooth Frame Animation** - CSS crossfade transitions for flicker-free animation
-- [x] **Extended Practice Content** - Categories: greetings, basics, family, food, emotions, actions, colors, numbers
-- [x] **Phoneme Practice Sentences** - Tongue twisters for each sound (S, R, L, TH, SH, CH, F, V, K, G, B, P, M, N)
-
-### ✅ Animation Improvements (Feb 3, 2026)
-- [x] **Improved Animation System** - Timed frame sequences with prepare/transition-in/hold/transition-out phases
-- [x] **Animation Speed Control** - Slow (600ms), Normal (400ms), Fast (200ms) modes with toggle button
-- [x] **Visual HOLD Indicator** - Green border and "HOLD THIS" banner during hold phases for learning
-- [x] **TTS Speed Sync** - Text-to-speech rate adjusts to match animation speed
-- [x] **Progress Bar** - Shows animation progress percentage
-- [x] **Step Indicator** - Shows "Step X of Y • Frame Z" for detailed tracking
-- [x] **MouthTracker Component** - MediaPipe Face Mesh integration for real-time lip/mouth tracking
-- [x] **MouthTracker Metrics** - Shows opening%, width%, protrusion%, jaw% with shape detection
-- [x] **MouthTracker Feedback** - Real-time feedback based on target phoneme ("Open wider", "Round lips", etc.)
-
-### ✅ UI Corrections (Feb 3, 2026 - User Requested)
-- [x] **6-Second Splash Screen** - Silver raindrop (0-2s), white splash + concentric ripples at 45° (2-4s), logo fade-in (4-6s)
-- [x] **Home Page Large Logo** - 4X larger SoundMirror logo at top center
-- [x] **No Visual Speech Training Header** - Removed per user request
-- [x] **Larger Instructions** - 3X larger text for instructions
-- [x] **Quick Practice = Single Words** - 8 single words (Hello, Yes, No, Please, Water, Food, Good, Help)
-- [x] **Phrases = Multi-Word** - (Thank you, I'm fine, Good morning, How are you, Nice to meet you, See you later)
-- [x] **Cobalt Blue Buttons with Gold Text** - #0047AB background, #FFD700 text
-- [x] **Merged History Library + My Reports** - Single unified page with 3 tabs: Progress, Sessions, Reports
-- [x] **Word Practice Title** - Changed from "Reference Animation" to "Word Practice"
-- [x] **No FRONT/SIDE VIEW Labels** - Removed from animation boxes via hideViewLabels prop
-- [x] **Always-Visible Keyboard** - No toggle needed, keyboard always shown
-- [x] **Quick Practice/Phrases in Word Practice** - Added to Word Practice page for easy access
-- [x] **Auto-Enable Camera** - Camera auto-enabled on Word Practice page
-- [x] **/reports redirects to /history** - Consolidated navigation
-
-### ✅ Multi-Language Animation Fix (Feb 5, 2026)
-- [x] **Unified Animation Pipeline** - Word Practice now uses same textToFrameSequence() as Letter Practice
-- [x] **Japanese Transliteration** - こんにちは → konnichiwa, 食べ物 → tabemono, etc.
-- [x] **Chinese Transliteration** - 你好 → nihao, 谢谢 → xiexie, etc.  
-- [x] **Hindi Transliteration** - नमस्ते → namaste, धन्यवाद → dhanyavad, etc.
-- [x] **Arabic Transliteration** - مرحبا → marhaba, شكرا → shukran, etc.
-- [x] **Complete ROMANIZATION_MAP** - All words from QUICK_PRACTICE_WORDS and PRACTICE_PHRASES added
-- [x] **Code Cleanup** - Removed redundant ReportsPage.jsx
-
-### ✅ Universal Viseme Fallback System (Feb 5, 2026)
-- [x] **VISEME_FALLBACK_MAP** - 60+ phoneme mappings based on articulatory similarity (lip rounding, jaw openness, tongue placement)
-- [x] **resolveViseme()** - Mandatory function all frame lookups must pass through, with recursive fallback resolution
-- [x] **getFrameForPhoneme()** - Wrapper that guarantees a frame is always returned (defaults to 'rest'/neutral)
-- [x] **Language-agnostic enforcement** - No per-language branching in animation logic
-- [x] **Never fails** - Unknown phonemes fall back to REST (neutral mouth), animation always continues
-- [x] **Verified for all 10 languages** - Japanese, Chinese, Hindi, Arabic, English, Spanish, French, German, Italian, Portuguese
-
-### ✅ Phoneme-First Architecture (Feb 5, 2026)
-- [x] **phonemeAnalysis.js** - Centralized phoneme analysis module (single source of truth)
-- [x] **analyzePhonemes()** - Produces phoneme sequence with timing, IPA, articulatory features
-- [x] **toAnimationSequence()** - Converts phoneme analysis to animation frame sequence
-- [x] **gradePhonemes()** - Interface for comparing target vs detected phonemes (placeholder data)
-- [x] **IPA Display** - Shows IPA transcription in animation UI
-- [x] **Audio as Reference Only** - TTS/MP3 plays alongside animation but does NOT drive timing
-- [x] **Pipeline**: Text → Transliteration → Phoneme Analysis → Viseme Resolution → Animation (+ Audio reference)
-
-### ✅ Real Grading Logic Implementation (Feb 6, 2026)
-- [x] **Articulatory Feature Comparison** - Grading based on place, manner, voicing (consonants) and height, backness, rounding (vowels)
-- [x] **Feature Weights** - Place: 30%, Manner: 30%, Voicing: 20%, Nasal: 10%, Type Match: 10%
-- [x] **Partial Credit System** - Adjacent articulatory features receive partial credit (70% for 1 step, 40% for 2 steps)
-- [x] **Interpretable Scoring** - Each phoneme gets a breakdown showing which features matched/mismatched
-- [x] **Explainable Feedback** - User-friendly tips generated from feature mismatches ("Round your lips", "Raise tongue higher")
-- [x] **Sequence Alignment** - Target and detected phoneme sequences aligned for comparison
-- [x] **Overall Score Calculation** - Average of all phoneme scores
-- [x] **Analysis Metrics** - Match rate, perfect matches, partial matches, alignment quality
-- [x] **GRADING_ENABLED = true** - Grading now active in RecordingPanel
-- [x] **Updated UI** - Grading results card shows pronunciation score, match breakdown, and actionable feedback
-- [x] **Test Suite** - /app/backend/tests/test_grading_logic.py validates the scoring algorithm
-
-### ✅ Grading UX & Explainability Pass (Feb 6, 2026)
-- [x] **Per-Phoneme Hints** - Human-readable tips below mismatched sounds ("Tongue higher", "Round lips", "Add voice")
-- [x] **Overall Summary Banner** - Encouraging message based on accuracy level (no percentages shown)
-- [x] **Confidence-Safe Language** - Neutral/encouraging tone, never "wrong", uses "different" or "focus here"
-- [x] **Visual Hierarchy** - Target row visually dominant (what to aim for), detected row muted (what was said)
-- [x] **Removed Numeric Breakdowns** - No match rate %, perfect count, alignment quality shown to users
-- [x] **Actionable Tips Panel** - Clean tips section with arrow indicators for improvement areas
-- [x] **Color Scheme** - Emerald for matches, blue for "focus here", amber for encouragement (no red error colors)
-
-### ✅ Guided Focus Mode (Feb 6, 2026)
-- [x] **Single-Phoneme Practice** - `GuidedFocusModePanel.jsx` for focused practice on ONE problematic sound
-- [x] **Automatic Focus Selection** - Identifies lowest-scoring phoneme after grading (earliest if tie)
-- [x] **Focus Mode Entry** - "Practice this sound" button appears below grading results when imperfect
-- [x] **Coaching Tips** - Articulatory guidance based on phoneme features (place, manner, voicing, height, rounding)
-- [x] **Target vs Detected Display** - Side-by-side comparison using display phonemes only (no IPA)
-- [x] **Improvement Tracking** - Shows encouraging messages based on score change ("Yes — that's closer", "Perfect! You got it!")
-- [x] **Attempt Counter** - Tracks attempts within focus mode session
-- [x] **Easy Exit** - "Back to full word" button to return to standard view
-- [x] **Re-recording Flow** - "Try Again" button reuses existing recording pipeline
-- [x] **No Numeric Scores** - Only supportive, non-evaluative feedback shown
-
-### ✅ New Animation Frames & UI Fixes (Feb 14, 2026)
-- [x] **New Animation Frames** - Downloaded 20 front + 20 side frames from GitHub (danielpinfo/SoundMirror Heads_front-_side branch)
-- [x] **Updated Frame Mapping** - SPRITE_URLS and PHONEME_FRAME_MAP updated to use new frame naming (front_XX, side_XX)
-- [x] **Phonetic Display Fix** - Fixed IPA_TO_DISPLAY mapping: 'e' now shows 'e' (not 'ay'), vowels display cleanly
-- [x] **Examples**: "hello" → "helo" (was "hayloh"), "water" → "wahter" (was "wahtayr"), "please" → "pleese" (was "plaesay")
-- [x] **Splash Screen Fix** - Added z-index:9999 and pointer-events:all to prevent play button bleed-through
-- [x] **HomePage Layout** - Reduced dead space: logo size h-72/h-80, compact margins, all content fits on screen
-- [x] **Bug Report Email** - Backend configured to send email notifications to daniel@soundmirrortech.com (requires RESEND_API_KEY)
-
-### 📋 Future Features (Backlog)
-- [ ] Real-time streaming phoneme detection via WebSocket
-- [ ] Desktop/mobile native app builds (Electron config exists, needs testing)
-- [ ] PDF export for progress reports
-- [ ] Social sharing for achievements
+### Previously Completed
+- Dual head animation (front + side view) with phoneme-driven timing
+- Letter practice page with alphabet keyboard
+- Word practice page with quick practice words and phrases
+- Recording panel with face landmark overlay
+- Phoneme comparison panel (target vs detected)
+- Guided focus mode for problem sounds
+- History/session management (IndexedDB + MongoDB)
+- 10-language support (English, Spanish, Italian, Portuguese, German, French, Japanese, Chinese, Hindi, Arabic)
+- Bug report page (email MOCKED - needs RESEND_API_KEY)
 
 ## Prioritized Backlog
 
-### P0 (Critical) - DONE
-- ✅ Implement actual audio phoneme detection using Gemini AI
-- ✅ Improve animation speed for visual learning
-- ✅ Add MouthTracker for visual feedback
-- ✅ **Implement Real Grading Logic** - Articulatory feature-based scoring with interpretable feedback
+### P1 - In Progress
+- Improve phoneme detection accuracy (test with "bloogoosful" type words)
+- UI label verification (post phonetic fix)
 
-### P1 (High) 
-- Test camera/microphone in live browser with permissions granted
-- Test and finalize Electron desktop build (`yarn electron:build`)
-- Implement visual grading using MouthTracker data comparison
-- Connect MouthTracker metrics to grading score
+### P2 - Upcoming
+- Layout adjustments (keyboard position, grading results placement)
+- Translate phonetic displays to match selected language
+- IPA analysis pipeline: handle silent 'e' in phoneme tokenization
 
-### P2 (Medium)
-- Add more practice words per language
-- Export practice history as PDF reports
-- Real-time audio streaming to backend (WebSocket)
+### P3 - Future
+- Airflow Animation system
+- Electron desktop build
+- Real-time audio streaming
+- More practice content and custom practice lists
+- Bug report email feature (pending RESEND_API_KEY)
 
-### P3 (Low)
-- Mobile app (React Native/Capacitor)
-- Add more languages
-- Custom practice list creation
+## Testing Status
+- Backend: 19/19 tests pass (pytest)
+- Frontend: All critical phonetic display tests pass
+- Test report: `/app/test_reports/iteration_11.json`
 
-## Next Tasks
-1. Test camera/microphone in live browser (requires deployed/native build)
-2. Test Electron desktop build (`yarn electron:build`)
-3. **Bug Report Backend** - Implement file upload handling and email sending in `/api/bug-reports` endpoint
-4. Connect MouthTracker metrics to visual grading score
-5. Add comparison between user mouth shape and target phoneme shape
-6. Test real-time audio streaming for faster feedback
-
-## Known Blockers
-- **Camera/Microphone** - Preview environment iframe security policy blocks camera/mic access. Support ticket open. Works in deployed/native builds.
-
-## Technical Architecture (Updated)
-
-### Frontend (React + ShadcnUI)
-- `/app/frontend/src/pages/`
-  - HomePage.jsx
-  - LetterPracticePage.jsx
-  - WordPracticePage.jsx
-  - HistoryPage.jsx
-  - BugReportPage.jsx
-- `/app/frontend/src/components/`
-  - SplashScreen.jsx - HTML5 Canvas-based animation with droplet and ripples
-  - DualHeadAnimation.jsx - **Enhanced with speed control, HOLD indicator, transliteration pipeline**
-  - RecordingPanel.jsx - **Includes MouthTracker toggle**
-  - MouthTracker.jsx - **MediaPipe Face Mesh for lip tracking**
-  - NavigationBar.jsx
-- `/app/frontend/src/lib/`
-  - constants.js - **Contains ROMANIZATION_MAP for non-Latin scripts**
-  - phonemeRules.js - **Contains transliterate() and parseWordWithRules() functions**
-- `/app/frontend/electron/`
-  - main.js - Electron main process
-  - preload.js - Electron preload script
-
-## Credentials & Keys
-- **Emergent LLM Key**: Available via emergent_integrations_manager (for Gemini AI grading)
-- **AWS S3 Access**: AKIAYCQIF3LNPKEVCI6D (for soundmirror-phoneme-audio bucket - reference only)
-- **Assets Location**: All sprites and audio now stored locally in /app/frontend/public/assets/
-- **Grading Note**: If no audio data provided or Gemini unavailable, mock grading is used as fallback
-
-## Design Guidelines
-- Dark blue theme with silver accents
-- Clean, modern, educational feel (not cartoonish)
-- Accessible for deaf users
-- RTL support for Arabic
+## Known Limitations
+- Camera permissions are browser/origin-specific
+- Bug report email is MOCKED (no RESEND_API_KEY)
+- AI grading falls back to mock scores when Gemini unavailable
