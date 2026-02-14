@@ -13,8 +13,42 @@
  */
 
 import React from 'react';
-import { ipaSequenceToDisplay, alignSequences, logPhonemeSequences } from '../lib/ipaDisplayMapping';
+import { ipaSequenceToReadable, ipaToReadable } from '../lib/phoneticDisplay';
 import { CheckCircle2, Circle, ArrowRight } from 'lucide-react';
+
+/**
+ * Helper to align sequences
+ */
+const alignSequences = (targetDisplay, detectedDisplay) => {
+  const maxLength = Math.max(targetDisplay.length, detectedDisplay.length);
+  const alignment = [];
+  
+  for (let i = 0; i < maxLength; i++) {
+    const target = targetDisplay[i] || null;
+    const detected = detectedDisplay[i] || null;
+    
+    let status;
+    if (target && detected) {
+      status = target.toLowerCase() === detected.toLowerCase() ? 'match' : 'different';
+    } else if (target && !detected) {
+      status = 'missed';
+    } else if (!target && detected) {
+      status = 'extra';
+    }
+    
+    alignment.push({ index: i, target, detected, status });
+  }
+  
+  return {
+    alignment,
+    targetLength: targetDisplay.length,
+    detectedLength: detectedDisplay.length,
+    matchCount: alignment.filter(a => a.status === 'match').length,
+    differentCount: alignment.filter(a => a.status === 'different').length,
+    missedCount: alignment.filter(a => a.status === 'missed').length,
+    extraCount: alignment.filter(a => a.status === 'extra').length,
+  };
+};
 
 /**
  * Get a human-readable tip for a phoneme mismatch
