@@ -1,50 +1,56 @@
 // Local paths for sprite images (stored in /public/assets/heads/)
 const LOCAL_SPRITE_BASE = '/assets/heads';
 
+// New animation frame naming (Feb 14, 2026):
+// front_00_neutral, front_01_a_u, front_02_e, front_03_ee_z_x, front_04_ue,
+// front_05_oo_o_ou_w, front_06_c_k_q_g, front_07_t_tsk_d_j, front_08_b_p_m,
+// front_09_n, front_10_ng, front_11_s, front_12_sh, front_13_th, front_14_f_v,
+// front_15_ch, front_16_h, front_17_r, front_18_L, front_19_LL_y
+
 export const SPRITE_URLS = {
   front: {
-    0: `${LOCAL_SPRITE_BASE}/front/frame_00_neutral.png`,
-    1: `${LOCAL_SPRITE_BASE}/front/frame_01_a_u.png`,
-    2: `${LOCAL_SPRITE_BASE}/front/frame_02_b_p_m.png`,
-    3: `${LOCAL_SPRITE_BASE}/front/frame_03_ee_z_x.png`,
-    4: `${LOCAL_SPRITE_BASE}/front/frame_04_oo_o_ou_w.png`,
-    5: `${LOCAL_SPRITE_BASE}/front/frame_05_e.png`,
-    6: `${LOCAL_SPRITE_BASE}/front/frame_06_ü.png`,
-    7: `${LOCAL_SPRITE_BASE}/front/frame_07_c_k_q_g.png`,
-    8: `${LOCAL_SPRITE_BASE}/front/frame_08_t_tsk_d_j.png`,
-    9: `${LOCAL_SPRITE_BASE}/front/frame_09_n.png`,
-    10: `${LOCAL_SPRITE_BASE}/front/frame_10_ng.png`,
-    11: `${LOCAL_SPRITE_BASE}/front/frame_11_s.png`,
-    12: `${LOCAL_SPRITE_BASE}/front/frame_12_sh.png`,
-    13: `${LOCAL_SPRITE_BASE}/front/frame_13_th.png`,
-    14: `${LOCAL_SPRITE_BASE}/front/frame_14_f_v.png`,
-    15: `${LOCAL_SPRITE_BASE}/front/frame_15_h.png`,
-    16: `${LOCAL_SPRITE_BASE}/front/frame_16_ch.png`,
-    17: `${LOCAL_SPRITE_BASE}/front/frame_17_r.png`,
-    18: `${LOCAL_SPRITE_BASE}/front/frame_18_L.png`,
-    19: `${LOCAL_SPRITE_BASE}/front/frame_19_LL_y.png`,
+    0: `${LOCAL_SPRITE_BASE}/front/front_00_neutral.png`,     // neutral
+    1: `${LOCAL_SPRITE_BASE}/front/front_01_a_u.png`,         // a, u
+    2: `${LOCAL_SPRITE_BASE}/front/front_02_e.png`,           // e
+    3: `${LOCAL_SPRITE_BASE}/front/front_03_ee_z_x.png`,      // ee, z, x
+    4: `${LOCAL_SPRITE_BASE}/front/front_04_ue.png`,          // ue (ü)
+    5: `${LOCAL_SPRITE_BASE}/front/front_05_oo_o_ou_w.png`,   // oo, o, ou, w
+    6: `${LOCAL_SPRITE_BASE}/front/front_06_c_k_q_g.png`,     // c, k, q, g
+    7: `${LOCAL_SPRITE_BASE}/front/front_07_t_tsk_d_j.png`,   // t, tsk, d, j
+    8: `${LOCAL_SPRITE_BASE}/front/front_08_b_p_m.png`,       // b, p, m
+    9: `${LOCAL_SPRITE_BASE}/front/front_09_n.png`,           // n
+    10: `${LOCAL_SPRITE_BASE}/front/front_10_ng.png`,         // ng
+    11: `${LOCAL_SPRITE_BASE}/front/front_11_s.png`,          // s
+    12: `${LOCAL_SPRITE_BASE}/front/front_12_sh.png`,         // sh
+    13: `${LOCAL_SPRITE_BASE}/front/front_13_th.png`,         // th
+    14: `${LOCAL_SPRITE_BASE}/front/front_14_f_v.png`,        // f, v
+    15: `${LOCAL_SPRITE_BASE}/front/front_15_ch.png`,         // ch
+    16: `${LOCAL_SPRITE_BASE}/front/front_16_h.png`,          // h
+    17: `${LOCAL_SPRITE_BASE}/front/front_17_r.png`,          // r
+    18: `${LOCAL_SPRITE_BASE}/front/front_18_L.png`,          // L
+    19: `${LOCAL_SPRITE_BASE}/front/front_19_LL_y.png`,       // LL, y
   },
   side: {
-    0: `${LOCAL_SPRITE_BASE}/side/frame_00_neutral.png`,
-    1: `${LOCAL_SPRITE_BASE}/side/frame_01_a_u.png`,
-    2: `${LOCAL_SPRITE_BASE}/side/frame_02_b_p_m.png`,
-    3: `${LOCAL_SPRITE_BASE}/side/frame_03_ee_z_x.png`,
-    4: `${LOCAL_SPRITE_BASE}/side/frame_04_oo_o_ou_w.png`,
-    5: `${LOCAL_SPRITE_BASE}/side/frame_05_e.png`,
-    6: `${LOCAL_SPRITE_BASE}/side/frame_06_ü.png`,
-    7: `${LOCAL_SPRITE_BASE}/side/frame_07_c_k_q_g.png`,
-    8: `${LOCAL_SPRITE_BASE}/side/frame_08_t_tsk_d_j.png`,
-    9: `${LOCAL_SPRITE_BASE}/side/frame_09_n.png`,
-    10: `${LOCAL_SPRITE_BASE}/side/frame_10_ng.png`,
-    11: `${LOCAL_SPRITE_BASE}/side/frame_11_s.png`,
-    12: `${LOCAL_SPRITE_BASE}/side/frame_12_sh.png`,
-    13: `${LOCAL_SPRITE_BASE}/side/frame_13_th.png`,
-    14: `${LOCAL_SPRITE_BASE}/side/frame_14_f_v.png`,
-    15: `${LOCAL_SPRITE_BASE}/side/frame_15_h.png`,
-    16: `${LOCAL_SPRITE_BASE}/side/frame_16_ch.png`,
-    17: `${LOCAL_SPRITE_BASE}/side/frame_17_r.png`,
-    18: `${LOCAL_SPRITE_BASE}/side/frame_18_L.png`,
-    19: `${LOCAL_SPRITE_BASE}/side/frame_19_LL_y.png`,
+    0: `${LOCAL_SPRITE_BASE}/side/side_00_neutral.png`,       // neutral
+    1: `${LOCAL_SPRITE_BASE}/side/side_01_a_u.png`,           // a, u
+    2: `${LOCAL_SPRITE_BASE}/side/side_02_e.png`,             // e
+    3: `${LOCAL_SPRITE_BASE}/side/side_03_ee_z_x.png`,        // ee, z, x
+    4: `${LOCAL_SPRITE_BASE}/side/side_04_ue.png`,            // ue (ü)
+    5: `${LOCAL_SPRITE_BASE}/side/side_05_oo_o_ou_w.png`,     // oo, o, ou, w
+    6: `${LOCAL_SPRITE_BASE}/side/side_06_c_k_q_g.png`,       // c, k, q, g
+    7: `${LOCAL_SPRITE_BASE}/side/side_07_t_tsk_d_j.png`,     // t, tsk, d, j
+    8: `${LOCAL_SPRITE_BASE}/side/side_08_b_p_m.png`,         // b, p, m
+    9: `${LOCAL_SPRITE_BASE}/side/side_09_n.png`,             // n
+    10: `${LOCAL_SPRITE_BASE}/side/side_10_ng.png`,           // ng
+    11: `${LOCAL_SPRITE_BASE}/side/side_11_s.png`,            // s
+    12: `${LOCAL_SPRITE_BASE}/side/side_12_sh.png`,           // sh
+    13: `${LOCAL_SPRITE_BASE}/side/side_13_th.png`,           // th
+    14: `${LOCAL_SPRITE_BASE}/side/side_14_f_v.png`,          // f, v
+    15: `${LOCAL_SPRITE_BASE}/side/side_15_ch.png`,           // ch
+    16: `${LOCAL_SPRITE_BASE}/side/side_16_h.png`,            // h
+    17: `${LOCAL_SPRITE_BASE}/side/side_17_r.png`,            // r
+    18: `${LOCAL_SPRITE_BASE}/side/side_18_L.png`,            // L
+    19: `${LOCAL_SPRITE_BASE}/side/side_19_LL_y.png`,         // LL, y
   }
 };
 
