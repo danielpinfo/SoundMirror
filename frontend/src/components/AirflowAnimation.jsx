@@ -329,7 +329,6 @@ const AirflowAnimation = ({
   const renderFrame = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) {
-      console.log('[Airflow] No canvas ref');
       return;
     }
     
@@ -338,12 +337,22 @@ const AirflowAnimation = ({
     
     if (!enabled) return;
     
+    // ALWAYS draw a visible indicator when airflow is enabled
+    ctx.fillStyle = 'rgba(0, 255, 0, 0.8)';
+    ctx.fillRect(10, 10, 30, 30);
+    ctx.fillStyle = 'white';
+    ctx.font = '10px Arial';
+    ctx.fillText('AIR', 12, 28);
+    
     // Update animation phase
     phaseRef.current = (phaseRef.current + 0.03) % 1;
     const phase = phaseRef.current;
     
     // Check if neutral frame (side_00) and not playing
     const isNeutral = currentFrame === 0 && !isPlaying;
+    
+    // Log state for debugging
+    console.log('[Airflow] enabled:', enabled, 'isPlaying:', isPlaying, 'phoneme:', phonemeSymbol, 'frame:', currentFrame);
     
     if (isNeutral) {
       // BREATHING MODE - only during neutral frame when not playing
