@@ -551,6 +551,20 @@ export const DualHeadAnimation = forwardRef(({
             >
               {audioEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
             </Button>
+
+            {/* Airflow Toggle */}
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setAirflowEnabled(prev => !prev)}
+              className={`rounded-full w-10 h-10 border-blue-500/30 ${
+                airflowEnabled ? 'bg-cyan-600/30 text-cyan-300 border-cyan-500/50' : 'bg-white/10 text-blue-400/50'
+              }`}
+              data-testid="toggle-airflow-btn"
+              title={airflowEnabled ? 'Hide Airflow' : 'Show Airflow'}
+            >
+              <Wind className="w-4 h-4" />
+            </Button>
           </div>
 
           <div className="flex justify-center gap-4 text-xs">
