@@ -1,178 +1,138 @@
-<analysis>
-**original_problem_statement:**
-The user is developing SoundMirror, a visual speech articulation training platform. The primary goal of this session was to refactor the application into a phoneme-first architecture, where all animation and grading are driven by a robust phoneme analysis pipeline, rather than being loosely tied to audio or text.
+<analysis>**original_problem_statement:**
+The user wants to build and refine the SoundMirror application, a tool for mute individuals to practice speech with visual feedback. The core of the application is a phoneme-driven animation system that provides visual cues for pronunciation.
 
-This involved a multi-step process dictated by the user:
-1.  **Fix Animation Logic:** Unify the animation pipeline for Word Practice to correctly handle non-roman scripts (Japanese, Chinese, Hindi, Arabic) using a transliteration system.
-2.  **Architect for Phonemes:** Build a new data-driven pipeline, including:
-    *   A universal viseme fallback system to ensure animations never fail.
-    *   A core phoneme analysis layer with a locked data contract ().
-    *   A user-provided IPA articulatory feature schema.
-    *   Language-scoped text normalization rules (e.g., sh -> ʃ).
-3.  **Integrate Real Detection:**
-    *   Create a backend service ().
-    *   Integrate the **Allosaurus** library to perform real audio-to-IPA phoneme detection.
-    *   Connect the frontend recording flow to this backend service.
-4.  **Improve User Feedback:** Create a new UI to show users pronunciation feedback by comparing target vs. detected sounds, using user-friendly text (sh, th) instead of technical IPA symbols ('ʃ', 'θ').
-5.  **Address Blockers:** A core issue with camera/microphone access in the preview environment remains blocked at the platform level.
+PRODUCT REQUIREMENTS:
+
+1.  **Phonetic Display (P0):** The application must provide an accurate How-It-Sounds phonetic rendering of text. This has been a recurring issue, with regressions in pronunciation for words like please.
+2.  **Airflow Animation (P0):** Implement a deterministic airflow visualization system based on a detailed user-provided rule sheet. This is the top priority and has been a major source of bugs and user frustration. The system must differentiate between oral, nasal, and plosive sounds and show airflow correctly. The user has now provided very specific visual requirements for the shape, position, and behavior of the airflow.
+3.  **Idle Breathing (P0):** When in a neutral state, the animation should show a realistic breathing cycle (2 seconds in, 2 seconds out) through the nose.
+4.  **Quiz Mode (P1):** An optional game mode where the user is shown a phonetic spelling and must guess the corresponding word.
+5.  **UI/Layout (P2):** Refine UI labels and adjust component layouts for better usability.
+6.  **Future Tasks:** Complete an Electron build and implement real-time audio streaming.
 
 **User's preferred language**: English
 
 **what currently exists?**
-The application is a React frontend with a FastAPI backend. A significant architectural refactor has been completed, establishing a phoneme-first pipeline.
-
--   **Frontend:** The animation system () is now driven by a sophisticated phoneme analysis layer (). This layer processes text through transliteration and normalization rules to generate a sequence of phonemes. A new UI component () provides user-friendly feedback on pronunciation without exposing technical IPA symbols.
--   **Backend:** The FastAPI server () now hosts a new endpoint () that integrates the **Allosaurus** phoneme recognition library. This endpoint accepts raw audio PCM data and returns a structured sequence of detected IPA phonemes.
--   **Pipeline:** The full audio processing pipeline is in place: . This flow is controlled by a  flag.
--   **Core Functionality Blocked:** The camera and microphone remain unusable in the preview environment due to an iframe security policy, preventing end-to-end testing of the recording feature. Grading is also temporarily disabled by a  flag.
+The application is a full-stack React/FastAPI app. The agent has recently performed a major refactor of the airflow animation system. The airflow is now always-on (the toggle button was removed at the user's request) and is rendered by a single complex component, . This component also handles a new idle breathing animation that cycles when no word is being played. While the agent has fixed numerous bugs to make the airflow *visible*, the user is still unsatisfied with the visual implementation, reporting that the oral airflow blows backward (inward) and does not match their mental model.
 
 **Last working item**:
--   **Last item agent was working:** Implementing a user-facing phoneme feedback system. This involved creating  to convert internal IPA symbols (e.g., 'ʃ') to user-friendly text (e.g., 'sh'), creating a new  to show a color-coded comparison of target vs. detected sounds, and updating the UI to hide all raw IPA symbols from the user.
--   **Status:** USER VERIFICATION PENDING
--   **Agent Testing Done:** Y
--   **Which testing method agent to use?** Manual testing by user. The core recording functionality is blocked, so automated frontend tests cannot cover the full user flow. The user needs to visually verify the new UI panels and confirm the display format meets their expectations.
--   **User Testing Done:** N
+-   **Last item agent was working:** The agent was processing a large set of new, highly specific visual requirements for the airflow animation after the user reported the oral airflow was still blowing backwards. The user provided a reference image and a detailed list of changes for oral ribbons, nasal ribbons, and the idle breathing animation. The agent had just removed the old toggle-based implementation and started refactoring the  component to meet these new, prescriptive demands.
+-   **Status:** IN PROGRESS
+-   **Agent Testing Done:** N
+-   **Which testing method agent to use?** screenshot tool. The issue is purely visual and subjective. The next agent must take screenshots after implementing the new visual rules and compare them against the user's description and reference image.
+-   **User Testing Done:** Y (User confirmed the previous implementation was still visually incorrect).
 
 **All Pending/In progress Issue list**:
--   **Issue 1:** Core camera/microphone functionality is blocked. (P1)
--   **Issue 2:** Backend for bug reports is a stub. (P2)
+-   **Issue 1 (P0):** The oral airflow animation is visually incorrect.
 
 **Issues Detail:**
--   **Issue 1: Core camera/microphone functionality is blocked.**
-    -   **Attempted fixes:** This was correctly diagnosed as a platform-level iframe  issue. A support ticket has been raised in a previous session.
-    -   **Next debug checklist:** This issue cannot be resolved by the agent. Work must continue on other tasks until the platform environment is fixed.
-    -   **Why fix this issue and what will be achieved with the fix?** This is the app's primary feature. Fixing it is critical for user recording, practice, and testing the entire Allosaurus audio detection pipeline.
-    -   **Status:** BLOCKED
-    -   **Is recurring issue?** Y
-    -   **Should Test frontend/backend/both after fix?** both
-    -   **Blocked on other issue:** None. This is a platform-level blocker.
-
--   **Issue 2: Backend for bug reports is a stub.**
-    -   **Attempted fixes:** None in this session.
+-   **Issue 1: The oral airflow animation is visually incorrect.**
+    -   **Attempted fixes:** The agent has made multiple attempts to fix the airflow's position and direction by adjusting coordinates in . Despite these changes, the user reports the ribbons still appear to be blowing inward. The problem is not a logical one (the data is correct), but a purely visual one in the canvas rendering logic.
     -   **Next debug checklist:**
-        1.  Open .
-        2.  Locate the  endpoint.
-        3.  Modify its signature and logic to accept  from FastAPI.
-        4.  Implement logic to save the uploaded file and send an email with the report details and the file as an attachment. (Requires an email sending library like  or ).
-    -   **Why fix this issue and what will be achieved with the fix?** It will complete the bug reporting feature, allowing users to submit detailed reports with attachments.
-    -   **Status:** NOT STARTED
-    -   **Is recurring issue?** N
-    -   **Should Test frontend/backend/both after fix?** Backend
+        1.  Carefully analyze the user's last message ( and ) and the provided reference image ().
+        2.  Modify the  function in  to reverse the ribbon direction so they flow definitively outwards from the mouth.
+        3.  Re-implement the ribbon structure according to the user's spec: stagger four ribbons inside the mouth (2 front, 2 back) and add two smaller ribbons at the lip cavity.
+        4.  Modify  to make exiting ribbons twice as long and add four new, much larger ribbons inside a to-be-drawn nasal cavity.
+        5.  Verify the idle breathing animation (in/out cycle) is working correctly when the animation is in a neutral state.
+    -   **Why fix this issue and what will be achieved with the fix?** This is the user's highest priority and the main source of frustration. Fulfilling these specific visual requirements is critical to gaining user trust and completing the core feature.
+    -   **Status:** IN PROGRESS
+    -   **Is recurring issue?** Y
+    -   **Should Test frontend/backend/both after fix?** Frontend
     -   **Blocked on other issue:** None.
 
 **In progress Task List**:
--   None. The last task was completed.
+-   None.
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks:**
-    -   **P0: Implement Real Grading Logic:** The user has frozen the phoneme pipeline, making grading the next logical step. This involves:
-        -   In , update the  function to use the aligned  and   objects.
-        -   Develop a scoring algorithm based on matching  from the  map (e.g., place, manner, voicing).
-        -   Set  to  in  to re-enable the grading flow.
-    -   **P1: Implement backend for bug reports** (See Issue 2 above).
-    -   **P2: Verify audio for letter practice works correctly for all 10 languages.**
+    -   (P1) Refine Quiz Mode.
 -   **Future Tasks:**
-    -   Finalize and test the Electron desktop build process.
-    -   Add missing PNG sprite frames for visemes like ch and sh.
-    -   Implement real-time audio streaming (e.g., via WebSockets) to the backend.
-    -   Add more practice content (words, phrases) for all languages.
-    -   Implement PDF export functionality for the History Library reports.
-    -   Add social sharing for achievements.
-    -   Allow users to create and manage custom practice lists.
+    -   Finalize the Electron desktop build.
+    -   Implement real-time audio streaming.
+    -   Add more practice content and custom practice lists.
 
 **Completed work in this session**
--   **Phoneme-First Architecture:** Successfully architected and implemented a new pipeline where phoneme analysis is the single source of truth for animation and grading.
--   **Allosaurus Integration:** Integrated the Allosaurus phoneme recognition library into a new FastAPI endpoint () for real audio-to-IPA detection.
--   **User-Facing Feedback UI:** Created a new system to display pronunciation results using user-friendly text (sh, ee) instead of technical IPA symbols, including a comparison panel ().
--   **Word Practice Animation Fix:** Resolved the long-standing bug where non-roman script animations failed in Word Practice by fixing the transliteration pipeline.
--   **Universal Viseme Fallback:** Implemented a fallback system in  to ensure animations always play, even for unsupported phonemes.
--   **Audio Pipeline Scaffolding:** Built the full data pipeline to connect a recorded  from the frontend to the Allosaurus backend via PCM data extraction.
--   **Code Cleanup:** Deleted the redundant  file and updated .
+-   **Airflow Always-On:** The airflow toggle button and its associated state were completely removed from , , and . The airflow animation is now rendered unconditionally.
+-   **Idle Breathing Animation:** Implemented a new feature in  that shows a nasal breathing cycle when the animation is in its neutral state.
+-   **Airflow Visibility Fixes:** Resolved multiple bugs that prevented the airflow from showing, including an issue with  in letter practice and a canvas  bug that caused incorrect dimensions.
+-   **Phonetic Bug Fix:** The please -> pleez phonetic display regression was fixed and verified by the testing agent.
 
 **Earlier issues found/mentioned but not fixed**
--   **Issue 1: Backend for bug reports ( in ) is a stub.** The frontend UI is complete, but the backend logic to handle file uploads and send emails is missing.
+-   None.
 
 **Known issue recurrence from previous fork**
--   The camera/microphone functionality has been a persistent blocker across multiple sessions. It is confirmed to be an environmental issue with the Preview iframe's security policy.
+-   **Airflow Animation:** This remains the primary recurring issue. The problem has evolved from being non-functional/invisible to being visually incorrect according to the user's specific aesthetic and functional requirements.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Frontend:** React, Tailwind CSS
--   **Backend:** FastAPI, Python
--   **AI/ML:** **Allosaurus** for phoneme recognition, Gemini Flash (for future grading).
--   **Architecture:** Phoneme-first architecture, Hybrid detection bridge (frontend calls backend for heavy processing), Transliteration for multi-language support.
--   **Audio Processing:** Web Audio API (), PCM data extraction.
+-   **Frontend:** React, Tailwind CSS, Canvas API.
+-   **Animation Logic:** All airflow logic is now self-contained in . It uses  and differentiates between an idle state (for breathing) and a playing state (for phoneme-based airflow). The implementation is now highly prescriptive based on user feedback.
 
 **key DB schema**
--   **IndexedDB ():**
-    -    object store: 
+-   No changes.
 
 **changes in tech stack**
--   **Backend:** Added **Allosaurus**, a significant new dependency for phoneme recognition.
+-   No changes.
 
 **All files of reference**
--   : **CRITICAL.** The core of the entire phoneme-first architecture.
--   : **CRITICAL.** Contains the new Allosaurus integration and  endpoint.
--   : Orchestrates recording and calls the analysis pipeline.
--   : The new UI for user feedback.
--   : Defines the mapping from internal IPA to user-facing text.
--   : Utility for preparing audio data for the backend.
+-   **/app/frontend/src/components/AirflowAnimation.jsx**: **The single most critical file.** It was completely rewritten and is the sole location for implementing the user's latest, detailed visual requirements.
+-   **/app/frontend/src/components/DualHeadAnimation.jsx**: Parent component that was modified to always render the airflow animation.
+-   **/app/frontend/src/pages/PracticePage.jsx**: Main page component where the airflow toggle state was removed.
+-   **/app/frontend/src/pages/WordPracticePage.jsx**: Page where the airflow toggle UI was removed.
+-   **/app/frontend/src/pages/LetterPracticePage.jsx**: Page where the airflow toggle UI was removed.
 
 **Areas that need refactoring**:
--   The  endpoint in  is a stub and needs to be fully implemented.
+-   The  component is becoming a monolith with complex, hardcoded rules for drawing. It could be refactored by creating separate helper functions for drawing oral, nasal, and idle airflow to improve readability.
 
 **key api endpoints**
--   : **NEW & ACTIVE.** Accepts PCM audio data, returns an IPA sequence from Allosaurus.
--   : Exists, but currently bypassed by a frontend  flag.
--   : Exists, but the backend logic is not implemented.
+-   
 
 **Critical Info for New Agent**
--   **Top Priority: Implement Grading.** The entire phoneme detection pipeline is complete and frozen by user request. The next logical step is to implement the grading logic in  within  using the aligned target and detected phoneme sequences. You will need to set  to  to test this.
--   **CAMERA IS BLOCKED.** Do not waste time trying to fix the camera/microphone. It's a platform-level issue. The audio pipeline was tested with backend scripts, but the full user flow is not testable in the preview environment.
--   **Phoneme Pipeline is Stable:** The user has confirmed the current architecture is the desired state. Do not change , , or the  contract without explicit instruction.
--   **IPA vs. Display Rule:** A non-negotiable rule from the user is to **NEVER** show raw IPA symbols (e.g., 'ʃ', 'θ') in the UI. Always use the  mapping to show user-friendly text (e.g., 'sh', 'th').
+-   **User Trust is Fragile:** The user is frustrated with the recurring visual bugs. Your top priority is to implement their latest, highly detailed visual instructions from  *exactly* as described. Do not deviate.
+-   **The Task is Purely Visual:** The underlying data and logic for *when* to show airflow are correct. The entire problem is in the Canvas rendering (the  functions). You are now following a very specific visual design provided by the user.
+-   **Airflow is ALWAYS ON:** The toggle button has been removed by user request. Do not attempt to add it back. The animation should be visible during playback and should show the idle breathing animation when neutral.
+-   **Implement ALL New Requirements:** The user's last message contains a multi-point list of visual changes. You must address every single one:
+    1.  Fix oral airflow to blow OUTWARD.
+    2.  Model the airflow based on the user's reference image.
+    3.  Restructure mouth ribbons (4 inside, 2 at lips).
+    4.  Enhance nasal ribbons (longer exit, large internal ribbons in a new nasal cavity).
+    5.  Ensure the idle breathing cycle is working correctly.
 
 **documents and test reports created in this job**
--   /app/memory/PRD.md
--   /app/test_reports/iteration_9.json
--   /app/test_reports/iteration_10.json
+-   
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **LATEST:** Implement a user-facing phoneme feedback UI using plain letters (sh, th), not IPA symbols, to show comparison. (DONE)
-2.  Temporarily disable auto-grading to allow for detection testing. (DONE)
-3.  Activate the real audio -> IPA detection pipeline via a toggle. (DONE)
-4.  Integrate the Allosaurus library into the backend for real phoneme detection. (DONE)
-5.  Create a hybrid native detection bridge (IPC/local API) as a placeholder. (DONE)
-6.  Freeze the current phoneme pipeline and confirm its stability. (DONE)
-7.  Refactor phoneme normalization rules into a language-scoped configuration object. (DONE)
-8.  Implement phoneme normalization rules (digraphs, doubles) for English. (DONE)
-9.  Connect the PCM extraction scaffold into the analysis pipeline as a placeholder. (DONE)
-10. Create the audio PCM extraction scaffold (). (DONE)
+1.  **LATEST (PENDING):** User states airflow is still blowing backward and provides a reference image. They give a detailed, multi-point list of visual requirements for oral ribbons, nasal ribbons, and a new interior nasal cavity to be drawn. This is the new specification.
+2.  User realizes the airflow was behind a toggle, asks for it to be removed and made always-on because it wasted time. (Agent implemented this).
+3.  User uploads a screenshot asking for a browser link because no airflow is visible. (Agent identified the toggle wasn't on).
+4.  User reports There is no airflow visible anywhere. (Agent investigated and provided a link, explaining the toggle).
+5.  User reports No airflow visible. (Agent investigated, found and fixed a canvas dimension issue).
+6.  User reports No airflow is showing in word or letterpractice. (Agent investigated and fixed a bug in Letter Practice mode).
+7.  The agent finishes a task, claiming the P0 bugs are fixed.
+8.  The agent makes a series of code changes to fix visibility and remove debug markers.
+9.  User confirms the plan to troubleshoot the airflow issue first.
+10. The agent proposes a plan to fix the two P0 bugs: airflow visibility and the please phonetic regression.
 
 **Project Health Check:**
--   **Broken:** None.
+-   **Broken:**
+    -   Airflow Animation (P0 Critical): The visual implementation (direction, position, structure of ribbons) is incorrect according to a new, detailed user specification.
 -   **Mocked:**
-    -   Grading logic in  is a placeholder.
--   **Blocked:**
-    -   Core recording/grading functionality is blocked by the Preview environment's camera/microphone access policy.
+    -   Bug reporting email feature (de-prioritized by user).
 
 **3rd Party Integrations**
--   **Allosaurus** (Phoneme Recognition) - installed via pip.
--   **Gemini Flash** (Audio Analysis) — uses Emergent LLM Key.
--   **MediaPipe** (Visual Analysis) — requires no key.
--   **Electron** (Desktop App Builder) — requires no key.
+-   **Allosaurus** (Phoneme Recognition)
+-   **pydub** (Audio Processing)
 
 **Testing status**
--   Testing agent used after significant changes: YES, for initial animation fixes.
--   Troubleshoot agent used after agent stuck in loop: NO
--   Test files created: Scripts were used to test the Allosaurus backend endpoint, but no persistent test files were created.
--   Known regressions: None.
+-   **Testing agent used after significant changes:** YES, but it passed while the feature was still visually incorrect for the user. It is not suitable for validating subjective visual bugs.
+-   **Troubleshoot agent used after agent stuck in loop:** NO
+-   **Test files created:** None.
+-   **Known regressions:** The airflow animation feature remains a persistent issue, with the definition of correctness evolving with user feedback.
 
 **Credentials to test flow:**
 None required.
 
 **What agent forgot to execute**
--   The backend logic for the  endpoint was not implemented, as the user prioritized the complete overhaul of the phoneme architecture. This remains a pending task.
-</analysis>
+The agent repeatedly focused on logical and data-flow fixes, making the airflow *visible* but not *visually correct* from the user's perspective. It failed to fully grasp the subjective nature of the user's request until the user provided an explicit, prescriptive set of visual rules in the final messages. The next agent must pivot from debugging data to implementing a specific visual design.</analysis>
