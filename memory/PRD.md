@@ -57,6 +57,12 @@ Provide accurate, understandable, and immediate feedback on pronunciation across
 - Word "Food" now correctly shows: Frame 14 (f) → Frame 5 (oo) → Frame 7 (d)
 - Test verified: `iteration_14.json` - 100% frontend tests passed
 
+### P0 - Letter Practice "a-dominant" Suffix Fix (COMPLETED - Feb 15, 2026)
+- Updated `LETTER_PHONETICS` and `LETTER_PHONEME_MAP` to use "a" dominant suffix
+- All consonants now use "ba", "ca", "da", "ja" etc. instead of "buh", "cuh", "duh", "juh"
+- This matches the frame library which is keyed to "a" dominant sounds
+- Examples: J → "ja" (not "juh"), B → "ba" (not "buh"), F → "fa" (not "fuh")
+
 ### Previously Completed
 - Dual head animation (front + side view) with phoneme-driven timing
 - Letter/Word practice pages with quick practice buttons and phrases
