@@ -120,6 +120,7 @@ export const DualHeadAnimation = forwardRef(({
   const [ipaDisplay, setIpaDisplay] = useState('');  // NEW: IPA display
   const [animationSpeed, setAnimationSpeed] = useState(DEFAULT_SPEED);
   const [currentPhonemeAnalysis, setCurrentPhonemeAnalysis] = useState(null);  // NEW: Store analysis
+  const [frameTimings, setFrameTimings] = useState([]);  // Track phoneme at each frame position
   const animationRef = useRef(null);
   const audioRef = useRef(null);
   const isPlayingRef = useRef(false);
@@ -161,6 +162,11 @@ export const DualHeadAnimation = forwardRef(({
             setIpaDisplay(readableSounds.join(' '));
           } else {
             setIpaDisplay('');
+          }
+          
+          // Store frame timings for Current Sound display
+          if (result.animationData?.frameTimings) {
+            setFrameTimings(result.animationData.frameTimings);
           }
           
           setAudioUrl(null);  // Word mode uses TTS
@@ -472,7 +478,14 @@ export const DualHeadAnimation = forwardRef(({
             <div className="bg-gradient-to-r from-blue-600/30 to-purple-600/30 border-2 border-blue-500/50 rounded-xl px-8 py-4 text-center min-w-[160px]">
               <span className="text-xs text-blue-300 uppercase tracking-wider block mb-1">Current Sound</span>
               <span className="text-3xl font-bold text-white font-mono" data-testid="current-phoneme-display">
-                {getFrameSoundName(currentFrame)}
+                {(() => {
+                  // Show actual phoneme from frame timings if available
+                  const timing = frameTimings[currentIndex];
+                  if (timing?.symbol) {
+                    return ipaToReadable ? ipaToReadable(timing.symbol) : timing.symbol;
+                  }
+                  return getFrameSoundName(currentFrame);
+                })()}
               </span>
             </div>
           </div>

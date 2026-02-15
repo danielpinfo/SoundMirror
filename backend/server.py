@@ -614,12 +614,23 @@ async def detect_phonemes(request: PhonemeDetectionRequest):
         logger.info(f"[PhonemeDetection] Created temp WAV file: {temp_wav_path}")
         
         # Run Allosaurus phoneme recognition with language hint
+        # Use emit parameter for sensitivity (lower = more phonemes detected)
+        # Default emit=1.0; lower values like 0.3 catch more phonemes for novel words
+        emit_threshold = 0.3  # More sensitive detection for better accuracy
+        
         # Try language-specific model first, fall back to universal if not available
         try:
-            detected_ipa = allosaurus_model.recognize(temp_wav_path, lang_id=lang_code)
+            detected_ipa = allosaurus_model.recognize(
+                temp_wav_path, lang_id=lang_code, emit=emit_threshold
+            )
         except Exception:
             # Fall back to universal model
-            detected_ipa = allosaurus_model.recognize(temp_wav_path)
+            try:
+                detected_ipa = allosaurus_model.recognize(
+                    temp_wav_path, emit=emit_threshold
+                )
+            except Exception:
+                detected_ipa = allosaurus_model.recognize(temp_wav_path)
             
         logger.info(f"[PhonemeDetection] Allosaurus raw output: '{detected_ipa}'")
         
