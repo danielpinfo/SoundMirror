@@ -320,15 +320,11 @@ const AirflowAnimation = ({
   
   // Positions for mouth and nose on side-view sprite
   // The sprite is scaled 1.125x (transform: scale(1.125)) and centered
-  // Account for this by adjusting positions toward the visible mouth area
-  // Original mouth is approximately at x=22%, y=58% but with scaling+centering
-  // we need to shift left and down slightly
-  // 
-  // The side-view face shows:
-  // - Mouth/lips opening at approximately x: 15-20% from left, y: 60% from top
-  // - Nose at approximately x: 12-18% from left, y: 40% from top
-  const mouthPos = { x: width * 0.12, y: height * 0.62 };
-  const nosePos = { x: width * 0.10, y: height * 0.42 };
+  // Looking at the side-view anatomy sprite:
+  // - The mouth/lip opening (red tongue area) is at roughly x: 28%, y: 52%
+  // - Airflow should emerge from the mouth opening going rightward
+  const mouthPos = { x: width * 0.28, y: height * 0.52 };
+  const nosePos = { x: width * 0.18, y: height * 0.38 };
   
   const renderFrame = useCallback(() => {
     const canvas = canvasRef.current;
