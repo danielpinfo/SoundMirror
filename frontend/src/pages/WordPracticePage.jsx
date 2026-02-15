@@ -227,6 +227,8 @@ export default function WordPracticePage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Current Word Display */}
         {practiceWord && (
           <div className="text-center mb-4">
             <p className="text-sm text-blue-300 uppercase tracking-wider mb-2">Practicing</p>
