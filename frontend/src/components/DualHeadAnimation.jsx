@@ -457,13 +457,14 @@ export const DualHeadAnimation = forwardRef(({
             </div>
           )}
           <div 
-            className="aspect-square bg-white rounded-2xl overflow-hidden border-2 border-slate-200 shadow-lg relative"
+            className="aspect-square bg-white rounded-2xl border-2 border-slate-200 shadow-lg relative"
+            style={{ overflow: airflowEnabled ? 'visible' : 'hidden' }}
             data-testid="side-view-container"
           >
             <img
               src={SPRITE_URLS.side[currentFrame] || SPRITE_URLS.side[0]}
               alt={`Side view frame ${currentFrame}`}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover rounded-2xl"
               style={{ transform: 'scale(1.125)', transformOrigin: 'center center' }}
               data-testid="side-view-image"
             />
