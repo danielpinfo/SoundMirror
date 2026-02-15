@@ -345,10 +345,11 @@ const AirflowAnimation = ({
     const isNeutral = currentFrame === 0 && !isPlaying;
     
     // Debug log (throttled to avoid spam)
-    if (Math.random() < 0.05) {
+    if (Math.random() < 0.02) {
       console.log('[Airflow] State:', { 
         enabled, isPlaying, isNeutral, phonemeSymbol, 
-        currentFrame, width, height,
+        currentFrame, 
+        canvasSize: `${width}x${height}`,
         mouthPos: `(${mouthPos.x.toFixed(0)}, ${mouthPos.y.toFixed(0)})`
       });
     }
