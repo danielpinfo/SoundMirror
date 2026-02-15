@@ -448,7 +448,7 @@ export const DualHeadAnimation = forwardRef(({
           </div>
         </div>
 
-        {/* Side View - Zoomed out 25% for airflow animation space */}
+        {/* Side View - with Airflow Overlay */}
         <div className="relative">
           {!hideViewLabels && (
             <div className="absolute top-2 left-2 z-10 px-2 py-1 bg-slate-600/90 text-white text-xs font-semibold rounded">
@@ -456,7 +456,7 @@ export const DualHeadAnimation = forwardRef(({
             </div>
           )}
           <div 
-            className="aspect-square bg-white rounded-2xl overflow-hidden border-2 border-slate-200 shadow-lg"
+            className="aspect-square bg-white rounded-2xl overflow-hidden border-2 border-slate-200 shadow-lg relative"
             data-testid="side-view-container"
           >
             <img
@@ -465,6 +465,26 @@ export const DualHeadAnimation = forwardRef(({
               className="w-full h-full object-cover"
               style={{ transform: 'scale(1.125)', transformOrigin: 'center center' }}
               data-testid="side-view-image"
+            />
+            {/* Airflow Overlay — layered above sprite, below UI */}
+            <AirflowOverlay
+              currentFrame={currentFrame}
+              phonemeSymbol={frameTimings[currentIndex]?.symbol || null}
+              phonemeFeatures={
+                frameTimings[currentIndex]?.symbol
+                  ? ARTICULATORY_FEATURES[frameTimings[currentIndex].symbol] || null
+                  : null
+              }
+              isPlaying={isPlaying}
+              isNeutral={currentFrame === 0}
+              animationPhase={
+                isPlaying
+                  ? (currentIndex === 0 ? 'start' : currentIndex >= frameSequence.length - 1 ? 'end' : 'playing')
+                  : 'idle'
+              }
+              enabled={airflowEnabled}
+              width={300}
+              height={300}
             />
           </div>
           <div className="absolute bottom-2 right-2 px-2 py-1 bg-black/50 text-white text-xs rounded">
