@@ -577,6 +577,12 @@ export const DualHeadAnimation = forwardRef(({
             <span className="text-blue-400">Animation: {SPEED_SETTINGS[animationSpeed].label}</span>
             <span className="text-blue-400/70">|</span>
             <span className="text-green-400">Audio: Always Slow</span>
+            {airflowEnabled && (
+              <>
+                <span className="text-blue-400/70">|</span>
+                <span className="text-cyan-400">Airflow: On</span>
+              </>
+            )}
           </div>
 
           <div className="px-4">
