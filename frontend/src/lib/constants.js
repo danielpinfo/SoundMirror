@@ -80,28 +80,30 @@ export const getPhonemeAudioUrl = (phoneme, languageCode) => {
 // Phoneme to frame mapping (updated Feb 14, 2026 - new frame order)
 export const PHONEME_FRAME_MAP = {
   // Vowels
-  'a': 1, 'ah': 1, 'u': 1, 'uh': 1,   // frame 1: a_u
-  'e': 2, 'eh': 2,                      // frame 2: e
-  'ee': 3, 'i': 3,                      // frame 3: ee_z_x
-  'ü': 4, 'ue': 4,                      // frame 4: ue
-  'o': 5, 'oo': 5, 'ou': 5, 'w': 5,   // frame 5: oo_o_ou_w
+  'a': 1, 'ah': 1,                        // frame 1: a_u (open vowel)
+  'e': 2, 'eh': 2,                        // frame 2: e
+  'ee': 3, 'i': 3,                        // frame 3: ee_z_x
+  'ü': 4, 'ue': 4,                        // frame 4: ue
+  'o': 5, 'oo': 5, 'ou': 5, 'w': 5,      // frame 5: oo_o_ou_w (rounded vowels)
+  'u': 5,                                  // frame 5: u maps to rounded oo shape (as in "food")
+  'uh': 1,                                 // frame 1: uh/schwa maps to open vowel (as in "cup")
   
   // Consonants
-  'c': 6, 'k': 6, 'q': 6, 'g': 6,     // frame 6: c_k_q_g
-  't': 7, 'd': 7, 'j': 7,              // frame 7: t_tsk_d_j
-  'b': 8, 'p': 8, 'm': 8,              // frame 8: b_p_m
-  'z': 3, 'x': 3,                       // frame 3: ee_z_x (shares with ee)
-  'n': 9,                               // frame 9: n
-  'ng': 10,                             // frame 10: ng
-  's': 11,                              // frame 11: s
-  'sh': 12,                             // frame 12: sh
-  'th': 13,                             // frame 13: th
-  'f': 14, 'v': 14,                    // frame 14: f_v
-  'ch': 15,                             // frame 15: ch
-  'h': 16,                              // frame 16: h
-  'r': 17,                              // frame 17: r
-  'l': 18,                              // frame 18: L
-  'll': 19, 'y': 19,                   // frame 19: LL_y
+  'c': 6, 'k': 6, 'q': 6, 'g': 6,        // frame 6: c_k_q_g
+  't': 7, 'd': 7, 'j': 7,                 // frame 7: t_tsk_d_j
+  'b': 8, 'p': 8, 'm': 8,                 // frame 8: b_p_m
+  'z': 3, 'x': 3,                          // frame 3: ee_z_x (shares with ee)
+  'n': 9,                                  // frame 9: n
+  'ng': 10,                                // frame 10: ng
+  's': 11,                                 // frame 11: s
+  'sh': 12,                                // frame 12: sh
+  'th': 13,                                // frame 13: th
+  'f': 14, 'v': 14,                       // frame 14: f_v
+  'ch': 15,                                // frame 15: ch
+  'h': 16,                                 // frame 16: h
+  'r': 17,                                 // frame 17: r
+  'l': 18,                                 // frame 18: L
+  'll': 19, 'y': 19,                      // frame 19: LL_y
   
   // Neutral/default
   '': 0, 'neutral': 0, 'silence': 0, ' ': 0, 'rest': 0,

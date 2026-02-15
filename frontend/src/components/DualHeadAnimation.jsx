@@ -483,8 +483,6 @@ export const DualHeadAnimation = forwardRef(({
                   : 'idle'
               }
               enabled={airflowEnabled}
-              width={300}
-              height={300}
             />
           </div>
           <div className="absolute bottom-2 right-2 px-2 py-1 bg-black/50 text-white text-xs rounded">
