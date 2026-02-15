@@ -465,7 +465,6 @@ export const DualHeadAnimation = forwardRef(({
                 currentIndex < frameTimings.length - 1 && 
                 frameTimings[currentIndex]?.symbol !== frameTimings[currentIndex + 1]?.symbol
               }
-              enabled={airflowEnabled}
             />
           </div>
           <div className="absolute bottom-2 right-2 px-2 py-1 bg-black/50 text-white text-xs rounded">
