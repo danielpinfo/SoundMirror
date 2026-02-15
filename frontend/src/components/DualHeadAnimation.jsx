@@ -7,7 +7,7 @@ import { getLetterAudio } from '../lib/audio';
 import { useLanguage } from '../context/LanguageContext';
 import { Slider } from '../components/ui/slider';
 import { Button } from '../components/ui/button';
-import { Play, Pause, Volume2, VolumeX, Gauge, Wind } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, Gauge } from 'lucide-react';
 import AirflowOverlay from './AirflowOverlay';
 
 /**
