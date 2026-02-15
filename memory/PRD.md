@@ -97,8 +97,14 @@ Provide accurate, understandable, and immediate feedback on pronunciation across
 ## Testing Status
 - Backend: 19/19 tests pass (pytest) across all iterations
 - Frontend: All features verified (iterations 11-14)
-- Test reports: `/app/test_reports/iteration_11.json` through `iteration_14.json`
-- **Latest:** `iteration_14.json` - 8/8 frontend tests passed (P0 bug fixes verified)
+- Test reports: `/app/test_reports/iteration_11.json` through `iteration_15.json`
+- **Latest:** `iteration_15.json` - 6/6 frontend tests passed (P0 airflow visibility fix verified)
+
+### P0 - Airflow Canvas Position Fix (COMPLETED - Feb 15, 2026)
+- **Root Cause**: Canvas was rendering but mouth position coordinates were miscalibrated for the 1.125x scaled sprite
+- **Fix**: Changed mouthPos from (22%, 58%) to (24%, 48%) and nosePos from (20%, 38%) to (15%, 35%)
+- **Verification**: Testing agent confirmed canvas renders 1066 non-transparent pixels during animation
+- **Visual Result**: Blue/cyan airflow ribbons now visible from mouth area on side view
 
 ## Prioritized Backlog
 
