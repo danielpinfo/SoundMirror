@@ -78,14 +78,14 @@ const generatePhonemeSequence = async (letter, language = 'english', speedMultip
   const letterLower = letter.toLowerCase();
   const phoneme = LETTER_PHONEME_MAP[letterLower] || `${letterLower}a`;
   
-  const { frames, phonemeAnalysis } = await generateAnimationFromPhonemes(
+  const { frames, phonemeAnalysis, animationData } = await generateAnimationFromPhonemes(
     phoneme, 
     language, 
     'letter',
     speedMultiplier
   );
   
-  return { frames, phonemeAnalysis };
+  return { frames, phonemeAnalysis, animationData };
 };
 
 // Convert text to frame sequence for word practice (async)
