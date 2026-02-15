@@ -123,7 +123,6 @@ export const DualHeadAnimation = forwardRef(({
   const [animationSpeed, setAnimationSpeed] = useState(DEFAULT_SPEED);
   const [currentPhonemeAnalysis, setCurrentPhonemeAnalysis] = useState(null);  // NEW: Store analysis
   const [frameTimings, setFrameTimings] = useState([]);  // Track phoneme at each frame position
-  const [airflowEnabled, setAirflowEnabled] = useState(false);  // Airflow overlay toggle
   const animationRef = useRef(null);
   const audioRef = useRef(null);
   const isPlayingRef = useRef(false);
