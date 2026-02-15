@@ -228,18 +228,42 @@ const AirflowOverlay = ({
   isNeutral = false,
   animationPhase = 'idle', // 'start', 'playing', 'end', 'idle'
   enabled = true,
-  width = 300,
-  height = 300,
 }) => {
   const canvasRef = useRef(null);
+  const containerRef = useRef(null);
   const animFrameRef = useRef(null);
   const phaseRef = useRef(0);
   const breathCycleRef = useRef(0);
+  const [dimensions, setDimensions] = React.useState({ width: 300, height: 300 });
+
+  // Observe container size changes and update canvas dimensions
+  React.useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const updateDimensions = () => {
+      const rect = container.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        setDimensions({ width: rect.width, height: rect.height });
+      }
+    };
+
+    // Initial measurement
+    updateDimensions();
+
+    // Use ResizeObserver for responsive updates
+    const resizeObserver = new ResizeObserver(updateDimensions);
+    resizeObserver.observe(container);
+
+    return () => resizeObserver.disconnect();
+  }, []);
+
+  const { width, height } = dimensions;
 
   // Mouth and nose positions relative to side-view sprite (approximate)
-  // These are percentages of canvas dimensions
-  const mouthPos = { x: width * 0.28, y: height * 0.62 };
-  const nosePos = { x: width * 0.30, y: height * 0.42 };
+  // Adjusted for the scaled sprite (1.125x) - positions tuned for visual accuracy
+  const mouthPos = { x: width * 0.22, y: height * 0.58 };
+  const nosePos = { x: width * 0.24, y: height * 0.38 };
 
   const renderFrame = useCallback(() => {
     const canvas = canvasRef.current;
@@ -312,14 +336,20 @@ const AirflowOverlay = ({
   if (!enabled) return null;
 
   return (
-    <canvas
-      ref={canvasRef}
-      width={width}
-      height={height}
+    <div 
+      ref={containerRef}
       className="absolute inset-0 pointer-events-none"
       style={{ zIndex: 10 }}
-      data-testid="airflow-overlay-canvas"
-    />
+      data-testid="airflow-overlay-container"
+    >
+      <canvas
+        ref={canvasRef}
+        width={width}
+        height={height}
+        className="w-full h-full"
+        data-testid="airflow-overlay-canvas"
+      />
+    </div>
   );
 };
 
