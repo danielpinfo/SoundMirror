@@ -69,6 +69,16 @@ Provide accurate, understandable, and immediate feedback on pronunciation across
 - Previously was analyzing raw text "please" → [p, l, ee, s, eh] (wrong)
 - Silent letters and phonetic spellings from dictionary now drive the animation
 
+### Airflow Feature - REMOVED (Feb 15, 2026)
+- Feature was removed because it was conceptually flawed
+- Was showing airflow during bilabial plosives like "b" (closed mouth = no airflow)
+- Needs complete redesign with proper phonetics understanding before re-implementation
+
+### "Sounds" Display - REMOVED (Feb 15, 2026)  
+- The "Sounds" breakdown section was removed from UI
+- Was showing incorrect phoneme sequences (e.g., "oo" instead of "y" for "you")
+- UI now shows only WORD/PHRASE and PHONETIC (which works correctly)
+
 ### Previously Completed
 - Dual head animation (front + side view) with phoneme-driven timing
 - Letter/Word practice pages with quick practice buttons and phrases
