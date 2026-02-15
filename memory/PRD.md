@@ -13,40 +13,42 @@ Provide accurate, understandable, and immediate feedback on pronunciation across
 
 ## What's Been Implemented
 
-### P0 Critical - Phonetic Display (COMPLETED - Feb 14, 2026)
-- Completely rewrote `/app/frontend/src/lib/phoneticDisplay.js` following the user's "Pronunciation Rule Sheet"
-- Vowels are separated, long, and pure — never compressed into English diphthongs
-- "I'm fine" → "Aeem faeen" (verified)
-- 300+ word dictionary with magic-e handling and pattern-based fallback
-- IPA_TO_READABLE mapping: aɪ→"a-ee", eɪ→"eh-ee", aʊ→"a-oo", ɔɪ→"o-ee"
+### P0 - Phonetic Display Overhaul (COMPLETED - Feb 14, 2026)
+- Rewrote `/app/frontend/src/lib/phoneticDisplay.js` with 300+ word dictionary
+- "I'm fine" → "Aeem faeen", vowels separated per Pronunciation Rule Sheet
+- Magic-e handling, pattern-based fallback for unknown words
+- IPA_TO_READABLE: aɪ→"a-ee", eɪ→"eh-ee", aʊ→"a-oo", ɔɪ→"o-ee"
 
-### P0 Critical - Camera/Microphone (IMPROVED - Feb 14, 2026)
-- Enhanced error handling with specific permission guidance
-- Added mediaDevices API availability check
-- Added Permissions-Policy meta tag
-- Better error messages guiding users to browser address bar
+### P0 - Camera/Microphone Improvements (COMPLETED - Feb 14, 2026)
+- Enhanced error handling, Permissions-Policy meta tag
+- mediaDevices API availability check
 
 ### P1 - Phoneme Detection Accuracy (COMPLETED - Feb 15, 2026)
-- Tuned Allosaurus with `emit=0.3` for more sensitive detection
-- Language-specific model with universal fallback
-- Audio normalization and noise gating in backend
+- Allosaurus emit=0.3 for more sensitive detection
+- Language-specific models with universal fallback
 
 ### P1 - UI Label Corrections (COMPLETED - Feb 15, 2026)
-- Current Sound display now shows actual phoneme from frame timings (e.g., "eh", "h", "l") instead of frame group names (e.g., "p/b/m")
-- Uses `ipaToReadable()` for user-friendly display
+- Current Sound shows actual phoneme from frame timings
 
-### P2 - Layout Adjustments (COMPLETED - Feb 15, 2026)
-- Keyboard made compact: smaller keys (32px min-width, h-9), tighter spacing
-- Keyboard fits in single/double row layout
-- Recording results panel uses horizontal layout next to video
+### P2 - Layout: Compact Keyboard (COMPLETED - Feb 15, 2026)
+- Smaller keys (32px, h-9), single-row layout
 
 ### P2 - Multilingual Phonetic Display (COMPLETED - Feb 15, 2026)
-- Added LANGUAGE_PHONETICS dictionaries for all 10 languages
-- Spanish: "Hola" → "oh-lah", "Gracias" → "grah-see-ahs"
-- German: "Nein" → "na-een", "Guten Morgen" → "goo-ten mohr-gen"
-- French: "Oui" → "oo-ee", "Merci beaucoup" → "mehr-see boh-koo"
-- Japanese: "こんにちは" → "kon-nee-chee-wah"
-- Chinese, Hindi, Arabic also supported
+- 10 languages: English, Spanish, Italian, Portuguese, German, French, Japanese, Chinese, Hindi, Arabic
+
+### NEW - Pronunciation Quiz Mode (COMPLETED - Feb 15, 2026)
+- Optional game activated by "Quiz Mode" button (does NOT auto-start)
+- Shows phonetic rendering, user guesses the word
+- Difficulty: easy/medium/hard word pools
+- Score tracking, Hint system, "Practice this word" link on wrong answers
+- Exit button returns to normal mode
+
+### NEW - Airflow Animation System (COMPLETED - Feb 15, 2026)
+- Canvas-based airflow visualization overlaid on side-view head sprite
+- Three channels: oral (mouth), nasal (nose), breath (idle)
+- Phoneme-driven: vowels=oral continuous, nasals=nasal flow, plosives=burst, fricatives=turbulent
+- Toggle via Wind icon button, status bar shows "Airflow: On"
+- Blue/cyan ribbons, breathing during neutral frames
 
 ### Previously Completed
 - Dual head animation (front + side view) with phoneme-driven timing
@@ -54,24 +56,17 @@ Provide accurate, understandable, and immediate feedback on pronunciation across
 - Recording panel with face landmark overlay
 - Phoneme comparison and guided focus mode
 - History/session management (IndexedDB + MongoDB)
-- 10-language support
 - Bug report page (email MOCKED)
 
 ## Testing Status
-- Backend: 19/19 tests pass (pytest) - iterations 11 & 12
-- Frontend: All phonetic display, UI, and navigation tests pass
-- Test reports: `/app/test_reports/iteration_11.json`, `/app/test_reports/iteration_12.json`
+- Backend: 19/19 tests pass (pytest) across all iterations
+- Frontend: All features verified (iterations 11-13)
+- Test reports: `/app/test_reports/iteration_11.json` through `iteration_13.json`
 
 ## Prioritized Backlog
 
 ### P3 - Future
-- Airflow Animation system
 - Electron desktop build
 - Real-time audio streaming
 - More practice content and custom practice lists
-- Bug report email feature (pending RESEND_API_KEY)
-
-## Known Limitations
-- Camera permissions are browser/origin-specific
-- Bug report email is MOCKED (no RESEND_API_KEY)
-- AI grading falls back to mock scores when Gemini unavailable
+- Bug report email (pending RESEND_API_KEY)
