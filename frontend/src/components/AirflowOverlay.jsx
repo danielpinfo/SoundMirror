@@ -105,20 +105,20 @@ function getAirflowForPhoneme(symbol, features) {
 function drawAirflowRibbon(ctx, startX, startY, intensity, turbulent, phase, direction, isNasal) {
   if (intensity <= 0.02) return;
 
-  const ribbonCount = Math.max(2, Math.floor(intensity * 4));
-  const maxLength = 40 + intensity * 60;
-  const baseWidth = 2 + intensity * 4;
+  const ribbonCount = Math.max(3, Math.floor(intensity * 5));
+  const maxLength = 50 + intensity * 70;
+  const baseWidth = 3 + intensity * 5;
   const dirMul = direction === 'out' ? 1 : -1;
 
   for (let r = 0; r < ribbonCount; r++) {
-    const spread = (r - (ribbonCount - 1) / 2) * (5 + intensity * 8);
+    const spread = (r - (ribbonCount - 1) / 2) * (6 + intensity * 10);
     const ribbonPhase = (phase + r * 0.2) % 1;
 
     ctx.beginPath();
-    // More visible colors with higher opacity
+    // Very visible bright cyan/blue colors
     ctx.strokeStyle = isNasal
-      ? `rgba(50, 180, 255, ${0.5 + intensity * 0.4})`
-      : `rgba(30, 160, 255, ${0.45 + intensity * 0.45})`;
+      ? `rgba(0, 220, 255, ${0.7 + intensity * 0.3})`
+      : `rgba(0, 180, 255, ${0.65 + intensity * 0.35})`;
     ctx.lineWidth = baseWidth * (1 - ribbonPhase * 0.3);
     ctx.lineCap = 'round';
 
@@ -128,7 +128,7 @@ function drawAirflowRibbon(ctx, startX, startY, intensity, turbulent, phase, dir
     // Bezier control points for smooth ribbon
     let jitterY = 0;
     if (turbulent) {
-      jitterY = Math.sin(phase * Math.PI * 6 + r * 2) * (4 + intensity * 6);
+      jitterY = Math.sin(phase * Math.PI * 6 + r * 2) * (5 + intensity * 8);
     }
 
     const endX = sx + dirMul * maxLength * (0.5 + ribbonPhase * 0.5);
@@ -142,18 +142,18 @@ function drawAirflowRibbon(ctx, startX, startY, intensity, turbulent, phase, dir
     ctx.stroke();
 
     // Particle dots along the ribbon for visual richness
-    if (intensity > 0.25) {
-      const particleCount = Math.floor(intensity * 5);
+    if (intensity > 0.2) {
+      const particleCount = Math.floor(intensity * 6);
       for (let p = 0; p < particleCount; p++) {
         const t = (ribbonPhase + p * 0.15) % 1;
         const px = sx + dirMul * maxLength * t;
         const py = sy + Math.sin(t * Math.PI * 3 + phase * 4) * jitterY * 0.5;
-        const particleSize = (1 - t) * (1.5 + intensity * 1.5);
+        const particleSize = (1 - t) * (2 + intensity * 2);
 
         ctx.beginPath();
         ctx.fillStyle = isNasal
-          ? `rgba(80, 200, 255, ${(1 - t) * 0.6})`
-          : `rgba(60, 180, 255, ${(1 - t) * 0.55})`;
+          ? `rgba(100, 240, 255, ${(1 - t) * 0.8})`
+          : `rgba(80, 220, 255, ${(1 - t) * 0.75})`;
         ctx.arc(px, py, particleSize, 0, Math.PI * 2);
         ctx.fill();
       }
