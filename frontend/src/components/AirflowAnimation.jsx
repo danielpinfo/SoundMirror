@@ -337,6 +337,10 @@ const AirflowAnimation = ({
     
     if (!enabled) return;
     
+    // DEBUG: Draw a small indicator to confirm canvas is rendering
+    ctx.fillStyle = 'rgba(0, 255, 0, 0.3)';
+    ctx.fillRect(5, 5, 10, 10);
+    
     // Update animation phase
     phaseRef.current = (phaseRef.current + 0.03) % 1;
     const phase = phaseRef.current;
