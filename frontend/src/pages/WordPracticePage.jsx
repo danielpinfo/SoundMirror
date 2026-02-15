@@ -173,11 +173,11 @@ export default function WordPracticePage() {
               </Button>
             </form>
             
-            {/* On-Screen Keyboard - Elongated, between input and quick practice */}
-            <div className="mb-3">
+            {/* On-Screen Keyboard - Compact */}
+            <div className="mb-2">
               <AlphabetKeyboard
                 onKeySelect={handleKeySelect}
-                compact={false}
+                compact={true}
               />
             </div>
             
