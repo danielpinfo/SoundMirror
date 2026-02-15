@@ -346,6 +346,12 @@ const AirflowAnimation = ({
     ctx.fillStyle = 'rgba(0, 255, 0, 0.3)';
     ctx.fillRect(5, 5, 10, 10);
     
+    // DEBUG: Draw mouth position marker (red dot)
+    ctx.fillStyle = 'rgba(255, 0, 0, 0.7)';
+    ctx.beginPath();
+    ctx.arc(mouthPos.x, mouthPos.y, 5, 0, Math.PI * 2);
+    ctx.fill();
+    
     // Update animation phase
     phaseRef.current = (phaseRef.current + 0.03) % 1;
     const phase = phaseRef.current;
