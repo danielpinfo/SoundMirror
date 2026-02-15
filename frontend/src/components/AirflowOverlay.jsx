@@ -276,22 +276,10 @@ const AirflowOverlay = ({
     if (!enabled) return;
 
     // Update animation phase
-    phaseRef.current = (phaseRef.current + 0.02) % 1;
+    phaseRef.current = (phaseRef.current + 0.025) % 1;
     const phase = phaseRef.current;
 
-    if (isNeutral || (!isPlaying && animationPhase === 'idle')) {
-      // === BREATHING MODE ===
-      breathCycleRef.current = (breathCycleRef.current + 0.008) % 1;
-      const bc = breathCycleRef.current;
-
-      if (animationPhase === 'start' || bc < 0.4) {
-        // Inhale at start
-        drawBreathing(ctx, nosePos.x, nosePos.y, bc < 0.4 ? bc / 0.4 : bc, 'inhale');
-      } else if (animationPhase === 'end' || bc >= 0.6) {
-        // Exhale at end
-        drawBreathing(ctx, nosePos.x, nosePos.y, bc >= 0.6 ? (bc - 0.6) / 0.4 : bc, 'exhale');
-      }
-    } else if (isPlaying) {
+    if (isPlaying && phonemeSymbol) {
       // === PHONEME-DRIVEN AIRFLOW ===
       const airflow = getAirflowForPhoneme(phonemeSymbol, phonemeFeatures);
 
@@ -317,10 +305,22 @@ const AirflowOverlay = ({
       if (airflow.burst) {
         drawBurstEffect(ctx, mouthPos.x, mouthPos.y, airflow.oral, phase);
       }
+    } else {
+      // === BREATHING MODE (idle/neutral) ===
+      breathCycleRef.current = (breathCycleRef.current + 0.012) % 1;
+      const bc = breathCycleRef.current;
+
+      if (bc < 0.5) {
+        // Inhale
+        drawBreathing(ctx, nosePos.x, nosePos.y, bc / 0.5, 'inhale');
+      } else {
+        // Exhale
+        drawBreathing(ctx, nosePos.x, nosePos.y, (bc - 0.5) / 0.5, 'exhale');
+      }
     }
 
     animFrameRef.current = requestAnimationFrame(renderFrame);
-  }, [width, height, enabled, isPlaying, isNeutral, phonemeSymbol, phonemeFeatures, animationPhase, mouthPos.x, mouthPos.y, nosePos.x, nosePos.y]);
+  }, [width, height, enabled, isPlaying, phonemeSymbol, phonemeFeatures, mouthPos.x, mouthPos.y, nosePos.x, nosePos.y]);
 
   useEffect(() => {
     // Always run animation loop when enabled - breathing during idle, phoneme flow during play
