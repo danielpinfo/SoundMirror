@@ -112,6 +112,12 @@ Provide accurate, understandable, and immediate feedback on pronunciation across
 - **Verification**: Screenshot shows letter "F" with visible airflow ribbons during animation
 - **Visual Result**: Airflow now works in BOTH Word Practice AND Letter Practice modes
 
+### P0 - Canvas Dimension Detection Fix (COMPLETED - Feb 15, 2026)
+- **Root Cause**: Canvas dimensions were stuck at default 300x300 because ResizeObserver wasn't detecting container size on initial render
+- **Fix**: Added delayed dimension check (100ms timeout) when `enabled` changes, ensuring container has rendered before measuring
+- **Verification**: Console logs show correct dimensions (432x432), airflow ribbons now properly positioned
+- **Visual Result**: Airflow ribbons clearly visible emanating from mouth area during animation
+
 ## Prioritized Backlog
 
 ### P3 - Future
