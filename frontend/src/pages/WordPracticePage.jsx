@@ -4,6 +4,7 @@ import { useLanguage } from '../context/LanguageContext';
 import DualHeadAnimation from '../components/DualHeadAnimation';
 import RecordingPanel from '../components/RecordingPanel';
 import AlphabetKeyboard from '../components/AlphabetKeyboard';
+import QuizMode from '../components/QuizMode';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardContent } from '../components/ui/card';
