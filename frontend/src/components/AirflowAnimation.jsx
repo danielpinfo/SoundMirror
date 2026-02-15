@@ -99,9 +99,10 @@ function drawArrowhead(ctx, x, y, angle, size, color) {
   ctx.rotate(angle);
   ctx.beginPath();
   ctx.fillStyle = color;
+  // Larger, more visible arrowhead
   ctx.moveTo(0, 0);
-  ctx.lineTo(-size, -size * 0.5);
-  ctx.lineTo(-size, size * 0.5);
+  ctx.lineTo(-size * 1.5, -size * 0.7);
+  ctx.lineTo(-size * 1.5, size * 0.7);
   ctx.closePath();
   ctx.fill();
   ctx.restore();
