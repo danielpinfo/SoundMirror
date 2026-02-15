@@ -305,7 +305,6 @@ const AirflowAnimation = ({
     
     const updateDimensions = () => {
       const rect = container.getBoundingClientRect();
-      console.log('[Airflow] Container rect:', rect.width, rect.height);
       if (rect.width > 0 && rect.height > 0) {
         setDimensions({ width: Math.floor(rect.width), height: Math.floor(rect.height) });
       }
