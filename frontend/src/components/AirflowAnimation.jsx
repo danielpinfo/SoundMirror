@@ -369,6 +369,11 @@ const AirflowAnimation = ({
       const isRelease = isLastFrameOfPhoneme;
       const airflow = getAirflowConfig(phonemeSymbol, isRelease);
       
+      // Debug: Log what we're drawing
+      if (Math.random() < 0.1) {
+        console.log('[Airflow] Drawing for phoneme:', phonemeSymbol, 'airflow:', airflow);
+      }
+      
       // Draw oral airflow (if any)
       if (airflow.oral > 0) {
         drawOralAirflow(ctx, mouthPos.x, mouthPos.y, airflow.oral, airflow.turbulent, phase);
@@ -382,6 +387,11 @@ const AirflowAnimation = ({
       // Draw burst (for plosives on release)
       if (airflow.burst) {
         drawBurst(ctx, mouthPos.x, mouthPos.y, airflow.oral, phase);
+      }
+    } else if (isPlaying && !phonemeSymbol) {
+      // Debug: isPlaying but no phoneme
+      if (Math.random() < 0.02) {
+        console.log('[Airflow] isPlaying but NO phonemeSymbol');
       }
     }
     
