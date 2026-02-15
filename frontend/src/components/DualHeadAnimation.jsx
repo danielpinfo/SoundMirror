@@ -440,7 +440,7 @@ export const DualHeadAnimation = forwardRef(({
           )}
           <div 
             className="aspect-square bg-white rounded-2xl border-2 border-slate-200 shadow-lg relative"
-            style={{ overflow: airflowEnabled ? 'visible' : 'hidden' }}
+            style={{ overflow: 'hidden' }}
             data-testid="side-view-container"
           >
             <img
