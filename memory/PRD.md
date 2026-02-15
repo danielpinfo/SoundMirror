@@ -63,6 +63,12 @@ Provide accurate, understandable, and immediate feedback on pronunciation across
 - This matches the frame library which is keyed to "a" dominant sounds
 - Examples: J → "ja" (not "juh"), B → "ba" (not "buh"), F → "fa" (not "fuh")
 
+### P0 - Phoneme Analysis Uses Phonetic Dictionary (COMPLETED - Feb 15, 2026)
+- Fixed `analyzePhonemes()` to first convert text → phonetic using WORD_PHONETICS dictionary
+- "please" → "pleez" → [p, l, ee, z] (correct, no silent "e" at end)
+- Previously was analyzing raw text "please" → [p, l, ee, s, eh] (wrong)
+- Silent letters and phonetic spellings from dictionary now drive the animation
+
 ### Previously Completed
 - Dual head animation (front + side view) with phoneme-driven timing
 - Letter/Word practice pages with quick practice buttons and phrases
