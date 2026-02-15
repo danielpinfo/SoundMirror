@@ -390,8 +390,11 @@ const AirflowAnimation = ({
   const { width, height } = dimensions;
   
   // Positions for mouth and nose on side-view sprite
-  const mouthPos = { x: width * 0.24, y: height * 0.48 };
-  const nosePos = { x: width * 0.15, y: height * 0.35 };
+  // Adjusted for the anatomical side-view image:
+  // - Mouth opening (lips) is at approximately x: 28-32%, y: 55-60%
+  // - Nose is at approximately x: 18-22%, y: 35-40%
+  const mouthPos = { x: width * 0.30, y: height * 0.57 };
+  const nosePos = { x: width * 0.20, y: height * 0.38 };
   
   const renderFrame = useCallback(() => {
     const canvas = canvasRef.current;
