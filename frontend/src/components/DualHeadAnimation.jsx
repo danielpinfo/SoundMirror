@@ -1,14 +1,13 @@
 import React, { useState, useEffect, useCallback, useRef, forwardRef, useImperativeHandle } from 'react';
 import { SPRITE_URLS, getFrameForPhoneme } from '../lib/constants';
 import { transliterateLetter, transliterate } from '../lib/phonemeRules';
-import { analyzePhonemes, toAnimationSequence, ARTICULATORY_FEATURES } from '../lib/phonemeAnalysis';
+import { analyzePhonemes, toAnimationSequence } from '../lib/phonemeAnalysis';
 import { textToPhonetic, getLetterPhonetic, ipaSequenceToReadable, ipaToReadable, getFrameSoundName } from '../lib/phoneticDisplay';
 import { getLetterAudio } from '../lib/audio';
 import { useLanguage } from '../context/LanguageContext';
 import { Slider } from '../components/ui/slider';
 import { Button } from '../components/ui/button';
 import { Play, Pause, Volume2, VolumeX, Gauge } from 'lucide-react';
-import AirflowOverlay from './AirflowOverlay';
 
 /**
  * PHONEME-FIRST ARCHITECTURE
