@@ -157,17 +157,17 @@ function getAirflowConfig(phonemeSymbol, isRelease = false) {
 function drawOralAirflow(ctx, x, y, intensity, turbulent, phase) {
   if (intensity <= 0) return;
   
-  const ribbonCount = Math.max(2, Math.floor(intensity * 4));
-  const maxLength = 40 + intensity * 50;
-  const baseWidth = 2 + intensity * 3;
+  const ribbonCount = Math.max(3, Math.floor(intensity * 5));
+  const maxLength = 50 + intensity * 60;
+  const baseWidth = 3 + intensity * 4;
   
   for (let r = 0; r < ribbonCount; r++) {
-    const spread = (r - (ribbonCount - 1) / 2) * (5 + intensity * 8);
+    const spread = (r - (ribbonCount - 1) / 2) * (6 + intensity * 10);
     const ribbonPhase = (phase + r * 0.15) % 1;
     
     ctx.beginPath();
-    ctx.strokeStyle = `rgba(80, 180, 255, ${0.4 + intensity * 0.4})`;
-    ctx.lineWidth = baseWidth * (1 - ribbonPhase * 0.4);
+    ctx.strokeStyle = `rgba(0, 200, 255, ${0.5 + intensity * 0.45})`;
+    ctx.lineWidth = baseWidth * (1 - ribbonPhase * 0.3);
     ctx.lineCap = 'round';
     
     const sx = x;
@@ -176,7 +176,7 @@ function drawOralAirflow(ctx, x, y, intensity, turbulent, phase) {
     // Add turbulence jitter for fricatives
     let jitterY = 0;
     if (turbulent) {
-      jitterY = Math.sin(phase * Math.PI * 8 + r * 3) * (3 + intensity * 5);
+      jitterY = Math.sin(phase * Math.PI * 8 + r * 3) * (4 + intensity * 6);
     }
     
     const endX = sx + maxLength * (0.4 + ribbonPhase * 0.6);
@@ -186,6 +186,19 @@ function drawOralAirflow(ctx, x, y, intensity, turbulent, phase) {
       endX, sy + jitterY * 0.5 + spread * 0.2
     );
     ctx.stroke();
+    
+    // Add particles for higher intensity
+    if (intensity > 0.4) {
+      for (let p = 0; p < 3; p++) {
+        const t = (ribbonPhase + p * 0.2) % 1;
+        const px = sx + maxLength * t * 0.8;
+        const py = sy + spread * 0.3 + jitterY * t;
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(100, 220, 255, ${(1 - t) * 0.6})`;
+        ctx.arc(px, py, 2 + intensity, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
   }
 }
 
