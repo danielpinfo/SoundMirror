@@ -67,8 +67,9 @@ Provide accurate, understandable, and immediate feedback on pronunciation across
 
 ## Testing Status
 - Backend: 19/19 tests pass (pytest) across all iterations
-- Frontend: All features verified (iterations 11-13)
-- Test reports: `/app/test_reports/iteration_11.json` through `iteration_13.json`
+- Frontend: All features verified (iterations 11-14)
+- Test reports: `/app/test_reports/iteration_11.json` through `iteration_14.json`
+- **Latest:** `iteration_14.json` - 8/8 frontend tests passed (P0 bug fixes verified)
 
 ## Prioritized Backlog
 
