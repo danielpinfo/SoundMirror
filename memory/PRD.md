@@ -106,6 +106,12 @@ Provide accurate, understandable, and immediate feedback on pronunciation across
 - **Verification**: Testing agent confirmed canvas renders 1066 non-transparent pixels during animation
 - **Visual Result**: Blue/cyan airflow ribbons now visible from mouth area on side view
 
+### P0 - Letter Practice Airflow Fix (COMPLETED - Feb 15, 2026)
+- **Root Cause**: `generatePhonemeSequence` for letter mode wasn't returning `animationData` (which contains `frameTimings`)
+- **Fix**: Updated `generatePhonemeSequence` to destructure and return `animationData` from `generateAnimationFromPhonemes`
+- **Verification**: Screenshot shows letter "F" with visible airflow ribbons during animation
+- **Visual Result**: Airflow now works in BOTH Word Practice AND Letter Practice modes
+
 ## Prioritized Backlog
 
 ### P3 - Future
