@@ -477,12 +477,6 @@ export const DualHeadAnimation = forwardRef(({
                   : null
               }
               isPlaying={isPlaying}
-              isNeutral={currentFrame === 0}
-              animationPhase={
-                isPlaying
-                  ? (currentIndex === 0 ? 'start' : currentIndex >= frameSequence.length - 1 ? 'end' : 'playing')
-                  : 'idle'
-              }
               enabled={airflowEnabled}
             />
           </div>
