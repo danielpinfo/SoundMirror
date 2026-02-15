@@ -345,16 +345,6 @@ const AirflowAnimation = ({
     // Check if neutral frame (side_00) and not playing
     const isNeutral = currentFrame === 0 && !isPlaying;
     
-    // Debug log (throttled to avoid spam)
-    if (Math.random() < 0.02) {
-      console.log('[Airflow] State:', { 
-        enabled, isPlaying, isNeutral, phonemeSymbol, 
-        currentFrame, 
-        canvasSize: `${width}x${height}`,
-        mouthPos: `(${mouthPos.x.toFixed(0)}, ${mouthPos.y.toFixed(0)})`
-      });
-    }
-    
     if (isNeutral) {
       // BREATHING MODE - only during neutral frame when not playing
       breathPhaseRef.current = (breathPhaseRef.current + 0.008) % 1;
