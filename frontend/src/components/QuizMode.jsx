@@ -7,7 +7,7 @@
 
 import React, { useState, useCallback, useMemo } from 'react';
 import { textToPhonetic } from '../lib/phoneticDisplay';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useLanguage } from '../context/LanguageContext';
 
 // Quiz word pools by difficulty
 const QUIZ_WORDS = {
