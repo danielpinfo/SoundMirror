@@ -21,12 +21,12 @@
 // =============================================================================
 
 export const LETTER_PHONETICS = {
-  'A': 'ah', 'B': 'buh', 'C': 'kuh', 'D': 'duh', 'E': 'eh',
-  'F': 'fuh', 'G': 'guh', 'H': 'huh', 'I': 'ee', 'J': 'juh',
-  'K': 'kuh', 'L': 'luh', 'M': 'muh', 'N': 'nuh', 'O': 'oh',
-  'P': 'puh', 'Q': 'koo', 'R': 'ruh', 'S': 'sss', 'T': 'tuh',
-  'U': 'oo', 'V': 'vuh', 'W': 'wuh', 'X': 'ks', 'Y': 'yuh', 'Z': 'zzz',
-  'CH': 'chuh', 'SH': 'shuh', 'TH': 'thuh', 'LL': 'yeh',
+  'A': 'ah', 'B': 'ba', 'C': 'ka', 'D': 'da', 'E': 'eh',
+  'F': 'fa', 'G': 'ga', 'H': 'ha', 'I': 'ee', 'J': 'ja',
+  'K': 'ka', 'L': 'la', 'M': 'ma', 'N': 'na', 'O': 'oh',
+  'P': 'pa', 'Q': 'ka', 'R': 'ra', 'S': 'sa', 'T': 'ta',
+  'U': 'oo', 'V': 'va', 'W': 'wa', 'X': 'ksa', 'Y': 'ya', 'Z': 'za',
+  'CH': 'cha', 'SH': 'sha', 'TH': 'tha', 'LL': 'ya',
 };
 
 /**
