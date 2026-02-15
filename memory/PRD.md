@@ -69,10 +69,17 @@ Provide accurate, understandable, and immediate feedback on pronunciation across
 - Previously was analyzing raw text "please" → [p, l, ee, s, eh] (wrong)
 - Silent letters and phonetic spellings from dictionary now drive the animation
 
-### Airflow Feature - REMOVED (Feb 15, 2026)
-- Feature was removed because it was conceptually flawed
-- Was showing airflow during bilabial plosives like "b" (closed mouth = no airflow)
-- Needs complete redesign with proper phonetics understanding before re-implementation
+### Airflow Animation - REIMPLEMENTED (Feb 15, 2026)
+- Created new `AirflowAnimation.jsx` following the Emergent Airflow Animation Rules
+- Phoneme-driven, language-agnostic, sprite-safe
+- Three channels: Oral (mouth), Nasal (nose), Breath (idle)
+- Rules implemented:
+  - Vowels: Continuous oral flow (intensity scales with mouth openness)
+  - Plosives (p,b,t,d,k,g): NO airflow during closure, burst only on release
+  - Fricatives (f,s,sh): Sustained turbulent oral flow
+  - Nasals (m,n,ng): Nasal flow ONLY (not mouth)
+  - Approximants (l,r,w,y): Low oral flow
+- Breathing animation during neutral frame (side_00) when not playing
 
 ### "Sounds" Display - REMOVED (Feb 15, 2026)  
 - The "Sounds" breakdown section was removed from UI
