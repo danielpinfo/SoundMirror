@@ -1,0 +1,395 @@
+/**
+ * AIRFLOW ANIMATION - Phoneme-Driven, Sprite-Safe, Language-Agnostic
+ * 
+ * Contract (NON-NEGOTIABLE):
+ *   "Airflow visualization is a direct function of phoneme articulation,
+ *    synchronized to sprite frames, independent of language, spelling, or word meaning."
+ * 
+ * Three channels: Oral (mouth), Nasal (nose), Breath (idle)
+ * Driven by phoneme articulatory class, NOT by letters/words/language
+ */
+
+import React, { useRef, useEffect, useCallback, useState } from 'react';
+
+// =============================================================================
+// PHONEME → ARTICULATORY CLASS MAPPING
+// =============================================================================
+
+const PHONEME_CLASSES = {
+  // VOWELS - Oral continuous flow
+  'a': { class: 'vowel', height: 'open' },
+  'ah': { class: 'vowel', height: 'open' },
+  'e': { class: 'vowel', height: 'mid' },
+  'eh': { class: 'vowel', height: 'mid' },
+  'i': { class: 'vowel', height: 'close' },
+  'ee': { class: 'vowel', height: 'close' },
+  'o': { class: 'vowel', height: 'mid' },
+  'oh': { class: 'vowel', height: 'mid' },
+  'u': { class: 'vowel', height: 'close' },
+  'oo': { class: 'vowel', height: 'close' },
+  'uh': { class: 'vowel', height: 'mid' },
+  
+  // IPA vowels
+  'ɪ': { class: 'vowel', height: 'close' },
+  'ɛ': { class: 'vowel', height: 'mid' },
+  'æ': { class: 'vowel', height: 'open' },
+  'ə': { class: 'vowel', height: 'mid' },
+  'ʌ': { class: 'vowel', height: 'mid' },
+  'ʊ': { class: 'vowel', height: 'close' },
+  'ɔ': { class: 'vowel', height: 'mid' },
+  'ɑ': { class: 'vowel', height: 'open' },
+  
+  // PLOSIVES (Stops) - NO airflow during closure, burst on release
+  'p': { class: 'plosive', voiced: false },
+  'b': { class: 'plosive', voiced: true },
+  't': { class: 'plosive', voiced: false },
+  'd': { class: 'plosive', voiced: true },
+  'k': { class: 'plosive', voiced: false },
+  'g': { class: 'plosive', voiced: true },
+  
+  // FRICATIVES - Sustained turbulent flow
+  'f': { class: 'fricative', voiced: false },
+  'v': { class: 'fricative', voiced: true },
+  's': { class: 'fricative', voiced: false },
+  'z': { class: 'fricative', voiced: true },
+  'sh': { class: 'fricative', voiced: false },
+  'ʃ': { class: 'fricative', voiced: false },
+  'ʒ': { class: 'fricative', voiced: true },
+  'th': { class: 'fricative', voiced: false },
+  'θ': { class: 'fricative', voiced: false },
+  'ð': { class: 'fricative', voiced: true },
+  'h': { class: 'fricative', voiced: false },
+  
+  // NASALS - Flow through NOSE only, NOT mouth
+  'm': { class: 'nasal' },
+  'n': { class: 'nasal' },
+  'ng': { class: 'nasal' },
+  'ŋ': { class: 'nasal' },
+  
+  // APPROXIMANTS & LATERALS - Low oral flow
+  'l': { class: 'approximant' },
+  'r': { class: 'approximant' },
+  'w': { class: 'approximant' },
+  'y': { class: 'approximant' },
+  'j': { class: 'approximant' },
+  
+  // AFFRICATES - Burst + sustained
+  'ch': { class: 'affricate', voiced: false },
+  'tʃ': { class: 'affricate', voiced: false },
+  'dʒ': { class: 'affricate', voiced: true },
+};
+
+// =============================================================================
+// AIRFLOW CONFIGURATION BY CLASS
+// =============================================================================
+
+function getAirflowConfig(phonemeSymbol, isRelease = false) {
+  const info = PHONEME_CLASSES[phonemeSymbol?.toLowerCase()] || PHONEME_CLASSES[phonemeSymbol];
+  
+  if (!info) {
+    // Fallback: low oral airflow, log internally
+    console.log(`[Airflow] Unknown phoneme "${phonemeSymbol}" - defaulting to low oral`);
+    return { oral: 0.2, nasal: 0, turbulent: false, burst: false };
+  }
+  
+  switch (info.class) {
+    case 'vowel':
+      // Vowels: Oral ON, Nasal OFF, continuous smooth flow
+      // Intensity scales with mouth openness
+      const vowelIntensity = {
+        'close': 0.3,   // /i u/
+        'mid': 0.5,     // /e o/
+        'open': 0.8,    // /a/
+      }[info.height] || 0.5;
+      return { oral: vowelIntensity, nasal: 0, turbulent: false, burst: false };
+      
+    case 'plosive':
+      // Plosives: NO airflow during closure, burst on release only
+      if (isRelease) {
+        return { 
+          oral: info.voiced ? 0.4 : 0.7, 
+          nasal: 0, 
+          turbulent: !info.voiced, 
+          burst: true 
+        };
+      }
+      // During closure: NO AIRFLOW
+      return { oral: 0, nasal: 0, turbulent: false, burst: false };
+      
+    case 'fricative':
+      // Fricatives: High oral, continuous, turbulent
+      return { 
+        oral: info.voiced ? 0.5 : 0.8, 
+        nasal: 0, 
+        turbulent: true, 
+        burst: false 
+      };
+      
+    case 'nasal':
+      // Nasals: Nasal ON, Oral OFF (flow through nose only!)
+      return { oral: 0, nasal: 0.7, turbulent: false, burst: false };
+      
+    case 'approximant':
+      // Approximants: Low oral flow
+      return { oral: 0.25, nasal: 0, turbulent: false, burst: false };
+      
+    case 'affricate':
+      // Affricates: Burst + sustained turbulent
+      return { 
+        oral: info.voiced ? 0.5 : 0.7, 
+        nasal: 0, 
+        turbulent: true, 
+        burst: isRelease 
+      };
+      
+    default:
+      return { oral: 0.2, nasal: 0, turbulent: false, burst: false };
+  }
+}
+
+// =============================================================================
+// DRAWING FUNCTIONS
+// =============================================================================
+
+/**
+ * Draw oral airflow ribbons from mouth
+ */
+function drawOralAirflow(ctx, x, y, intensity, turbulent, phase) {
+  if (intensity <= 0) return;
+  
+  const ribbonCount = Math.max(2, Math.floor(intensity * 4));
+  const maxLength = 40 + intensity * 50;
+  const baseWidth = 2 + intensity * 3;
+  
+  for (let r = 0; r < ribbonCount; r++) {
+    const spread = (r - (ribbonCount - 1) / 2) * (5 + intensity * 8);
+    const ribbonPhase = (phase + r * 0.15) % 1;
+    
+    ctx.beginPath();
+    ctx.strokeStyle = `rgba(80, 180, 255, ${0.4 + intensity * 0.4})`;
+    ctx.lineWidth = baseWidth * (1 - ribbonPhase * 0.4);
+    ctx.lineCap = 'round';
+    
+    const sx = x;
+    const sy = y + spread;
+    
+    // Add turbulence jitter for fricatives
+    let jitterY = 0;
+    if (turbulent) {
+      jitterY = Math.sin(phase * Math.PI * 8 + r * 3) * (3 + intensity * 5);
+    }
+    
+    const endX = sx + maxLength * (0.4 + ribbonPhase * 0.6);
+    ctx.moveTo(sx, sy);
+    ctx.quadraticCurveTo(
+      sx + maxLength * 0.4, sy + jitterY,
+      endX, sy + jitterY * 0.5 + spread * 0.2
+    );
+    ctx.stroke();
+  }
+}
+
+/**
+ * Draw nasal airflow from nostrils
+ */
+function drawNasalAirflow(ctx, x, y, intensity, phase) {
+  if (intensity <= 0) return;
+  
+  // Draw from both nostrils
+  for (let nostril = -1; nostril <= 1; nostril += 2) {
+    const offsetX = nostril * 8;
+    
+    for (let r = 0; r < 2; r++) {
+      const ribbonPhase = (phase + r * 0.2) % 1;
+      
+      ctx.beginPath();
+      ctx.strokeStyle = `rgba(100, 200, 255, ${0.3 + intensity * 0.4})`;
+      ctx.lineWidth = 1.5 + intensity;
+      ctx.lineCap = 'round';
+      
+      const sx = x + offsetX;
+      const sy = y;
+      const len = 20 + intensity * 25;
+      
+      // Nasal flow goes outward and slightly down
+      ctx.moveTo(sx, sy);
+      ctx.quadraticCurveTo(
+        sx + len * 0.3 * nostril, sy - len * 0.3,
+        sx + len * 0.5 * nostril * ribbonPhase, sy - len * ribbonPhase
+      );
+      ctx.stroke();
+    }
+  }
+}
+
+/**
+ * Draw burst effect for plosives on release
+ */
+function drawBurst(ctx, x, y, intensity, phase) {
+  if (phase > 0.3) return; // Burst is short-lived
+  
+  const burstPhase = phase / 0.3;
+  const radius = 8 + burstPhase * 30 * intensity;
+  const opacity = (1 - burstPhase) * 0.5 * intensity;
+  
+  ctx.beginPath();
+  ctx.strokeStyle = `rgba(150, 220, 255, ${opacity})`;
+  ctx.lineWidth = 2;
+  ctx.arc(x + 15, y, radius, -Math.PI * 0.4, Math.PI * 0.4);
+  ctx.stroke();
+}
+
+/**
+ * Draw breathing animation during neutral frame
+ */
+function drawBreathing(ctx, noseX, noseY, phase, isInhale) {
+  const direction = isInhale ? -1 : 1;
+  const intensity = 0.3 + Math.sin(phase * Math.PI) * 0.2;
+  
+  for (let nostril = -1; nostril <= 1; nostril += 2) {
+    const offsetX = nostril * 8;
+    
+    ctx.beginPath();
+    ctx.strokeStyle = `rgba(100, 180, 255, ${intensity * 0.6})`;
+    ctx.lineWidth = 1.2;
+    ctx.lineCap = 'round';
+    
+    const sx = noseX + offsetX;
+    const sy = noseY;
+    const len = 12 + phase * 8;
+    
+    ctx.moveTo(sx, sy);
+    ctx.quadraticCurveTo(
+      sx + len * 0.2 * nostril, sy + direction * len * 0.3,
+      sx + len * 0.3 * nostril, sy + direction * len
+    );
+    ctx.stroke();
+  }
+}
+
+// =============================================================================
+// REACT COMPONENT
+// =============================================================================
+
+const AirflowAnimation = ({
+  currentFrame = 0,
+  phonemeSymbol = null,
+  isPlaying = false,
+  isLastFrameOfPhoneme = false, // For burst timing on plosive release
+  enabled = true,
+}) => {
+  const canvasRef = useRef(null);
+  const containerRef = useRef(null);
+  const animFrameRef = useRef(null);
+  const phaseRef = useRef(0);
+  const breathPhaseRef = useRef(0);
+  const [dimensions, setDimensions] = useState({ width: 300, height: 300 });
+  
+  // Observe container size
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    
+    const updateDimensions = () => {
+      const rect = container.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        setDimensions({ width: rect.width, height: rect.height });
+      }
+    };
+    
+    updateDimensions();
+    const resizeObserver = new ResizeObserver(updateDimensions);
+    resizeObserver.observe(container);
+    return () => resizeObserver.disconnect();
+  }, []);
+  
+  const { width, height } = dimensions;
+  
+  // Positions for mouth and nose on side-view sprite
+  // These need calibration to your actual sprite
+  const mouthPos = { x: width * 0.25, y: height * 0.60 };
+  const nosePos = { x: width * 0.28, y: height * 0.40 };
+  
+  const renderFrame = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, width, height);
+    
+    if (!enabled) return;
+    
+    // Update animation phase
+    phaseRef.current = (phaseRef.current + 0.03) % 1;
+    const phase = phaseRef.current;
+    
+    // Check if neutral frame (side_00) and not playing
+    const isNeutral = currentFrame === 0 && !isPlaying;
+    
+    if (isNeutral) {
+      // BREATHING MODE - only during neutral frame when not playing
+      breathPhaseRef.current = (breathPhaseRef.current + 0.008) % 1;
+      const bp = breathPhaseRef.current;
+      
+      // Inhale for first half, exhale for second half
+      const isInhale = bp < 0.5;
+      const breathProgress = isInhale ? bp / 0.5 : (bp - 0.5) / 0.5;
+      
+      drawBreathing(ctx, nosePos.x, nosePos.y, breathProgress, isInhale);
+      
+    } else if (isPlaying && phonemeSymbol) {
+      // PHONEME-DRIVEN AIRFLOW
+      const isRelease = isLastFrameOfPhoneme;
+      const airflow = getAirflowConfig(phonemeSymbol, isRelease);
+      
+      // Draw oral airflow (if any)
+      if (airflow.oral > 0) {
+        drawOralAirflow(ctx, mouthPos.x, mouthPos.y, airflow.oral, airflow.turbulent, phase);
+      }
+      
+      // Draw nasal airflow (for nasals only)
+      if (airflow.nasal > 0) {
+        drawNasalAirflow(ctx, nosePos.x, nosePos.y, airflow.nasal, phase);
+      }
+      
+      // Draw burst (for plosives on release)
+      if (airflow.burst) {
+        drawBurst(ctx, mouthPos.x, mouthPos.y, airflow.oral, phase);
+      }
+    }
+    
+    animFrameRef.current = requestAnimationFrame(renderFrame);
+  }, [width, height, enabled, currentFrame, isPlaying, phonemeSymbol, isLastFrameOfPhoneme, mouthPos.x, mouthPos.y, nosePos.x, nosePos.y]);
+  
+  useEffect(() => {
+    if (enabled) {
+      animFrameRef.current = requestAnimationFrame(renderFrame);
+    }
+    return () => {
+      if (animFrameRef.current) {
+        cancelAnimationFrame(animFrameRef.current);
+      }
+    };
+  }, [enabled, renderFrame]);
+  
+  if (!enabled) return null;
+  
+  return (
+    <div
+      ref={containerRef}
+      className="absolute inset-0 pointer-events-none"
+      style={{ zIndex: 15 }}
+      data-testid="airflow-animation-container"
+    >
+      <canvas
+        ref={canvasRef}
+        width={width}
+        height={height}
+        className="w-full h-full"
+        data-testid="airflow-animation-canvas"
+      />
+    </div>
+  );
+};
+
+export default AirflowAnimation;
