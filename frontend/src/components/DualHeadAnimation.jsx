@@ -151,41 +151,9 @@ export const DualHeadAnimation = forwardRef(({
           setPhoneticDisplay(letterPhonetic);
           fetchLetterAudio(target);
           
-          // Store frame timings for airflow animation (same as word mode)
+          // Store frame timings for airflow animation
           if (result.animationData?.frameTimings) {
             setFrameTimings(result.animationData.frameTimings);
-          } else if (result.phonemeAnalysis?.ipaSequence) {
-            // Build frame timings from phoneme analysis for letter mode
-            const leadInFrames = 4;
-            const leadOutFrames = 6;
-            const timings = [];
-            
-            // Lead-in frames
-            for (let i = 0; i < leadInFrames; i++) {
-              timings.push({ frame: 0, symbol: null, type: 'lead-in' });
-            }
-            
-            // Phoneme frames
-            for (const phoneme of result.phonemeAnalysis.ipaSequence) {
-              const duration = phoneme.endMs - phoneme.startMs;
-              const cloneCount = Math.max(1, Math.round(duration / 30));
-              for (let i = 0; i < cloneCount; i++) {
-                timings.push({
-                  frame: result.frames?.[leadInFrames + timings.length - leadInFrames] || 0,
-                  symbol: phoneme.symbol,
-                  type: 'phoneme',
-                  isFirst: i === 0,
-                  isLast: i === cloneCount - 1,
-                });
-              }
-            }
-            
-            // Lead-out frames
-            for (let i = 0; i < leadOutFrames; i++) {
-              timings.push({ frame: 0, symbol: null, type: 'lead-out' });
-            }
-            
-            setFrameTimings(timings);
           }
         } else {
           // Word practice - use readable phonetic display (BASE44 style)
