@@ -345,14 +345,6 @@ const AirflowAnimation = ({
     
     if (!enabled) return;
     
-    // ALWAYS draw a visible indicator when airflow is enabled
-    ctx.fillStyle = 'rgba(0, 255, 0, 0.9)';
-    ctx.fillRect(10, 10, 50, 50);
-    ctx.fillStyle = 'black';
-    ctx.font = 'bold 12px Arial';
-    ctx.fillText('AIR ON', 15, 40);
-    ctx.fillText(`${width}x${height}`, 15, 55);
-    
     // Update animation phase
     phaseRef.current = (phaseRef.current + 0.03) % 1;
     const phase = phaseRef.current;
