@@ -49,6 +49,13 @@ Provide accurate, understandable, and immediate feedback on pronunciation across
 - Phoneme-driven: vowels=oral continuous, nasals=nasal flow, plosives=burst, fricatives=turbulent
 - Toggle via Wind icon button, status bar shows "Airflow: On"
 - Blue/cyan ribbons, breathing during neutral frames
+- **Bug Fix (Feb 15, 2026):** Airflow now visible - ResizeObserver for responsive canvas sizing, increased color opacity
+
+### P0 - Phoneme-to-Frame Mapping Fix (COMPLETED - Feb 15, 2026)
+- Fixed 'u' (normalized from 'oo') now maps to Frame 5 (rounded vowel oo_o_ou_w)
+- Previously 'u' mapped to Frame 1 (open vowel a_u) - incorrect for "oo" sound
+- Word "Food" now correctly shows: Frame 14 (f) → Frame 5 (oo) → Frame 7 (d)
+- Test verified: `iteration_14.json` - 100% frontend tests passed
 
 ### Previously Completed
 - Dual head animation (front + side view) with phoneme-driven timing
