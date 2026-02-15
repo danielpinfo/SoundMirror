@@ -1,0 +1,109 @@
+{
+  "summary": "P0 Bug Fix Verification COMPLETE - Both bugs confirmed FIXED: 1) Airflow animation now visible with blue lines on side view, 2) Frame 5 (oo_o_ou_w) correctly appears during 'oo' sound for word 'Food'",
+
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+
+  "passed_tests": [
+    {
+      "test": "P0 Bug #1: Airflow animation visibility",
+      "expected": "Blue airflow lines visible from mouth/nose on side view when enabled",
+      "actual": "Blue airflow ribbons clearly visible on side view during animation (Canvas: nonTransparentPixels=231, hasContent=true)",
+      "result": "PASS"
+    },
+    {
+      "test": "P0 Bug #2: Frame 5 (oo_o_ou_w) for 'oo' sound in 'Food'",
+      "expected": "Frame 5 appears during 'oo' phoneme, Current Sound shows 'oo'",
+      "actual": "Frame: 5 displayed during 'oo', CURRENT SOUND: 'oo' shown correctly",
+      "result": "PASS"
+    },
+    {
+      "test": "Phonetic display for 'Food'",
+      "expected": "SOUNDS section shows 'f oo d'",
+      "actual": "SOUNDS: 'f oo d' displayed correctly",
+      "result": "PASS"
+    },
+    {
+      "test": "Phoneme normalization for 'oo'",
+      "expected": "'Food' → ['f', 'u', 'd'] and 'u' maps to Frame 5",
+      "actual": "Console shows [PhonemeNormalization] 'Food' → ['f', 'u', 'd'], Frame 5 used",
+      "result": "PASS"
+    },
+    {
+      "test": "Airflow toggle button functionality",
+      "expected": "Wind icon button enables/disables airflow overlay",
+      "actual": "Toggle button works, status shows 'Airflow: On' when enabled",
+      "result": "PASS"
+    },
+    {
+      "test": "Airflow canvas overlay exists and renders",
+      "expected": "Canvas element present with visible content",
+      "actual": "Canvas visible (width=300, height=300), has content when animation plays",
+      "result": "PASS"
+    },
+    {
+      "test": "Animation frame sequence for 'Food'",
+      "expected": "Frames 0→14→5→7→0 (neutral→f→oo→d→neutral)",
+      "actual": "Frames seen: ['0', '14', '5', '7'] - correct sequence",
+      "result": "PASS"
+    },
+    {
+      "test": "Current Sound display during animation",
+      "expected": "Shows 'f', 'oo', 'd' during respective phonemes",
+      "actual": "Sounds seen: ['neutral', 'f', 'oo', 'd'] - correct",
+      "result": "PASS"
+    }
+  ],
+
+  "bugs_fixed": {
+    "P0_airflow_animation": {
+      "original_issue": "Airflow animation not visible at all",
+      "root_cause": "Canvas sizing issue - was not responsive to container size",
+      "fix_applied": "AirflowOverlay now uses ResizeObserver for responsive canvas sizing, increased color opacity, and proper container ref",
+      "verification": "Blue airflow lines now clearly visible on side view during animation playback",
+      "status": "FIXED"
+    },
+    "P0_oo_frame_mapping": {
+      "original_issue": "Incorrect 'oo' sprite showing for word 'food' - was showing Frame 1 instead of Frame 5",
+      "root_cause": "PHONEME_FRAME_MAP mapped 'u' (normalized from 'oo') to Frame 1 instead of Frame 5",
+      "fix_applied": "PHONEME_FRAME_MAP now maps 'u' to frame 5 (rounded vowel) - line 88 in constants.js",
+      "verification": "Frame 5 (oo_o_ou_w rounded vowel) appears during 'oo' sound, Current Sound shows 'oo'",
+      "status": "FIXED"
+    }
+  },
+
+  "test_report_links": [
+    "/app/test_reports/iteration_14.json"
+  ],
+
+  "action_items": [],
+
+  "critical_code_review_comments": [
+    "AirflowOverlay ResizeObserver correctly updates canvas dimensions when container resizes",
+    "PHONEME_FRAME_MAP 'u': 5 mapping correctly routes normalized 'oo' to rounded vowel frame",
+    "phonemeAnalysis.js 'oo' → 'u' normalization working correctly",
+    "Canvas rendering confirmed with nonTransparentPixels > 0 during animation"
+  ],
+
+  "updated_files": [],
+
+  "success_rate": {
+    "backend": "N/A - frontend only testing",
+    "frontend": "100% (8/8 tests passed)"
+  },
+
+  "seed_data_creation": "None",
+
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+
+  "context_for_next_testing_agent": "P0 bugs verified FIXED: 1) Airflow animation shows blue lines on side view (ResizeObserver + opacity fix), 2) Frame 5 appears for 'oo' sound in 'Food' (PHONEME_FRAME_MAP['u']=5 fix). Both features working correctly. Animation shows correct frame sequence 0→14→5→7 for 'Food' = neutral→f→oo→d."
+}
