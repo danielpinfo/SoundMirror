@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef, forwardRef, useImperat
 import { SPRITE_URLS, getFrameForPhoneme } from '../lib/constants';
 import { transliterateLetter, transliterate } from '../lib/phonemeRules';
 import { analyzePhonemes, toAnimationSequence } from '../lib/phonemeAnalysis';
-import { textToPhonetic, getLetterPhonetic, ipaSequenceToReadable, getFrameSoundName } from '../lib/phoneticDisplay';
+import { textToPhonetic, getLetterPhonetic, ipaSequenceToReadable, ipaToReadable, getFrameSoundName } from '../lib/phoneticDisplay';
 import { getLetterAudio } from '../lib/audio';
 import { useLanguage } from '../context/LanguageContext';
 import { Slider } from '../components/ui/slider';
