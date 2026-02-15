@@ -2,14 +2,14 @@
 const LOCAL_SPRITE_BASE = '/assets/heads';
 
 // New animation frame naming (Feb 14, 2026):
-// front_00_neutral, front_01_a_u, front_02_e, front_03_ee_z_x, front_04_ue,
+// front_00_at_rest, front_01_a_u, front_02_e, front_03_ee_z_x, front_04_ue,
 // front_05_oo_o_ou_w, front_06_c_k_q_g, front_07_t_tsk_d_j, front_08_b_p_m,
 // front_09_n, front_10_ng, front_11_s, front_12_sh, front_13_th, front_14_f_v,
 // front_15_ch, front_16_h, front_17_r, front_18_L, front_19_LL_y
 
 export const SPRITE_URLS = {
   front: {
-    0: `${LOCAL_SPRITE_BASE}/front/front_00_neutral.png`,     // neutral
+    0: `${LOCAL_SPRITE_BASE}/front/front_00_at_rest.png`,     // at rest
     1: `${LOCAL_SPRITE_BASE}/front/front_01_a_u.png`,         // a, u
     2: `${LOCAL_SPRITE_BASE}/front/front_02_e.png`,           // e
     3: `${LOCAL_SPRITE_BASE}/front/front_03_ee_z_x.png`,      // ee, z, x
@@ -31,7 +31,7 @@ export const SPRITE_URLS = {
     19: `${LOCAL_SPRITE_BASE}/front/front_19_LL_y.png`,       // LL, y
   },
   side: {
-    0: `${LOCAL_SPRITE_BASE}/side/side_00_neutral.png`,       // neutral
+    0: `${LOCAL_SPRITE_BASE}/side/side_00_at_rest.png`,       // at rest
     1: `${LOCAL_SPRITE_BASE}/side/side_01_a_u.png`,           // a, u
     2: `${LOCAL_SPRITE_BASE}/side/side_02_e.png`,             // e
     3: `${LOCAL_SPRITE_BASE}/side/side_03_ee_z_x.png`,        // ee, z, x
@@ -105,8 +105,8 @@ export const PHONEME_FRAME_MAP = {
   'l': 18,                                 // frame 18: L
   'll': 19, 'y': 19,                      // frame 19: LL_y
   
-  // Neutral/default
-  '': 0, 'neutral': 0, 'silence': 0, ' ': 0, 'rest': 0,
+  // At rest/default
+  '': 0, 'neutral': 0, 'at_rest': 0, 'silence': 0, ' ': 0, 'rest': 0,
 };
 
 // UNIVERSAL VISEME FALLBACK MAP
