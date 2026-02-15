@@ -210,25 +210,25 @@ function drawNasalAirflow(ctx, x, y, intensity, phase) {
   
   // Draw from both nostrils
   for (let nostril = -1; nostril <= 1; nostril += 2) {
-    const offsetX = nostril * 8;
+    const offsetX = nostril * 6;
     
-    for (let r = 0; r < 2; r++) {
+    for (let r = 0; r < 3; r++) {
       const ribbonPhase = (phase + r * 0.2) % 1;
       
       ctx.beginPath();
-      ctx.strokeStyle = `rgba(100, 200, 255, ${0.3 + intensity * 0.4})`;
-      ctx.lineWidth = 1.5 + intensity;
+      ctx.strokeStyle = `rgba(0, 220, 255, ${0.5 + intensity * 0.4})`;
+      ctx.lineWidth = 2 + intensity * 1.5;
       ctx.lineCap = 'round';
       
       const sx = x + offsetX;
       const sy = y;
-      const len = 20 + intensity * 25;
+      const len = 25 + intensity * 30;
       
-      // Nasal flow goes outward and slightly down
+      // Nasal flow goes outward and slightly down/forward
       ctx.moveTo(sx, sy);
       ctx.quadraticCurveTo(
-        sx + len * 0.3 * nostril, sy - len * 0.3,
-        sx + len * 0.5 * nostril * ribbonPhase, sy - len * ribbonPhase
+        sx + len * 0.4, sy - len * 0.2,
+        sx + len * 0.6 * ribbonPhase, sy - len * 0.3 * ribbonPhase
       );
       ctx.stroke();
     }
