@@ -451,7 +451,17 @@ export const DualHeadAnimation = forwardRef(({
               style={{ transform: 'scale(1.125)', transformOrigin: 'center center' }}
               data-testid="side-view-image"
             />
-            {/* Airflow feature removed - was not working correctly */}
+            {/* Airflow Animation - phoneme-driven, language-agnostic */}
+            <AirflowAnimation
+              currentFrame={currentFrame}
+              phonemeSymbol={frameTimings[currentIndex]?.symbol || null}
+              isPlaying={isPlaying}
+              isLastFrameOfPhoneme={
+                currentIndex < frameTimings.length - 1 && 
+                frameTimings[currentIndex]?.symbol !== frameTimings[currentIndex + 1]?.symbol
+              }
+              enabled={airflowEnabled}
+            />
           </div>
           <div className="absolute bottom-2 right-2 px-2 py-1 bg-black/50 text-white text-xs rounded">
             Frame: {currentFrame}
