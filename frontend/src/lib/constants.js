@@ -137,12 +137,12 @@ export const VISEME_FALLBACK_MAP = {
   'ŋ': 'ng',      // IPA ng → ng viseme
   
   // IPA vowels → basic vowel visemes
-  'ɪ': 'i',       // near-close front → i
+  'ɪ': 'i',       // near-close front → i (ee shape)
   'ɛ': 'e',       // open-mid front → e
   'æ': 'a',       // near-open front → a
-  'ə': 'a',       // schwa → a (neutral)
-  'ʌ': 'a',       // open-mid back → a
-  'ʊ': 'u',       // near-close back → u
+  'ə': 'uh',      // schwa → open/neutral (uh)
+  'ʌ': 'uh',      // open-mid back → open/neutral (uh, as in "cup")
+  'ʊ': 'oo',      // near-close back rounded → oo (rounded)
   'ɔ': 'o',       // open-mid back → o
   'ɑ': 'a',       // open back → a
   
