@@ -261,9 +261,9 @@ button, a, input, select, textarea {
   }
 }
 
-/* Keyboard button styles - Cobalt Theme */
+/* Keyboard button styles - Cobalt Theme (Compact) */
 .keyboard-key {
-  @apply flex items-center justify-center min-w-[40px] h-12 px-3 rounded-lg font-semibold cursor-pointer select-none;
+  @apply flex items-center justify-center min-w-[32px] h-9 px-2 rounded-md font-semibold cursor-pointer select-none text-sm;
   background: rgba(30, 73, 118, 0.6);
   border: 1px solid rgba(59, 130, 246, 0.3);
   color: #93c5fd;
