@@ -201,10 +201,15 @@ export async function analyzePhonemes(text, language = 'english', audioBlob = nu
   }
   
   // FALLBACK: Text-based phoneme analysis (when no audioBlob or detection failed)
-  // Step 1: Transliterate non-Latin scripts
-  const romanized = transliterate(text, language);
+  // Step 1: Convert text to phonetic using the WORD_PHONETICS dictionary
+  // This ensures "please" → "pleez", "food" → "food", etc.
+  const phonetic = textToPhonetic(text, language);
+  console.log('[analyzePhonemes] Text → Phonetic:', text, '→', phonetic);
   
-  // Step 2: Parse into phoneme symbols
+  // Step 2: Transliterate non-Latin scripts (if any)
+  const romanized = transliterate(phonetic, language);
+  
+  // Step 3: Parse into phoneme symbols
   const phonemeSymbols = parseToPhonemeSymbols(romanized, language);
   
   // Step 3: Build ipaSequence with LOCKED CONTRACT structure
