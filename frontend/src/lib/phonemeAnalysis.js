@@ -241,7 +241,7 @@ export async function analyzePhonemes(text, language = 'english', audioBlob = nu
   
   // Console log for debugging — shows ipaSequence objects
   console.log('[analyzePhonemes] Text-based analysis:');
-  console.log('[analyzePhonemes] Input:', text, '→ Romanized:', romanized);
+  console.log('[analyzePhonemes] Input:', text, '→ Phonetic:', phonetic, '→ Romanized:', romanized);
   console.log('[analyzePhonemes] ipaSequence:', ipaSequence);
   console.log('[analyzePhonemes] durationMs:', currentMs);
   
