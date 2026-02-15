@@ -323,7 +323,8 @@ const AirflowOverlay = ({
   }, [width, height, enabled, isPlaying, isNeutral, phonemeSymbol, phonemeFeatures, animationPhase, mouthPos.x, mouthPos.y, nosePos.x, nosePos.y]);
 
   useEffect(() => {
-    if (enabled && (isPlaying || isNeutral || animationPhase !== 'idle')) {
+    // Always run animation loop when enabled - breathing during idle, phoneme flow during play
+    if (enabled) {
       animFrameRef.current = requestAnimationFrame(renderFrame);
     }
 
@@ -332,15 +333,15 @@ const AirflowOverlay = ({
         cancelAnimationFrame(animFrameRef.current);
       }
     };
-  }, [enabled, isPlaying, isNeutral, animationPhase, renderFrame]);
+  }, [enabled, renderFrame]);
 
   if (!enabled) return null;
 
   return (
     <div 
       ref={containerRef}
-      className="absolute inset-0 pointer-events-none"
-      style={{ zIndex: 10 }}
+      className="absolute inset-0 pointer-events-none overflow-visible"
+      style={{ zIndex: 20 }}
       data-testid="airflow-overlay-container"
     >
       <canvas
@@ -348,6 +349,13 @@ const AirflowOverlay = ({
         width={width}
         height={height}
         className="w-full h-full"
+        style={{ 
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%'
+        }}
         data-testid="airflow-overlay-canvas"
       />
     </div>
