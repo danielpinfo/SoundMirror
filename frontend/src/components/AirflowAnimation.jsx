@@ -351,7 +351,17 @@ const AirflowAnimation = ({
   const animFrameRef = useRef(null);
   const phaseRef = useRef(0);
   const breathTimeRef = useRef(Date.now());
+  const wasPlayingRef = useRef(false);  // Track previous playing state
   const [dimensions, setDimensions] = useState({ width: 300, height: 300 });
+  
+  // Reset breath cycle to start with INHALE when transitioning from speaking to idle
+  useEffect(() => {
+    if (wasPlayingRef.current && !isPlaying) {
+      // Just finished speaking - reset breath timer to start at inhale
+      breathTimeRef.current = Date.now();
+    }
+    wasPlayingRef.current = isPlaying;
+  }, [isPlaying]);
   
   useEffect(() => {
     const container = containerRef.current;
