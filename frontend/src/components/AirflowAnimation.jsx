@@ -406,7 +406,7 @@ const AirflowAnimation = ({
     <div
       ref={containerRef}
       className="absolute inset-0 pointer-events-none"
-      style={{ zIndex: 15 }}
+      style={{ zIndex: 50 }}
       data-testid="airflow-animation-container"
     >
       <canvas
@@ -414,6 +414,7 @@ const AirflowAnimation = ({
         width={width}
         height={height}
         className="w-full h-full"
+        style={{ position: 'absolute', top: 0, left: 0 }}
         data-testid="airflow-animation-canvas"
       />
     </div>
