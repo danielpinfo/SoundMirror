@@ -18,15 +18,15 @@ export const AlphabetKeyboard = ({
 
   return (
     <div 
-      className={`p-4 bg-cobalt-surface rounded-2xl border border-blue-500/20 ${className}`}
+      className={`p-2 bg-cobalt-surface rounded-xl border border-blue-500/20 ${className}`}
       data-testid="alphabet-keyboard"
     >
-      <div className="flex flex-wrap gap-2 justify-center">
+      <div className="flex flex-wrap gap-1.5 justify-center">
         {alphabet.map((key, index) => (
           <button
             key={`${key}-${index}`}
             onClick={() => handleKeyClick(key)}
-            className={`keyboard-key text-lg ${selectedKey === key ? 'active' : ''}`}
+            className={`keyboard-key text-sm px-2 py-1 ${selectedKey === key ? 'active' : ''}`}
             data-testid={`keyboard-key-${key}`}
           >
             {key}
