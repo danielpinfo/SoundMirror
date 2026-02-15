@@ -28,6 +28,7 @@ import { transliterate } from './phonemeRules';
 import { resolveViseme, getFrameForPhoneme, PHONEME_FRAME_MAP } from './constants';
 import { extractPcmFromAudioBlob } from './audioPcmUtils';
 import { detectPhonemesNative } from './nativeDetectionBridge';
+import { textToPhonetic } from './phoneticDisplay';
 
 // =============================================================================
 // HYBRID DETECTION MODE FLAG
