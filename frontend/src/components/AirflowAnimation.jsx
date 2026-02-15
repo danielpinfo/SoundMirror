@@ -298,23 +298,31 @@ const AirflowAnimation = ({
   const breathPhaseRef = useRef(0);
   const [dimensions, setDimensions] = useState({ width: 300, height: 300 });
   
-  // Observe container size
+  // Observe container size - with retry logic for initial render
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
     
     const updateDimensions = () => {
       const rect = container.getBoundingClientRect();
+      console.log('[Airflow] Container rect:', rect.width, rect.height);
       if (rect.width > 0 && rect.height > 0) {
-        setDimensions({ width: rect.width, height: rect.height });
+        setDimensions({ width: Math.floor(rect.width), height: Math.floor(rect.height) });
       }
     };
     
-    updateDimensions();
+    // Initial update with small delay to ensure layout is complete
+    const timeoutId = setTimeout(updateDimensions, 100);
+    
+    // Also observe for changes
     const resizeObserver = new ResizeObserver(updateDimensions);
     resizeObserver.observe(container);
-    return () => resizeObserver.disconnect();
-  }, []);
+    
+    return () => {
+      clearTimeout(timeoutId);
+      resizeObserver.disconnect();
+    };
+  }, [enabled]); // Re-run when enabled changes
   
   const { width, height } = dimensions;
   
