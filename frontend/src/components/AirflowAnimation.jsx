@@ -306,9 +306,11 @@ const AirflowAnimation = ({
   const { width, height } = dimensions;
   
   // Positions for mouth and nose on side-view sprite
-  // These need calibration to your actual sprite
-  const mouthPos = { x: width * 0.25, y: height * 0.60 };
-  const nosePos = { x: width * 0.28, y: height * 0.40 };
+  // Calibrated for the SoundMirror side-view head sprite
+  // Mouth is approximately 25% from left, 58% from top
+  // Nose is approximately 22% from left, 38% from top
+  const mouthPos = { x: width * 0.22, y: height * 0.58 };
+  const nosePos = { x: width * 0.20, y: height * 0.38 };
   
   const renderFrame = useCallback(() => {
     const canvas = canvasRef.current;
