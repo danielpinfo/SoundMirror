@@ -645,6 +645,156 @@ function applyPatternRules(word) {
 }
 
 /**
+ * Language-specific phonetic rendering.
+ * For non-English Latin languages, vowels are already more pure —
+ * these just need basic romanization/clarification.
+ * For non-Latin scripts (Japanese, Chinese, Hindi, Arabic),
+ * we use romanization.
+ */
+const LANGUAGE_PHONETICS = {
+  spanish: {
+    "hola": "oh-lah",
+    "sí": "see",
+    "no": "noh",
+    "agua": "ah-goo-ah",
+    "comida": "koh-mee-dah",
+    "bien": "bee-en",
+    "ayuda": "ah-yoo-dah",
+    "gracias": "grah-see-ahs",
+    "muchas gracias": "moo-chahs grah-see-ahs",
+    "estoy bien": "ehs-toy bee-en",
+    "buenos días": "boo-eh-nohs dee-ahs",
+    "cómo estás": "koh-moh ehs-tahs",
+    "mucho gusto": "moo-choh goos-toh",
+    "hasta luego": "ahs-tah loo-eh-goh",
+    "por favor": "pohr fah-vohr",
+    "amigo": "ah-mee-goh",
+  },
+  italian: {
+    "ciao": "chah-oh",
+    "sì": "see",
+    "no": "noh",
+    "acqua": "ah-kwah",
+    "cibo": "chee-boh",
+    "bene": "beh-neh",
+    "aiuto": "ah-yoo-toh",
+    "grazie": "grah-tsee-eh",
+    "molte grazie": "mohl-teh grah-tsee-eh",
+    "sto bene": "stoh beh-neh",
+    "buon giorno": "boo-ohn johr-noh",
+    "come stai": "koh-meh stah-ee",
+    "piacere di conoscerti": "pee-ah-cheh-reh dee koh-noh-shehr-tee",
+    "a dopo": "ah doh-poh",
+  },
+  portuguese: {
+    "olá": "oh-lah",
+    "sim": "seem",
+    "não": "now",
+    "água": "ah-gwah",
+    "comida": "koh-mee-dah",
+    "bem": "beng",
+    "ajuda": "ah-zhoo-dah",
+    "obrigado": "oh-bree-gah-doh",
+    "muito obrigado": "moo-ee-toh oh-bree-gah-doh",
+    "estou bem": "ehs-toh beng",
+    "bom dia": "bong dee-ah",
+    "como vai": "koh-moh vah-ee",
+  },
+  german: {
+    "hallo": "hah-loh",
+    "ja": "yah",
+    "nein": "na-een",
+    "wasser": "vah-ser",
+    "essen": "ehs-sen",
+    "gut": "goot",
+    "hilfe": "hil-feh",
+    "danke": "dahn-keh",
+    "vielen dank": "fee-len dahnk",
+    "mir geht es gut": "meer geht ehs goot",
+    "guten morgen": "goo-ten mohr-gen",
+    "wie geht es dir": "vee geht ehs deer",
+    "freut mich": "froyt meekh",
+    "bis später": "bis shpeh-ter",
+    "bitte": "bi-teh",
+  },
+  french: {
+    "bonjour": "bon-zhoor",
+    "oui": "oo-ee",
+    "non": "non",
+    "eau": "oh",
+    "nourriture": "noo-ree-toor",
+    "bien": "bee-en",
+    "aide": "ehd",
+    "merci": "mehr-see",
+    "merci beaucoup": "mehr-see boh-koo",
+    "je vais bien": "zhuh veh bee-en",
+    "comment allez-vous": "koh-mon ah-leh-voo",
+    "enchanté": "on-shon-teh",
+    "à plus tard": "ah ploo tahr",
+  },
+  japanese: {
+    "こんにちは": "kon-nee-chee-wah",
+    "はい": "hah-ee",
+    "いいえ": "ee-ee-eh",
+    "水": "mee-zoo",
+    "食べ物": "tah-beh-moh-noh",
+    "良い": "yoh-ee",
+    "助けて": "tah-soo-keh-teh",
+    "ありがとう": "ah-ree-gah-toh",
+    "ありがとうございます": "ah-ree-gah-toh goh-zah-ee-mahs",
+    "元気です": "gen-kee dehs",
+    "おはようございます": "oh-hah-yoh goh-zah-ee-mahs",
+    "お元気ですか": "oh-gen-kee dehs-kah",
+    "はじめまして": "hah-jee-meh-mah-shteh",
+    "また後で": "mah-tah ah-toh-deh",
+  },
+  chinese: {
+    "你好": "nee-how",
+    "是": "shur",
+    "不": "boo",
+    "水": "shway",
+    "食物": "shur-woo",
+    "好": "how",
+    "帮助": "bahng-zhoo",
+    "谢谢": "shee-eh shee-eh",
+    "非常感谢": "fay-chahng gahn-shee-eh",
+    "我很好": "woh hen how",
+    "早上好": "zow-shahng how",
+    "你好吗": "nee-how mah",
+    "很高兴认识你": "hen gow-sheeng ren-shur nee",
+    "回头见": "hway-toh jee-en",
+  },
+  hindi: {
+    "नमस्ते": "nah-mahs-teh",
+    "हाँ": "haan",
+    "नहीं": "nah-heen",
+    "पानी": "pah-nee",
+    "खाना": "khah-nah",
+    "अच्छा": "ahch-chah",
+    "मदद": "mah-dahd",
+    "धन्यवाद": "dhahn-yah-vahd",
+    "बहुत धन्यवाद": "bah-hoot dhahn-yah-vahd",
+    "मैं ठीक हूँ": "mayn theek hoon",
+    "सुप्रभात": "soo-prah-bhaht",
+    "आप कैसे हैं": "ahp kay-seh hayn",
+  },
+  arabic: {
+    "مرحبا": "mahr-hah-bah",
+    "نعم": "nah-ahm",
+    "لا": "lah",
+    "ماء": "mah",
+    "طعام": "tah-ahm",
+    "جيد": "jay-yid",
+    "مساعدة": "moo-sah-ah-dah",
+    "شكرا": "shook-rahn",
+    "شكرا جزيلا": "shook-rahn jah-zee-lahn",
+    "أنا بخير": "ah-nah bee-khayr",
+    "صباح الخير": "sah-bah ahl-khayr",
+    "كيف حالك": "kayf hah-lahk",
+  },
+};
+
+/**
  * Convert text to readable phonetic display.
  * Follows the "How-It-Sounds" Pronunciation Rule Sheet.
  * 
@@ -662,6 +812,28 @@ function applyPatternRules(word) {
  */
 export function textToPhonetic(text, language = 'english') {
   if (!text) return '';
+
+  // For non-English languages, check language-specific dictionary first
+  if (language !== 'english' && LANGUAGE_PHONETICS[language]) {
+    const langDict = LANGUAGE_PHONETICS[language];
+    const lower = text.toLowerCase().trim();
+    
+    // Check full phrase match first
+    if (langDict[lower]) return langDict[lower];
+    
+    // Try word-by-word lookup
+    const words = lower.split(/\s+/);
+    const phoneticWords = words.map(word => {
+      const cleaned = word.replace(/[^\p{L}\p{N}']/gu, '');
+      if (!cleaned) return '';
+      if (langDict[cleaned]) return langDict[cleaned];
+      // For Latin-script languages, pass through (vowels are already pure)
+      if (/^[a-zA-ZÀ-ÿ]+$/.test(cleaned)) return cleaned;
+      // For non-Latin scripts, return as-is if not in dictionary
+      return cleaned;
+    });
+    return phoneticWords.filter(w => w).join(' ');
+  }
 
   const words = text.trim().split(/\s+/);
   const phoneticWords = words.map(word => {
