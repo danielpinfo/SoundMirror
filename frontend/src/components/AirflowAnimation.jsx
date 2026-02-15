@@ -1,23 +1,11 @@
 /**
- * AIRFLOW ANIMATION - Positioned to Avoid Anatomy Overlap
+ * AIRFLOW ANIMATION - With Arrowheads and Refined Positioning
  * 
- * NASAL CAVITY INTERIOR:
- * - 4 ribbons positioned UP and BACK (right) in nasal cavity
- * - Staggered lengths to show air direction
- * - No overlap with non-nasal head structure
- * 
- * NOSTRIL EXIT:
- * - 5 ribbons positioned LEFT into white background
- * - Clear of nostril anatomy
- * 
- * MOUTH CAVITY INTERIOR:
- * - 4 ribbons positioned BACK (right) deep in mouth
- * - Over tongue (red) is OK, not through outlined mouth parts
- * - Staggered lengths
- * 
- * LIP EXIT:
- * - 5 ribbons positioned LEFT into white background
- * - Clear of lip anatomy
+ * Changes:
+ * - Arrowheads on all ribbons showing flow direction
+ * - Nostril exit ribbons: Randomized start positions, further left when inhaling
+ * - Lip exit ribbons: Lowered to align with lip center
+ * - Nasal cavity ribbons: Keep as is (correctly positioned)
  */
 
 import React, { useRef, useEffect, useCallback, useState } from 'react';
@@ -102,28 +90,42 @@ function getAirflowConfig(phonemeSymbol, isRelease = false) {
 }
 
 // =============================================================================
-// DRAWING - Positioned to avoid anatomy overlap
+// HELPER: Draw arrowhead at end of ribbon
+// =============================================================================
+
+function drawArrowhead(ctx, x, y, angle, size, color) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(angle);
+  ctx.beginPath();
+  ctx.fillStyle = color;
+  ctx.moveTo(0, 0);
+  ctx.lineTo(-size, -size * 0.5);
+  ctx.lineTo(-size, size * 0.5);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+// =============================================================================
+// DRAWING FUNCTIONS
 // =============================================================================
 
 /**
- * Draw oral airflow
- * - Mouth cavity ribbons: deep inside (right), over tongue area, staggered lengths
- * - Lip exit ribbons: far left in white background, clear of lips
+ * Draw oral airflow with arrowheads
+ * - Mouth cavity ribbons: deep inside, staggered
+ * - Lip exit ribbons: LOWERED to align with lip center, with arrows
  */
 function drawOralAirflow(ctx, width, height, intensity, turbulent, phase) {
   if (intensity <= 0) return;
   
   const opacity = 0.75 + intensity * 0.2;
   
-  // === MOUTH CAVITY INTERIOR - 4 ribbons deep in mouth ===
-  // Position: Start deep inside mouth (far right), above tongue (red area)
-  // End before the outlined mouth structure
-  const cavityStartX = width * 0.55;  // Deep inside mouth (right side)
-  const cavityEndX = width * 0.32;    // End before mouth outline
-  const cavityY = height * 0.48;      // Above tongue level
+  // === MOUTH CAVITY INTERIOR - 4 ribbons with arrows ===
+  const cavityStartX = width * 0.55;
+  const cavityEndX = width * 0.32;
+  const cavityY = height * 0.48;
   const cavitySpread = height * 0.028;
-  
-  // Staggered lengths - each ribbon different length to show direction
   const lengthMultipliers = [0.6, 0.8, 1.0, 0.75];
   
   for (let i = 0; i < 4; i++) {
@@ -131,17 +133,20 @@ function drawOralAirflow(ctx, width, height, intensity, turbulent, phase) {
     const ribbonPhase = (phase + i * 0.12) % 1;
     const lineY = cavityY + yOffset;
     const lengthMult = lengthMultipliers[i];
+    const ribbonOpacity = opacity * (1 - ribbonPhase * 0.15);
+    const color = `rgba(0, 210, 255, ${ribbonOpacity})`;
     
     ctx.beginPath();
-    ctx.strokeStyle = `rgba(0, 210, 255, ${opacity})`;
+    ctx.strokeStyle = color;
     ctx.lineWidth = 2.5;
     ctx.lineCap = 'round';
     
     const waveAmp = turbulent ? 3 : 2;
     const baseLength = (cavityStartX - cavityEndX) * lengthMult;
     const startX = cavityStartX - (1 - lengthMult) * 20;
-    const endX = startX - baseLength;
+    const endX = startX - baseLength * (0.5 + ribbonPhase * 0.5);
     
+    let lastX = startX, lastY = lineY;
     ctx.moveTo(startX, lineY);
     
     const steps = 15;
@@ -150,17 +155,19 @@ function drawOralAirflow(ctx, width, height, intensity, turbulent, phase) {
       const x = startX + (endX - startX) * t;
       const wave = Math.sin((t * 3 + ribbonPhase * 2) * Math.PI) * waveAmp;
       ctx.lineTo(x, lineY + wave);
+      lastX = x;
+      lastY = lineY + wave;
     }
     ctx.stroke();
+    
+    // Arrowhead pointing LEFT (flow direction)
+    drawArrowhead(ctx, lastX, lastY, Math.PI, 6, color);
   }
   
-  // === LIP EXIT - 5 ribbons in white background ===
-  // Position: Start LEFT of lips, entirely in white background
-  const lipExitStartX = width * 0.12;  // Left of lips, in white area
-  const lipExitY = height * 0.52;
+  // === LIP EXIT - 5 ribbons with arrows, LOWERED ===
+  const lipExitStartX = width * 0.12;
+  const lipExitY = height * 0.56;  // LOWERED to lip center
   const lipSpread = height * 0.022;
-  
-  // Staggered lengths for exit ribbons
   const exitLengths = [40, 55, 45, 60, 35];
   
   for (let i = 0; i < 5; i++) {
@@ -169,31 +176,36 @@ function drawOralAirflow(ctx, width, height, intensity, turbulent, phase) {
     const maxLen = exitLengths[i] + intensity * 20;
     const currentLen = maxLen * (0.5 + ribbonPhase * 0.5);
     const fadeOpacity = opacity * (1 - ribbonPhase * 0.25);
+    const color = `rgba(0, 210, 255, ${fadeOpacity})`;
     
     ctx.beginPath();
-    ctx.strokeStyle = `rgba(0, 210, 255, ${fadeOpacity})`;
+    ctx.strokeStyle = color;
     ctx.lineWidth = 2.5 * (1 - ribbonPhase * 0.15);
     ctx.lineCap = 'round';
     
     const startY = lipExitY + yOffset;
     const endX = lipExitStartX - currentLen;
     const wave = turbulent ? Math.sin(ribbonPhase * Math.PI * 3) * 2 : 0;
+    const endY = startY + wave * 0.5;
     
     ctx.moveTo(lipExitStartX, startY);
     ctx.quadraticCurveTo(
       lipExitStartX - currentLen * 0.5, 
       startY + wave, 
       endX, 
-      startY + wave * 0.5
+      endY
     );
     ctx.stroke();
+    
+    // Arrowhead pointing LEFT
+    drawArrowhead(ctx, endX, endY, Math.PI, 6, color);
   }
 }
 
 /**
- * Draw nasal airflow
- * - Nasal cavity ribbons: UP and BACK (right), in nasal passage only, staggered lengths
- * - Nostril exit ribbons: far LEFT in white background, clear of nostrils
+ * Draw nasal airflow with arrowheads
+ * - Nasal cavity ribbons: Keep current position (good)
+ * - Nostril exit ribbons: RANDOMIZED start positions, further LEFT when inhaling
  */
 function drawNasalAirflow(ctx, width, height, intensity, phase, isInhale = false) {
   if (intensity <= 0) return;
@@ -201,14 +213,11 @@ function drawNasalAirflow(ctx, width, height, intensity, phase, isInhale = false
   const opacity = 0.75 + intensity * 0.2;
   const dir = isInhale ? 1 : -1;
   
-  // === NASAL CAVITY INTERIOR - 4 ribbons UP and BACK ===
-  // Position: High up in nasal passage, far right (deep in cavity)
-  const nasalStartX = width * 0.52;   // Deep in nasal cavity (right)
-  const nasalEndX = width * 0.28;     // End before anatomy
-  const nasalY = height * 0.24;       // Higher up in nasal passage
+  // === NASAL CAVITY INTERIOR - 4 ribbons with arrows (keep position) ===
+  const nasalStartX = width * 0.52;
+  const nasalEndX = width * 0.28;
+  const nasalY = height * 0.24;
   const nasalSpread = height * 0.025;
-  
-  // Staggered lengths to show direction
   const lengthMultipliers = [0.7, 1.0, 0.85, 0.6];
   
   for (let i = 0; i < 4; i++) {
@@ -216,9 +225,11 @@ function drawNasalAirflow(ctx, width, height, intensity, phase, isInhale = false
     const ribbonPhase = (phase + i * 0.15) % 1;
     const lineY = nasalY + yOffset;
     const lengthMult = lengthMultipliers[i];
+    const ribbonOpacity = opacity * (1 - ribbonPhase * 0.15);
+    const color = `rgba(0, 210, 255, ${ribbonOpacity})`;
     
     ctx.beginPath();
-    ctx.strokeStyle = `rgba(0, 210, 255, ${opacity})`;
+    ctx.strokeStyle = color;
     ctx.lineWidth = 2.5;
     ctx.lineCap = 'round';
     
@@ -226,8 +237,9 @@ function drawNasalAirflow(ctx, width, height, intensity, phase, isInhale = false
     const baseLength = (nasalStartX - nasalEndX) * lengthMult;
     const animOffset = isInhale ? ribbonPhase * 15 : -ribbonPhase * 15;
     const startX = nasalStartX + animOffset - (1 - lengthMult) * 15;
-    const endX = startX - baseLength;
+    const endX = startX - baseLength * (0.5 + ribbonPhase * 0.5);
     
+    let lastX = startX, lastY = lineY;
     ctx.moveTo(startX, lineY);
     
     const steps = 12;
@@ -236,43 +248,63 @@ function drawNasalAirflow(ctx, width, height, intensity, phase, isInhale = false
       const x = startX + (endX - startX) * t;
       const wave = Math.sin((t * 2.5 + ribbonPhase * 2) * Math.PI) * waveAmp;
       ctx.lineTo(x, lineY + wave);
+      lastX = x;
+      lastY = lineY + wave;
     }
     ctx.stroke();
+    
+    // Arrowhead direction based on inhale/exhale
+    const arrowAngle = isInhale ? 0 : Math.PI;  // Right for inhale, Left for exhale
+    drawArrowhead(ctx, isInhale ? startX : lastX, isInhale ? lineY : lastY, arrowAngle, 6, color);
   }
   
-  // === NOSTRIL EXIT - 5 ribbons in white background ===
-  // Position: Far LEFT of nostrils, entirely in white background
-  const nostrilExitX = width * 0.08;  // Far left, clear of nostril anatomy
+  // === NOSTRIL EXIT - 5 ribbons, RANDOMIZED positions, with arrows ===
+  // Randomized X offsets to avoid linear 90-degree alignment
+  const randomXOffsets = [-8, 3, -5, 7, -2];  // Staggered start positions
+  const randomYOffsets = [2, -3, 5, -1, 4];   // Varied Y positions
+  
+  // Base position much further LEFT when inhaling
+  const nostrilBaseX = isInhale ? width * 0.03 : width * 0.08;
   const nostrilExitY = height * 0.38;
   const nostrilSpread = height * 0.018;
-  
-  // Staggered lengths
   const exitLengths = [35, 50, 40, 55, 30];
   
   for (let i = 0; i < 5; i++) {
-    const yOffset = (i - 2) * nostrilSpread;
+    // Apply random offsets for natural look
+    const xOffset = randomXOffsets[i];
+    const yRandom = randomYOffsets[i];
+    const yOffset = (i - 2) * nostrilSpread + yRandom;
+    
     const ribbonPhase = (phase + i * 0.12) % 1;
     const maxLen = exitLengths[i] + intensity * 15;
     const currentLen = maxLen * (0.5 + ribbonPhase * 0.5);
     const fadeOpacity = opacity * (1 - ribbonPhase * 0.25);
+    const color = `rgba(0, 210, 255, ${fadeOpacity})`;
     
     ctx.beginPath();
-    ctx.strokeStyle = `rgba(0, 210, 255, ${fadeOpacity})`;
+    ctx.strokeStyle = color;
     ctx.lineWidth = 2.5 * (1 - ribbonPhase * 0.15);
     ctx.lineCap = 'round';
     
+    const startX = nostrilBaseX + xOffset;
     const startY = nostrilExitY + yOffset;
-    // Angle outward-left and slightly down when exhaling
-    const endX = nostrilExitX + dir * currentLen * 0.5;
-    const endY = startY - dir * currentLen * 0.7;
     
-    ctx.moveTo(nostrilExitX, startY);
+    // Angle varies per ribbon for natural look
+    const angleVariation = (i - 2) * 0.1;
+    const endX = startX + dir * currentLen * (0.5 + angleVariation);
+    const endY = startY - dir * currentLen * (0.7 - Math.abs(angleVariation) * 0.2);
+    
+    ctx.moveTo(startX, startY);
     ctx.quadraticCurveTo(
-      nostrilExitX + dir * currentLen * 0.25,
+      startX + dir * currentLen * 0.25,
       startY - dir * currentLen * 0.3,
       endX, endY
     );
     ctx.stroke();
+    
+    // Arrowhead at leading edge
+    const arrowAngle = Math.atan2(endY - startY, endX - startX);
+    drawArrowhead(ctx, endX, endY, arrowAngle, 6, color);
   }
 }
 
@@ -293,7 +325,7 @@ function drawBurst(ctx, x, y, intensity, phase) {
 }
 
 /**
- * Draw idle breathing - nasal cavity + nostril exit
+ * Draw idle breathing
  */
 function drawIdleBreathing(ctx, width, height, breathPhase) {
   const isInhale = breathPhase < 0.5;
@@ -373,7 +405,7 @@ const AirflowAnimation = ({
       }
       
       if (airflow.burst) {
-        drawBurst(ctx, width * 0.10, height * 0.52, airflow.oral, phase);
+        drawBurst(ctx, width * 0.10, height * 0.56, airflow.oral, phase);
       }
     } else if (isPlaying && !phonemeSymbol) {
       drawNasalAirflow(ctx, width, height, 0.3, phase, false);
