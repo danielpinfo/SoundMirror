@@ -277,6 +277,12 @@ const AirflowOverlay = ({
     phaseRef.current = (phaseRef.current + 0.025) % 1;
     const phase = phaseRef.current;
 
+    // DEBUG: Always draw a small indicator dot to prove canvas is rendering
+    ctx.beginPath();
+    ctx.fillStyle = `rgba(0, 255, 255, ${0.6 + Math.sin(phase * Math.PI * 2) * 0.4})`;
+    ctx.arc(mouthPos.x - 15, mouthPos.y, 4, 0, Math.PI * 2);
+    ctx.fill();
+
     if (isPlaying && phonemeSymbol) {
       // === PHONEME-DRIVEN AIRFLOW ===
       const airflow = getAirflowForPhoneme(phonemeSymbol, phonemeFeatures);
