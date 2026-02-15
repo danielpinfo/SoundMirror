@@ -192,26 +192,26 @@ function drawBurstEffect(ctx, x, y, intensity, phase) {
 function drawBreathing(ctx, noseX, noseY, phase, breathPhase) {
   const isInhale = breathPhase === 'inhale';
   const dirMul = isInhale ? -1 : 1;
-  const intensity = 0.25 + Math.sin(phase * Math.PI) * 0.15;
+  const intensity = 0.4 + Math.sin(phase * Math.PI) * 0.2;
 
   // Gentle nasal ribbons - more visible
-  for (let r = 0; r < 3; r++) {
-    const spread = (r - 1) * 5;
+  for (let r = 0; r < 4; r++) {
+    const spread = (r - 1.5) * 6;
     ctx.beginPath();
-    ctx.strokeStyle = `rgba(60, 180, 255, ${intensity * 1.5})`;
-    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = `rgba(0, 200, 255, ${intensity})`;
+    ctx.lineWidth = 2.5;
     ctx.lineCap = 'round';
 
     const sx = noseX;
     const sy = noseY + spread;
-    const len = 20 + phase * 15;
+    const len = 25 + phase * 20;
 
     ctx.moveTo(sx, sy);
     ctx.quadraticCurveTo(
       sx + dirMul * len * 0.5,
-      sy - 3 + Math.sin(phase * Math.PI * 2) * 3,
+      sy - 4 + Math.sin(phase * Math.PI * 2) * 4,
       sx + dirMul * len,
-      sy - 4
+      sy - 5
     );
     ctx.stroke();
   }
