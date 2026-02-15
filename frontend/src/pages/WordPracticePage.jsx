@@ -215,10 +215,18 @@ export default function WordPracticePage() {
                 ))}
               </div>
             </div>
+
+            {/* Quiz Mode - Optional */}
+            <div className="mt-3">
+              <QuizMode
+                onSelectWord={(word) => {
+                  setInputValue(word);
+                  setPracticeWord(word);
+                }}
+              />
+            </div>
           </CardContent>
         </Card>
-
-        {/* Current Word Display */}
         {practiceWord && (
           <div className="text-center mb-4">
             <p className="text-sm text-blue-300 uppercase tracking-wider mb-2">Practicing</p>
