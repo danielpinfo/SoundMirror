@@ -353,13 +353,16 @@ const AirflowAnimation = ({
   const phaseRef = useRef(0);
   const breathTimeRef = useRef(Date.now());
   const wasPlayingRef = useRef(false);  // Track previous playing state
+  const pauseUntilRef = useRef(0);  // Time when pause ends (3 sec pause after speech)
   const [dimensions, setDimensions] = useState({ width: 300, height: 300 });
   
-  // Reset breath cycle to start with INHALE when transitioning from speaking to idle
+  // Reset breath cycle to start with INHALE after 3-second pause when transitioning from speaking to idle
   useEffect(() => {
     if (wasPlayingRef.current && !isPlaying) {
-      // Just finished speaking - reset breath timer to start at inhale
-      breathTimeRef.current = Date.now();
+      // Just finished speaking - set 3 second pause before breathing starts
+      pauseUntilRef.current = Date.now() + 3000;
+      // After pause ends, breath timer will start from 0 (inhale)
+      breathTimeRef.current = Date.now() + 3000;
     }
     wasPlayingRef.current = isPlaying;
   }, [isPlaying]);
