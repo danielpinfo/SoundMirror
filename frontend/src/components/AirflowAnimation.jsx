@@ -278,7 +278,7 @@ function drawNasalAirflow(ctx, width, height, intensity, phase, isInhale = false
     const yOffset = (i - 2) * nostrilSpread + yRandom;
     
     const ribbonPhase = (phase + i * 0.12) % 1;
-    const maxLen = exitLengths[i] + intensity * 15;
+    const maxLen = nostrilExitLengths[i] + intensity * 15;
     const currentLen = maxLen * (0.5 + ribbonPhase * 0.5);
     const fadeOpacity = opacity * (1 - ribbonPhase * 0.25);
     const color = `rgba(0, 210, 255, ${fadeOpacity})`;
