@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Dict, Any
 
 class SoundMirrorAPITester:
-    def __init__(self, base_url="https://soundmirror-airflow.preview.emergentagent.com"):
+    def __init__(self, base_url="https://mirror-speech-app.preview.emergentagent.com"):
         self.base_url = base_url
         self.tests_run = 0
         self.tests_passed = 0

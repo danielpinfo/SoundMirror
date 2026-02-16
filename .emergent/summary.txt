@@ -3,41 +3,42 @@ The user wants to build and refine the SoundMirror application, a tool for mute 
 
 PRODUCT REQUIREMENTS:
 
-1.  **Phonetic Display (P0):** The application must provide an accurate How-It-Sounds phonetic rendering of text. This has been a recurring issue, with regressions in pronunciation for words like please.
-2.  **Airflow Animation (P0):** Implement a deterministic airflow visualization system based on a detailed user-provided rule sheet. This is the top priority and has been a major source of bugs and user frustration. The system must differentiate between oral, nasal, and plosive sounds and show airflow correctly. The user has now provided very specific visual requirements for the shape, position, and behavior of the airflow.
-3.  **Idle Breathing (P0):** When in a neutral state, the animation should show a realistic breathing cycle (2 seconds in, 2 seconds out) through the nose.
-4.  **Quiz Mode (P1):** An optional game mode where the user is shown a phonetic spelling and must guess the corresponding word.
-5.  **UI/Layout (P2):** Refine UI labels and adjust component layouts for better usability.
-6.  **Future Tasks:** Complete an Electron build and implement real-time audio streaming.
+1.  **Phonetic Display (P0):** The application must provide an accurate How-It-Sounds phonetic rendering of text.
+2.  **Airflow Animation (P0):** Implement a deterministic airflow visualization system based on a detailed, evolving, user-provided rule sheet. This is the top priority and has been the focus of extensive iterative refinement. The system must differentiate between oral, nasal, and plosive sounds and show airflow correctly, including inside the nasal and oral cavities and at the exit points (lips/nostrils), complete with directional arrowheads.
+3.  **Idle Breathing (P0):** When in an at rest state, the animation should show a realistic breathing cycle (inhale/exhale) through the nose. The timing and behavior of this cycle are subject to specific user rules.
+4.  **Audio Update (P1):** The user has mentioned that after the airflow is complete, the next major task is an audio update.
+5.  **Electron Build (P2):** A future goal is to package the application as a desktop Electron app.
+6.  **UI/Layout Refinements (P2):** Minor tweaks to UI labels and component layouts for better usability.
 
 **User's preferred language**: English
 
 **what currently exists?**
-The application is a full-stack React/FastAPI app. The agent has recently performed a major refactor of the airflow animation system. The airflow is now always-on (the toggle button was removed at the user's request) and is rendered by a single complex component, . This component also handles a new idle breathing animation that cycles when no word is being played. While the agent has fixed numerous bugs to make the airflow *visible*, the user is still unsatisfied with the visual implementation, reporting that the oral airflow blows backward (inward) and does not match their mental model.
+The application is a full-stack React/FastAPI app. The agent has been through an intensive, iterative process of refining the airflow animation based on highly specific visual feedback from the user. The core logic is contained within , which now handles complex rendering for oral, nasal, and idle breathing animations. This includes rendering airflow ribbons *inside* the mouth/nasal cavities and at the exits (lips/nostrils), complete with arrowheads indicating flow direction. The UI labels have been changed from neutral to at rest, and the underlying image assets have been renamed. The idle breathing cycle logic has been updated multiple times to control timing and when it should start (e.g., always inhale after speaking).
 
 **Last working item**:
--   **Last item agent was working:** The agent was processing a large set of new, highly specific visual requirements for the airflow animation after the user reported the oral airflow was still blowing backwards. The user provided a reference image and a detailed list of changes for oral ribbons, nasal ribbons, and the idle breathing animation. The agent had just removed the old toggle-based implementation and started refactoring the  component to meet these new, prescriptive demands.
--   **Status:** IN PROGRESS
+-   **Last item agent was working:** The agent was about to implement the final set of visual and logical refinements for the airflow animation based on the user's feedback in . The user is now satisfied with the overall structure but requires specific adjustments to ribbon positions, timing, and logic for plosive sounds.
+-   **Status:** NOT STARTED (The agent planned the work but did not execute the code changes before the session ended).
 -   **Agent Testing Done:** N
--   **Which testing method agent to use?** screenshot tool. The issue is purely visual and subjective. The next agent must take screenshots after implementing the new visual rules and compare them against the user's description and reference image.
--   **User Testing Done:** Y (User confirmed the previous implementation was still visually incorrect).
+-   **Which testing method agent to use?** screenshot tool. The required changes are all visual and behavioral, requiring manual verification against the user's specific instructions.
+-   **User Testing Done:** Y (User provided the latest list of required changes).
 
 **All Pending/In progress Issue list**:
--   **Issue 1 (P0):** The oral airflow animation is visually incorrect.
+-   **Issue 1 (P0): Final Airflow Animation Refinements.**
 
 **Issues Detail:**
--   **Issue 1: The oral airflow animation is visually incorrect.**
-    -   **Attempted fixes:** The agent has made multiple attempts to fix the airflow's position and direction by adjusting coordinates in . Despite these changes, the user reports the ribbons still appear to be blowing inward. The problem is not a logical one (the data is correct), but a purely visual one in the canvas rendering logic.
-    -   **Next debug checklist:**
-        1.  Carefully analyze the user's last message ( and ) and the provided reference image ().
-        2.  Modify the  function in  to reverse the ribbon direction so they flow definitively outwards from the mouth.
-        3.  Re-implement the ribbon structure according to the user's spec: stagger four ribbons inside the mouth (2 front, 2 back) and add two smaller ribbons at the lip cavity.
-        4.  Modify  to make exiting ribbons twice as long and add four new, much larger ribbons inside a to-be-drawn nasal cavity.
-        5.  Verify the idle breathing animation (in/out cycle) is working correctly when the animation is in a neutral state.
-    -   **Why fix this issue and what will be achieved with the fix?** This is the user's highest priority and the main source of frustration. Fulfilling these specific visual requirements is critical to gaining user trust and completing the core feature.
-    -   **Status:** IN PROGRESS
-    -   **Is recurring issue?** Y
-    -   **Should Test frontend/backend/both after fix?** Frontend
+-   **Issue 1: Final Airflow Animation Refinements.**
+    -   **Attempted fixes:** This entire session has been a series of successful, iterative fixes: adding interior cavity ribbons, adding arrowheads, adjusting positions, changing UI labels from neutral to at rest, and managing the breathing cycle state. The current state is very close to the user's vision.
+    -   **Next debug checklist:** Implement the 6 specific changes requested by the user in :
+        1.  **Adjust Inhale Ribbons:** Raise the inhaling nostril airflow ribbons to the same vertical position as the exhaling ribbons.
+        2.  **Adjust Exhale Ribbons:** Spread out the exhaling nostril ribbons to be more distinct and resemble the fanned-out pattern of the inhale ribbons.
+        3.  **Remove Breathing Pause:** Remove the 3-second pause that occurs after an animation finishes. The breathing cycle should begin immediately once the animation state is at rest.
+        4.  **Restore Initial Breathing:** Re-enable the breathing cycle on the initial load of the practice pages. The user previously asked for it to be disabled but has now requested it be turned back on.
+        5.  **Confirm Inhale-First Logic:** Double-check that the breathing cycle *always* starts with an inhale, both on page load and after a spoken animation completes.
+        6.  **Fix Plosive Airflow:** Modify the phoneme analysis or animation logic to ensure no airflow is shown during the closure phase of plosive sounds (e.g., 'b', 'p', 't', 'k'). The air burst should only appear on the subsequent vowel/release. This may require changes in .
+    -   **Why fix this issue and what will be achieved with the fix?** These are the final requested tweaks to complete the core airflow animation feature, which has been the user's primary focus. Completing this will finalize the app's main visual component and gain user approval to move on to the next tasks (audio, Electron).
+    -   **Status:** NOT STARTED
+    -   **Is recurring issue?** Y (This is the latest iteration of the recurring airflow refinement task).
+    -   **Should Test frontend/backend/both after fix?** Both. Frontend for the visual changes (screenshot tool) and backend/lib for the plosive phoneme logic ().
     -   **Blocked on other issue:** None.
 
 **In progress Task List**:
@@ -45,30 +46,38 @@ The application is a full-stack React/FastAPI app. The agent has recently perfor
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks:**
-    -   (P1) Refine Quiz Mode.
+    -   (P1) Audio Update: As per the user, this is the next step after airflow is finalized.
 -   **Future Tasks:**
-    -   Finalize the Electron desktop build.
-    -   Implement real-time audio streaming.
+    -   (P2) Finalize the Electron desktop build.
+    -   (P2) Refine Quiz Mode.
     -   Add more practice content and custom practice lists.
 
 **Completed work in this session**
--   **Airflow Always-On:** The airflow toggle button and its associated state were completely removed from , , and . The airflow animation is now rendered unconditionally.
--   **Idle Breathing Animation:** Implemented a new feature in  that shows a nasal breathing cycle when the animation is in its neutral state.
--   **Airflow Visibility Fixes:** Resolved multiple bugs that prevented the airflow from showing, including an issue with  in letter practice and a canvas  bug that caused incorrect dimensions.
--   **Phonetic Bug Fix:** The please -> pleez phonetic display regression was fixed and verified by the testing agent.
+-   **Airflow Visuals Overhaul:** Implemented a highly detailed airflow system based on user-provided images and instructions.
+    -   Added airflow ribbons *inside* the nasal and mouth cavities.
+    -   Added directional arrowheads to all airflow ribbons.
+    -   Iteratively adjusted the position, count, and length of all oral and nasal ribbons.
+    -   Reduced lip exit ribbons from 5 to 3.
+-   **Breathing Cycle Logic:**
+    -   Implemented logic to ensure the idle breathing cycle always begins with an inhale after speaking is complete.
+    -   Adjusted the inhale/exhale duration to 3 seconds each (from 2 seconds).
+    -   Added (and are now about to remove) a 3-second pause after speaking before the breathing cycle starts.
+-   **UI and Asset Renaming:**
+    -   Renamed all asset files from  to .
+    -   Updated all frontend components (, , ) to display at rest instead of neutral.
 
 **Earlier issues found/mentioned but not fixed**
 -   None.
 
 **Known issue recurrence from previous fork**
--   **Airflow Animation:** This remains the primary recurring issue. The problem has evolved from being non-functional/invisible to being visually incorrect according to the user's specific aesthetic and functional requirements.
+-   **Airflow Animation:** The core recurring issue has been refining the airflow animation to match the user's precise visual and functional requirements. This has evolved from fixing bugs to a highly iterative design and implementation process directed by the user.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
 -   **Frontend:** React, Tailwind CSS, Canvas API.
--   **Animation Logic:** All airflow logic is now self-contained in . It uses  and differentiates between an idle state (for breathing) and a playing state (for phoneme-based airflow). The implementation is now highly prescriptive based on user feedback.
+-   **Animation Logic:** The  component uses a combination of React state (, , ) and the browser's  loop to render the animation. It manages several states: animation playing, a pause after playing (to be removed), and an idle breathing cycle (at rest). The rendering logic is complex, with many hardcoded coordinates and rules for drawing ribbons and arrowheads on the canvas.
 
 **key DB schema**
 -   No changes.
@@ -77,62 +86,56 @@ The application is a full-stack React/FastAPI app. The agent has recently perfor
 -   No changes.
 
 **All files of reference**
--   **/app/frontend/src/components/AirflowAnimation.jsx**: **The single most critical file.** It was completely rewritten and is the sole location for implementing the user's latest, detailed visual requirements.
--   **/app/frontend/src/components/DualHeadAnimation.jsx**: Parent component that was modified to always render the airflow animation.
--   **/app/frontend/src/pages/PracticePage.jsx**: Main page component where the airflow toggle state was removed.
--   **/app/frontend/src/pages/WordPracticePage.jsx**: Page where the airflow toggle UI was removed.
--   **/app/frontend/src/pages/LetterPracticePage.jsx**: Page where the airflow toggle UI was removed.
+-   **/app/frontend/src/components/AirflowAnimation.jsx**: **The most critical file.** All visual and timing changes for the airflow will be made here.
+-   **/app/frontend/src/lib/phonemeAnalysis.js**: Potentially needs modification to handle airflow for plosive sounds.
+-   **/app/frontend/src/pages/WordPracticePage.jsx**: References 'at rest' state.
+-   **/app/frontend/src/pages/LetterPracticePage.jsx**: References 'at rest' state.
+-   **/app/frontend/src/components/DualHeadAnimation.jsx**: References 'at rest' state.
 
 **Areas that need refactoring**:
--   The  component is becoming a monolith with complex, hardcoded rules for drawing. It could be refactored by creating separate helper functions for drawing oral, nasal, and idle airflow to improve readability.
+-    is now extremely large and complex due to the iterative, prescriptive changes from the user. It contains many hardcoded coordinates and intertwined logic paths. While functional, it could be broken down into smaller helper functions (e.g., , ) for better readability and maintenance in the future.
 
 **key api endpoints**
 -   
 
 **Critical Info for New Agent**
--   **User Trust is Fragile:** The user is frustrated with the recurring visual bugs. Your top priority is to implement their latest, highly detailed visual instructions from  *exactly* as described. Do not deviate.
--   **The Task is Purely Visual:** The underlying data and logic for *when* to show airflow are correct. The entire problem is in the Canvas rendering (the  functions). You are now following a very specific visual design provided by the user.
--   **Airflow is ALWAYS ON:** The toggle button has been removed by user request. Do not attempt to add it back. The animation should be visible during playback and should show the idle breathing animation when neutral.
--   **Implement ALL New Requirements:** The user's last message contains a multi-point list of visual changes. You must address every single one:
-    1.  Fix oral airflow to blow OUTWARD.
-    2.  Model the airflow based on the user's reference image.
-    3.  Restructure mouth ribbons (4 inside, 2 at lips).
-    4.  Enhance nasal ribbons (longer exit, large internal ribbons in a new nasal cavity).
-    5.  Ensure the idle breathing cycle is working correctly.
+-   **Follow User Instructions Exactly:** The user is acting as the creative director and is very pleased with the recent progress. Your primary goal is to implement the 6 points from their last message () precisely. Do not deviate or add your own interpretations.
+-   **The user has reversed course on two recent features:** The 3-second pause after speaking should be *removed*, and the initial breathing on page load should be *re-enabled*. Pay close attention to these reversals.
+-   **Plosive Logic is New:** The request to prevent airflow on the closure of sounds like 'b' and 'p' is a new logical requirement. Investigate  to see if you can add a flag (e.g., ) for these specific phoneme frames.
 
 **documents and test reports created in this job**
 -   
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **LATEST (PENDING):** User states airflow is still blowing backward and provides a reference image. They give a detailed, multi-point list of visual requirements for oral ribbons, nasal ribbons, and a new interior nasal cavity to be drawn. This is the new specification.
-2.  User realizes the airflow was behind a toggle, asks for it to be removed and made always-on because it wasted time. (Agent implemented this).
-3.  User uploads a screenshot asking for a browser link because no airflow is visible. (Agent identified the toggle wasn't on).
-4.  User reports There is no airflow visible anywhere. (Agent investigated and provided a link, explaining the toggle).
-5.  User reports No airflow visible. (Agent investigated, found and fixed a canvas dimension issue).
-6.  User reports No airflow is showing in word or letterpractice. (Agent investigated and fixed a bug in Letter Practice mode).
-7.  The agent finishes a task, claiming the P0 bugs are fixed.
-8.  The agent makes a series of code changes to fix visibility and remove debug markers.
-9.  User confirms the plan to troubleshoot the airflow issue first.
-10. The agent proposes a plan to fix the two P0 bugs: airflow visibility and the please phonetic regression.
+1.  **LATEST (PENDING):** User requested to finish the tasks before the next fork.
+2.  **LATEST (PENDING):** User provided a final list of 6 refinements: adjust inhale/exhale ribbon positions, remove the 3-second post-animation pause, re-enable breathing on page load, and fix airflow for plosives.
+3.  User reports breathing is creepy before the first animation; asks to disable it on initial load. (This is now reversed).
+4.  User points out minor visual issues with inhale/exhale ribbon positions.
+5.  User approves the at rest and pause changes, but provides a long list of new refinements (which became the main task).
+6.  User praises the agent's work and confirms the inhale-first logic is correct.
+7.  User approves the addition of arrowheads, but asks for adjustments to nostril ribbon randomness and position, and for the lip exit ribbons to be centered.
+8.  User provides a very detailed, literal correction, clarifying that airflow ribbons must fill the *interior* of the mouth/nasal cavities, not just appear at the exits. This was a key turning point.
+9.  User provides another reference image, expressing frustration that the agent was guessing at ribbon placement instead of copying the provided drawing exactly.
+10. User confirms the physics (airflow direction) are correct but the visual placement of ribbons is wrong (cavities are empty).
 
 **Project Health Check:**
 -   **Broken:**
-    -   Airflow Animation (P0 Critical): The visual implementation (direction, position, structure of ribbons) is incorrect according to a new, detailed user specification.
+    -   None. The feature is functional but pending final user-requested refinements.
 -   **Mocked:**
-    -   Bug reporting email feature (de-prioritized by user).
+    -   None.
 
 **3rd Party Integrations**
--   **Allosaurus** (Phoneme Recognition)
--   **pydub** (Audio Processing)
+-   **Allosaurus** (Phoneme Recognition, used via backend)
+-   **pydub** (Audio Processing, used via backend)
 
 **Testing status**
--   **Testing agent used after significant changes:** YES, but it passed while the feature was still visually incorrect for the user. It is not suitable for validating subjective visual bugs.
+-   **Testing agent used after significant changes:** NO
 -   **Troubleshoot agent used after agent stuck in loop:** NO
--   **Test files created:** None.
--   **Known regressions:** The airflow animation feature remains a persistent issue, with the definition of correctness evolving with user feedback.
+-   **Test files created:** None
+-   **Known regressions:** None. The user has requested to revert two recently implemented features (the 3-second pause and no-breathing-on-load), but this is a change in requirements, not a regression.
 
 **Credentials to test flow:**
 None required.
 
 **What agent forgot to execute**
-The agent repeatedly focused on logical and data-flow fixes, making the airflow *visible* but not *visually correct* from the user's perspective. It failed to fully grasp the subjective nature of the user's request until the user provided an explicit, prescriptive set of visual rules in the final messages. The next agent must pivot from debugging data to implementing a specific visual design.</analysis>
+The agent was interrupted before it could start implementing the final list of 6 refinements from the user's message in . The plan was laid out, but no code was modified. The next agent must pick up this task immediately.</analysis>
