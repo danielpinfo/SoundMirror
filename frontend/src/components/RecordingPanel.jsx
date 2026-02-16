@@ -758,23 +758,28 @@ export const RecordingPanel = ({
           </div>
         )}
 
-        {/* Recording timer */}
+        {/* Recording timer and instruction */}
         {isRecording && (
-          <div className="absolute top-3 right-3 bg-red-600 text-white px-3 py-1 rounded-full text-sm font-mono">
+          <div className="absolute top-3 right-3 bg-red-600 text-white px-3 py-1 rounded-full text-sm font-mono flex items-center gap-2">
+            <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
             {formatTime(recordingTime)}
           </div>
         )}
 
-        {/* Stop button on left side when recording */}
+        {/* Stop button and instruction - centered when recording */}
         {isCameraActive && isRecording && (
-          <div className="absolute inset-y-0 left-4 flex items-center z-20">
+          <div className="absolute inset-0 flex flex-col items-center justify-center z-20 bg-black/30">
+            <p className="text-white text-lg mb-4 font-medium animate-pulse">
+              Speak now: <span className="text-blue-400">{target}</span>
+            </p>
             <Button
               onClick={stopCameraAndRecording}
-              className="w-16 h-16 rounded-full bg-red-500 hover:bg-red-600 animate-pulse shadow-lg"
+              className="w-20 h-20 rounded-full bg-red-500 hover:bg-red-600 shadow-lg border-4 border-white"
               data-testid="stop-recording-btn"
             >
-              <Square className="h-8 w-8" />
+              <Square className="h-10 w-10" />
             </Button>
+            <p className="text-white text-sm mt-3">Tap to stop recording</p>
           </div>
         )}
       </div>
