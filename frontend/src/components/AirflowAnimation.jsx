@@ -384,10 +384,16 @@ const AirflowAnimation = ({
   const breathTimeRef = useRef(Date.now());
   const wasPlayingRef = useRef(false);  // Track previous playing state
   const pauseUntilRef = useRef(0);  // Time when pause ends (3 sec pause after speech)
+  const hasPlayedOnceRef = useRef(false);  // Only start breathing after first animation
   const [dimensions, setDimensions] = useState({ width: 300, height: 300 });
   
-  // Reset breath cycle to start with INHALE after 3-second pause when transitioning from speaking to idle
+  // Track when animation starts and ends
   useEffect(() => {
+    if (isPlaying && !wasPlayingRef.current) {
+      // Animation just started - mark that we've played at least once
+      hasPlayedOnceRef.current = true;
+    }
+    
     if (wasPlayingRef.current && !isPlaying) {
       // Just finished speaking - set 3 second pause before breathing starts
       pauseUntilRef.current = Date.now() + 3000;
