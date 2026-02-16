@@ -410,8 +410,11 @@ const AirflowAnimation = ({
     
     const isAtRest = currentFrame === 0 && !isPlaying;
     
-    if (isNeutral) {
-      drawIdleBreathing(ctx, width, height, breathPhase);
+    if (isAtRest) {
+      // During pause: don't draw breathing, just wait
+      if (!isPaused) {
+        drawIdleBreathing(ctx, width, height, breathPhase);
+      }
     } else if (isPlaying && phonemeSymbol) {
       const isRelease = isLastFrameOfPhoneme;
       const airflow = getAirflowConfig(phonemeSymbol, isRelease);
