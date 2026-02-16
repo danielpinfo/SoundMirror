@@ -165,14 +165,14 @@ function drawOralAirflow(ctx, width, height, intensity, turbulent, phase) {
     drawArrowhead(ctx, lastX, lastY, Math.PI, 6, color);
   }
   
-  // === LIP EXIT - 5 ribbons with arrows, LOWERED ===
+  // === LIP EXIT - 3 ribbons with arrows (reduced from 5) ===
   const lipExitStartX = width * 0.12;
-  const lipExitY = height * 0.56;  // LOWERED to lip center
-  const lipSpread = height * 0.022;
-  const exitLengths = [40, 55, 45, 60, 35];
+  const lipExitY = height * 0.56;  // Aligned with lip center
+  const lipSpread = height * 0.028;  // Increased spread for 3 ribbons
+  const exitLengths = [45, 55, 40];  // 3 ribbons
   
-  for (let i = 0; i < 5; i++) {
-    const yOffset = (i - 2) * lipSpread;
+  for (let i = 0; i < 3; i++) {
+    const yOffset = (i - 1) * lipSpread;  // Center around middle ribbon
     const ribbonPhase = (phase + i * 0.1) % 1;
     const maxLen = exitLengths[i] + intensity * 20;
     const currentLen = maxLen * (0.5 + ribbonPhase * 0.5);
