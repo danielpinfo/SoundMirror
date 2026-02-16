@@ -126,6 +126,12 @@ Provide accurate, understandable, and immediate feedback on pronunciation across
 - **Inhale-first logic**: Confirmed breathing always starts with inhale (breath timer resets to `Date.now()` after speaking)
 - **Plosive airflow**: Verified code correctly returns `oral: 0` during closure phase, only showing burst on release
 
+### P0 - Recording Panel UX Improvements (COMPLETED - Feb 16, 2026)
+- **Centered stop button**: When recording, the stop button is now prominently centered with a semi-transparent overlay
+- **Clear instructions**: Added "Speak now: [word]" and "Tap to stop recording" text during recording
+- **Auto-stop feature**: Recording automatically stops after 10 seconds to prevent user confusion
+- **Visual feedback**: Added pulsing indicator next to the recording timer
+
 ## Prioritized Backlog
 
 ### P1 - Audio Update (Next)
