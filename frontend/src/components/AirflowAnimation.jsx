@@ -447,8 +447,9 @@ const AirflowAnimation = ({
     const isAtRest = currentFrame === 0 && !isPlaying;
     
     if (isAtRest) {
-      // During pause: don't draw breathing, just wait
-      if (!isPaused) {
+      // Only show breathing after first animation has been attempted
+      // And not during the 3-second pause after speech
+      if (hasPlayedOnceRef.current && !isPaused) {
         drawIdleBreathing(ctx, width, height, breathPhase);
       }
     } else if (isPlaying && phonemeSymbol) {
