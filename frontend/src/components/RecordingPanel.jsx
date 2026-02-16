@@ -366,22 +366,35 @@ export const RecordingPanel = ({
           mediaRecorderRef.current = mediaRecorder;
 
           mediaRecorder.ondataavailable = (e) => {
+            console.log('[RecordingPanel] (fallback) ondataavailable:', { size: e.data.size, type: e.data.type });
             if (e.data.size > 0) {
               audioChunksRef.current.push(e.data);
             }
           };
 
           mediaRecorder.onstop = async () => {
-            console.log('[RecordingPanel] Recording stopped, processing...');
+            console.log('[RecordingPanel] (fallback) Recording stopped, processing...');
+            console.log('[RecordingPanel] (fallback) Total audio chunks:', audioChunksRef.current.length);
             clearInterval(recordingTimerRef.current);
             
             if (audioChunksRef.current.length === 0) {
-              console.warn('[RecordingPanel] No audio chunks recorded');
+              console.warn('[RecordingPanel] (fallback) No audio chunks recorded');
+              setGrading({
+                audioScore: 0,
+                visualScore: 0,
+                phonemeDetected: '',
+                suggestions: ['No audio recorded. Please check your microphone permissions.'],
+                detectedIPA: [],
+                gradingDetails: null,
+              });
               return;
             }
             const audioBlob = new Blob(audioChunksRef.current);
+            console.log('[RecordingPanel] (fallback) Audio blob size:', audioBlob.size, 'bytes');
+            
             const wavBlob = await convertToWav(audioBlob);
             if (wavBlob) {
+              console.log('[RecordingPanel] (fallback) WAV blob size:', wavBlob.size, 'bytes');
               // GRADING GATE: Only call grading if enabled
               if (GRADING_ENABLED) {
                 await performGrading(wavBlob);
