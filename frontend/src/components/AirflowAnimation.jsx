@@ -260,17 +260,17 @@ function drawNasalAirflow(ctx, width, height, intensity, phase, isInhale = false
   }
   
   // === NOSTRIL EXIT RIBBONS ===
-  // Different positions for inhale vs exhale
+  // Both inhale and exhale use same vertical position area
+  // Positioned in white background, not crossing wireframe
+  
+  const nostrilBaseX = width * 0.08;    // In white background area
+  const nostrilBaseY = height * 0.42;   // Same position for both
   
   if (isInhale) {
-    // INHALE: Ribbons in white background area, LOWER and to the LEFT
-    // Stay completely clear of head wireframe
-    const inhaleBaseX = width * 0.06;   // Far left in white area
-    const inhaleBaseY = height * 0.50;  // Lower, away from nose
-    const inhaleSpread = height * 0.02;
-    const inhaleLengths = [30, 40, 35, 45];  // 4 ribbons
-    const inhaleXOffsets = [0, 3, -2, 5];
-    const inhaleYOffsets = [0, -2, 3, 1];
+    // INHALE: 4 ribbons pointing INTO face (right), spread out
+    const inhaleLengths = [30, 40, 35, 45];
+    const inhaleSpreadX = 6;   // Horizontal spread
+    const inhaleSpreadY = 12;  // Vertical spread between ribbons
     
     for (let i = 0; i < 4; i++) {
       const ribbonPhase = (phase + i * 0.15) % 1;
@@ -279,12 +279,13 @@ function drawNasalAirflow(ctx, width, height, intensity, phase, isInhale = false
       const fadeOpacity = opacity * (1 - ribbonPhase * 0.25);
       const color = `rgba(0, 210, 255, ${fadeOpacity})`;
       
-      const startX = inhaleBaseX + inhaleXOffsets[i];
-      const startY = inhaleBaseY + (i - 1.5) * inhaleSpread + inhaleYOffsets[i];
+      // Spread ribbons vertically and slightly horizontally
+      const startX = nostrilBaseX + (i % 2) * inhaleSpreadX;
+      const startY = nostrilBaseY + (i - 1.5) * inhaleSpreadY;
       
-      // Inhale: ribbons point RIGHT (into face)
-      const endX = startX + currentLen * 0.8;
-      const endY = startY - currentLen * 0.3;
+      // Inhale: ribbons point RIGHT and slightly UP (into face)
+      const endX = startX + currentLen * 0.85;
+      const endY = startY - currentLen * 0.25;
       
       ctx.beginPath();
       ctx.strokeStyle = color;
@@ -298,29 +299,28 @@ function drawNasalAirflow(ctx, width, height, intensity, phase, isInhale = false
       drawArrowhead(ctx, endX, endY, arrowAngle, 6, color);
     }
   } else {
-    // EXHALE: Ribbons closer to nostrils, SPRAY PATTERN (fan out)
-    // Higher up, but not crossing into wireframe
-    const exhaleBaseX = width * 0.10;   // Closer to nostril area
-    const exhaleBaseY = height * 0.42;  // Higher, towards nostrils
-    const exhaleLengths = [35, 45, 40];  // 3 ribbons for spray
+    // EXHALE: 4 ribbons SPRAY PATTERN (fan out), well separated
+    const exhaleLengths = [35, 45, 40, 50];
+    const exhaleSpreadY = 14;  // More vertical spread for separation
     
-    // Spray angles - fan out pattern
-    const sprayAngles = [-0.6, -0.3, 0];  // Varying downward angles
+    // Spray angles - fan out pattern (varying angles)
+    const sprayAngles = [-0.7, -0.35, 0, 0.3];
     
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 4; i++) {
       const ribbonPhase = (phase + i * 0.12) % 1;
       const maxLen = exhaleLengths[i] + intensity * 15;
       const currentLen = maxLen * (0.5 + ribbonPhase * 0.5);
       const fadeOpacity = opacity * (1 - ribbonPhase * 0.25);
       const color = `rgba(0, 210, 255, ${fadeOpacity})`;
       
-      const startX = exhaleBaseX + (i - 1) * 4;
-      const startY = exhaleBaseY + (i - 1) * 3;
+      // Well-separated starting positions
+      const startX = nostrilBaseX + (i % 2) * 5;
+      const startY = nostrilBaseY + (i - 1.5) * exhaleSpreadY;
       
-      // Exhale: spray pattern - fan out to the left and down
+      // Exhale: spray pattern - fan out to the left
       const angle = sprayAngles[i];
-      const endX = startX - currentLen * Math.cos(angle);
-      const endY = startY + currentLen * Math.sin(Math.abs(angle) + 0.5);
+      const endX = startX - currentLen * Math.cos(angle * 0.5);
+      const endY = startY + currentLen * Math.sin(angle + 0.4);
       
       ctx.beginPath();
       ctx.strokeStyle = color;
@@ -328,8 +328,8 @@ function drawNasalAirflow(ctx, width, height, intensity, phase, isInhale = false
       ctx.lineCap = 'round';
       ctx.moveTo(startX, startY);
       ctx.quadraticCurveTo(
-        startX - currentLen * 0.4,
-        startY + currentLen * 0.2,
+        startX - currentLen * 0.35,
+        startY + currentLen * 0.15,
         endX, endY
       );
       ctx.stroke();
