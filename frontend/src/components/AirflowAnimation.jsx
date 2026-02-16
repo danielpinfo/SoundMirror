@@ -470,8 +470,8 @@ const AirflowAnimation = ({
     } else if (isPlaying && !phonemeSymbol) {
       drawNasalAirflow(ctx, width, height, 0.3, phase, false);
     } else if (!isPlaying) {
-      // Not playing - show idle breathing (unless paused)
-      if (!isPaused) {
+      // Not playing - show idle breathing only if we've played at least once and not paused
+      if (hasPlayedOnceRef.current && !isPaused) {
         drawIdleBreathing(ctx, width, height, breathPhase);
       }
     }
