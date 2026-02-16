@@ -383,22 +383,14 @@ const AirflowAnimation = ({
   const phaseRef = useRef(0);
   const breathTimeRef = useRef(Date.now());
   const wasPlayingRef = useRef(false);  // Track previous playing state
-  const pauseUntilRef = useRef(0);  // Time when pause ends (3 sec pause after speech)
-  const hasPlayedOnceRef = useRef(false);  // Only start breathing after first animation
   const [dimensions, setDimensions] = useState({ width: 300, height: 300 });
   
   // Track when animation starts and ends
   useEffect(() => {
-    if (isPlaying && !wasPlayingRef.current) {
-      // Animation just started - mark that we've played at least once
-      hasPlayedOnceRef.current = true;
-    }
-    
     if (wasPlayingRef.current && !isPlaying) {
-      // Just finished speaking - set 3 second pause before breathing starts
-      pauseUntilRef.current = Date.now() + 3000;
-      // After pause ends, breath timer will start from 0 (inhale)
-      breathTimeRef.current = Date.now() + 3000;
+      // Just finished speaking - breathing starts immediately (no pause)
+      // Reset breath timer so breathing always starts with INHALE after speaking
+      breathTimeRef.current = Date.now();
     }
     wasPlayingRef.current = isPlaying;
   }, [isPlaying]);
@@ -436,16 +428,10 @@ const AirflowAnimation = ({
     phaseRef.current = (phaseRef.current + 0.02) % 1;
     const phase = phaseRef.current;
     
-    // Check if we're in the 3-second pause period after speech
-    const now = Date.now();
-    const isPaused = now < pauseUntilRef.current;
-    
     // Breath cycle: 3 seconds inhale + 3 seconds exhale = 6 seconds total
+    const now = Date.now();
     const elapsed = (now - breathTimeRef.current) / 1000;
     const breathPhase = (elapsed % 6) / 6;  // 6 second cycle
-    
-    // CRITICAL: Don't show ANY breathing until first animation has been played
-    const canShowBreathing = hasPlayedOnceRef.current && !isPaused;
     
     const isAtRest = currentFrame === 0 && !isPlaying;
     
@@ -468,11 +454,10 @@ const AirflowAnimation = ({
     } else if (isPlaying && !phonemeSymbol) {
       // Playing but between phonemes
       drawNasalAirflow(ctx, width, height, 0.3, phase, false);
-    } else if (!isPlaying && canShowBreathing) {
-      // Not playing - show idle breathing ONLY after first play and not during pause
+    } else if (!isPlaying) {
+      // Not playing - show idle breathing (always enabled on load and after speaking)
       drawIdleBreathing(ctx, width, height, breathPhase);
     }
-    // If none of the above: don't draw anything (initial state before first play)
     
     animFrameRef.current = requestAnimationFrame(renderFrame);
   }, [width, height, currentFrame, isPlaying, phonemeSymbol, isLastFrameOfPhoneme]);
