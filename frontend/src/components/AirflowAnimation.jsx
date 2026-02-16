@@ -444,15 +444,13 @@ const AirflowAnimation = ({
     const elapsed = (now - breathTimeRef.current) / 1000;
     const breathPhase = (elapsed % 6) / 6;  // 6 second cycle
     
+    // CRITICAL: Don't show ANY breathing until first animation has been played
+    const canShowBreathing = hasPlayedOnceRef.current && !isPaused;
+    
     const isAtRest = currentFrame === 0 && !isPlaying;
     
-    if (isAtRest) {
-      // Only show breathing after first animation has been attempted
-      // And not during the 3-second pause after speech
-      if (hasPlayedOnceRef.current && !isPaused) {
-        drawIdleBreathing(ctx, width, height, breathPhase);
-      }
-    } else if (isPlaying && phonemeSymbol) {
+    if (isPlaying && phonemeSymbol) {
+      // Currently playing a phoneme - show appropriate airflow
       const isRelease = isLastFrameOfPhoneme;
       const airflow = getAirflowConfig(phonemeSymbol, isRelease);
       
@@ -468,13 +466,13 @@ const AirflowAnimation = ({
         drawBurst(ctx, width * 0.10, height * 0.56, airflow.oral, phase);
       }
     } else if (isPlaying && !phonemeSymbol) {
+      // Playing but between phonemes
       drawNasalAirflow(ctx, width, height, 0.3, phase, false);
-    } else if (!isPlaying) {
-      // Not playing - show idle breathing only if we've played at least once and not paused
-      if (hasPlayedOnceRef.current && !isPaused) {
-        drawIdleBreathing(ctx, width, height, breathPhase);
-      }
+    } else if (!isPlaying && canShowBreathing) {
+      // Not playing - show idle breathing ONLY after first play and not during pause
+      drawIdleBreathing(ctx, width, height, breathPhase);
     }
+    // If none of the above: don't draw anything (initial state before first play)
     
     animFrameRef.current = requestAnimationFrame(renderFrame);
   }, [width, height, currentFrame, isPlaying, phonemeSymbol, isLastFrameOfPhoneme]);
