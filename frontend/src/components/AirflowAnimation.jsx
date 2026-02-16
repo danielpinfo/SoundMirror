@@ -433,7 +433,10 @@ const AirflowAnimation = ({
     } else if (isPlaying && !phonemeSymbol) {
       drawNasalAirflow(ctx, width, height, 0.3, phase, false);
     } else if (!isPlaying) {
-      drawIdleBreathing(ctx, width, height, breathPhase);
+      // Not playing - show idle breathing (unless paused)
+      if (!isPaused) {
+        drawIdleBreathing(ctx, width, height, breathPhase);
+      }
     }
     
     animFrameRef.current = requestAnimationFrame(renderFrame);
