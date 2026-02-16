@@ -137,8 +137,12 @@ Provide accurate, understandable, and immediate feedback on pronunciation across
 ### P1 - Audio Update (Next)
 - User has indicated this is the next major task after airflow is finalized
 
+### P1 - Audio Recording Bug (In Progress)
+- Audio recording showing "No sounds detected" even when user speaks
+- Added debug logging and 500ms timeslice to MediaRecorder
+- Requires user testing to verify fix
+
 ### P3 - Future
-- Electron desktop build
 - Real-time audio streaming
 - More practice content and custom practice lists
 - Bug report email (pending RESEND_API_KEY)
