@@ -194,6 +194,7 @@ export const RecordingPanel = ({
           mediaRecorderRef.current = mediaRecorder;
 
           mediaRecorder.ondataavailable = (e) => {
+            console.log('[RecordingPanel] ondataavailable:', { size: e.data.size, type: e.data.type });
             if (e.data.size > 0) {
               audioChunksRef.current.push(e.data);
             }
@@ -201,18 +202,38 @@ export const RecordingPanel = ({
 
           mediaRecorder.onstop = async () => {
             console.log('[RecordingPanel] Recording stopped, processing...');
+            console.log('[RecordingPanel] Total audio chunks:', audioChunksRef.current.length);
             clearInterval(recordingTimerRef.current);
             
             if (audioChunksRef.current.length === 0) {
               console.warn('[RecordingPanel] No audio chunks recorded');
+              setGrading({
+                audioScore: 0,
+                visualScore: 0,
+                phonemeDetected: '',
+                suggestions: ['No audio recorded. Please check your microphone permissions.'],
+                detectedIPA: [],
+                gradingDetails: null,
+              });
               return;
             }
             const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm;codecs=opus' });
+            console.log('[RecordingPanel] Audio blob size:', audioBlob.size, 'bytes');
+            
             const wavBlob = await convertToWav(audioBlob);
             if (!wavBlob) {
               console.warn("convertToWav returned null");
+              setGrading({
+                audioScore: 0,
+                visualScore: 0,
+                phonemeDetected: '',
+                suggestions: ['Audio conversion failed. Please try again.'],
+                detectedIPA: [],
+                gradingDetails: null,
+              });
               return;
             }
+            console.log('[RecordingPanel] WAV blob size:', wavBlob.size, 'bytes');
             
             // GRADING GATE: Only call grading if enabled
             if (GRADING_ENABLED) {
