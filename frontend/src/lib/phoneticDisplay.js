@@ -1017,7 +1017,7 @@ export function ipaSequenceToPhoneticString(ipaSequence) {
 // =============================================================================
 
 export const FRAME_TO_SOUND_NAME = {
-  0: 'neutral',
+  0: 'at rest',
   1: 'ah/oo',
   2: 'eh',
   3: 'ee',
@@ -1040,7 +1040,7 @@ export const FRAME_TO_SOUND_NAME = {
 };
 
 export function getFrameSoundName(frameIndex) {
-  return FRAME_TO_SOUND_NAME[frameIndex] || 'neutral';
+  return FRAME_TO_SOUND_NAME[frameIndex] || 'at rest';
 }
 
 export default {
