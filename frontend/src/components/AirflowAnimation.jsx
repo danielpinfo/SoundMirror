@@ -400,10 +400,15 @@ const AirflowAnimation = ({
     phaseRef.current = (phaseRef.current + 0.02) % 1;
     const phase = phaseRef.current;
     
-    const elapsed = (Date.now() - breathTimeRef.current) / 1000;
-    const breathPhase = (elapsed % 4) / 4;
+    // Check if we're in the 3-second pause period after speech
+    const now = Date.now();
+    const isPaused = now < pauseUntilRef.current;
     
-    const isNeutral = currentFrame === 0 && !isPlaying;
+    // Breath cycle: 3 seconds inhale + 3 seconds exhale = 6 seconds total
+    const elapsed = (now - breathTimeRef.current) / 1000;
+    const breathPhase = (elapsed % 6) / 6;  // 6 second cycle
+    
+    const isAtRest = currentFrame === 0 && !isPlaying;
     
     if (isNeutral) {
       drawIdleBreathing(ctx, width, height, breathPhase);
