@@ -118,7 +118,18 @@ Provide accurate, understandable, and immediate feedback on pronunciation across
 - **Verification**: Console logs show correct dimensions (432x432), airflow ribbons now properly positioned
 - **Visual Result**: Airflow ribbons clearly visible emanating from mouth area during animation
 
+### P0 - Final Airflow Animation Refinements (COMPLETED - Feb 16, 2026)
+- **Inhale ribbon position**: Raised nostril inhale ribbons from 0.42 to 0.38 vertical position
+- **Exhale ribbon spread**: Exhale ribbons now fan out matching the inhale pattern (14px spread)
+- **Removed 3-second pause**: Breathing cycle starts immediately after animation completes
+- **Restored initial breathing**: Breathing animation now visible on page load (removed `hasPlayedOnceRef` check)
+- **Inhale-first logic**: Confirmed breathing always starts with inhale (breath timer resets to `Date.now()` after speaking)
+- **Plosive airflow**: Verified code correctly returns `oral: 0` during closure phase, only showing burst on release
+
 ## Prioritized Backlog
+
+### P1 - Audio Update (Next)
+- User has indicated this is the next major task after airflow is finalized
 
 ### P3 - Future
 - Electron desktop build
