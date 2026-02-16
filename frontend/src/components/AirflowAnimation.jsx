@@ -259,54 +259,84 @@ function drawNasalAirflow(ctx, width, height, intensity, phase, isInhale = false
     drawArrowhead(ctx, isInhale ? startX : lastX, isInhale ? lineY : lastY, arrowAngle, 6, color);
   }
   
-  // === NOSTRIL EXIT - 5 ribbons, positioned lower/right to avoid nose tip ===
-  // Randomized offsets for natural look
-  const randomXOffsets = [3, 8, 5, 10, 6];   // All positive = more to the right
-  const randomYOffsets = [2, -2, 4, 0, 3];   // Varied Y positions
+  // === NOSTRIL EXIT RIBBONS ===
+  // Different positions for inhale vs exhale
   
-  // Position: Lower (closer to top lip) and more to the right
-  // Same position for inhale and exhale - just direction changes
-  const nostrilBaseX = width * 0.12;  // More to the right, away from nose tip
-  const nostrilExitY = height * 0.44;  // Lower, closer to top lip
-  const nostrilSpread = height * 0.016;
-  const nostrilExitLengths = [35, 50, 40, 55, 30];
-  
-  for (let i = 0; i < 5; i++) {
-    // Apply random offsets for natural look
-    const xOffset = randomXOffsets[i];
-    const yRandom = randomYOffsets[i];
-    const yOffset = (i - 2) * nostrilSpread + yRandom;
+  if (isInhale) {
+    // INHALE: Ribbons in white background area, LOWER and to the LEFT
+    // Stay completely clear of head wireframe
+    const inhaleBaseX = width * 0.06;   // Far left in white area
+    const inhaleBaseY = height * 0.50;  // Lower, away from nose
+    const inhaleSpread = height * 0.02;
+    const inhaleLengths = [30, 40, 35, 45];  // 4 ribbons
+    const inhaleXOffsets = [0, 3, -2, 5];
+    const inhaleYOffsets = [0, -2, 3, 1];
     
-    const ribbonPhase = (phase + i * 0.12) % 1;
-    const maxLen = nostrilExitLengths[i] + intensity * 15;
-    const currentLen = maxLen * (0.5 + ribbonPhase * 0.5);
-    const fadeOpacity = opacity * (1 - ribbonPhase * 0.25);
-    const color = `rgba(0, 210, 255, ${fadeOpacity})`;
+    for (let i = 0; i < 4; i++) {
+      const ribbonPhase = (phase + i * 0.15) % 1;
+      const maxLen = inhaleLengths[i] + intensity * 12;
+      const currentLen = maxLen * (0.5 + ribbonPhase * 0.5);
+      const fadeOpacity = opacity * (1 - ribbonPhase * 0.25);
+      const color = `rgba(0, 210, 255, ${fadeOpacity})`;
+      
+      const startX = inhaleBaseX + inhaleXOffsets[i];
+      const startY = inhaleBaseY + (i - 1.5) * inhaleSpread + inhaleYOffsets[i];
+      
+      // Inhale: ribbons point RIGHT (into face)
+      const endX = startX + currentLen * 0.8;
+      const endY = startY - currentLen * 0.3;
+      
+      ctx.beginPath();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2.5 * (1 - ribbonPhase * 0.15);
+      ctx.lineCap = 'round';
+      ctx.moveTo(startX, startY);
+      ctx.quadraticCurveTo(startX + currentLen * 0.4, startY - currentLen * 0.1, endX, endY);
+      ctx.stroke();
+      
+      const arrowAngle = Math.atan2(endY - startY, endX - startX);
+      drawArrowhead(ctx, endX, endY, arrowAngle, 6, color);
+    }
+  } else {
+    // EXHALE: Ribbons closer to nostrils, SPRAY PATTERN (fan out)
+    // Higher up, but not crossing into wireframe
+    const exhaleBaseX = width * 0.10;   // Closer to nostril area
+    const exhaleBaseY = height * 0.42;  // Higher, towards nostrils
+    const exhaleLengths = [35, 45, 40];  // 3 ribbons for spray
     
-    ctx.beginPath();
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 2.5 * (1 - ribbonPhase * 0.15);
-    ctx.lineCap = 'round';
+    // Spray angles - fan out pattern
+    const sprayAngles = [-0.6, -0.3, 0];  // Varying downward angles
     
-    const startX = nostrilBaseX + xOffset;
-    const startY = nostrilExitY + yOffset;
-    
-    // Angle varies per ribbon for natural look
-    const angleVariation = (i - 2) * 0.1;
-    const endX = startX + dir * currentLen * (0.5 + angleVariation);
-    const endY = startY - dir * currentLen * (0.7 - Math.abs(angleVariation) * 0.2);
-    
-    ctx.moveTo(startX, startY);
-    ctx.quadraticCurveTo(
-      startX + dir * currentLen * 0.25,
-      startY - dir * currentLen * 0.3,
-      endX, endY
-    );
-    ctx.stroke();
-    
-    // Arrowhead at leading edge
-    const arrowAngle = Math.atan2(endY - startY, endX - startX);
-    drawArrowhead(ctx, endX, endY, arrowAngle, 6, color);
+    for (let i = 0; i < 3; i++) {
+      const ribbonPhase = (phase + i * 0.12) % 1;
+      const maxLen = exhaleLengths[i] + intensity * 15;
+      const currentLen = maxLen * (0.5 + ribbonPhase * 0.5);
+      const fadeOpacity = opacity * (1 - ribbonPhase * 0.25);
+      const color = `rgba(0, 210, 255, ${fadeOpacity})`;
+      
+      const startX = exhaleBaseX + (i - 1) * 4;
+      const startY = exhaleBaseY + (i - 1) * 3;
+      
+      // Exhale: spray pattern - fan out to the left and down
+      const angle = sprayAngles[i];
+      const endX = startX - currentLen * Math.cos(angle);
+      const endY = startY + currentLen * Math.sin(Math.abs(angle) + 0.5);
+      
+      ctx.beginPath();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2.5 * (1 - ribbonPhase * 0.15);
+      ctx.lineCap = 'round';
+      ctx.moveTo(startX, startY);
+      ctx.quadraticCurveTo(
+        startX - currentLen * 0.4,
+        startY + currentLen * 0.2,
+        endX, endY
+      );
+      ctx.stroke();
+      
+      const arrowAngle = Math.atan2(endY - startY, endX - startX);
+      drawArrowhead(ctx, endX, endY, arrowAngle, 6, color);
+    }
   }
 }
 
