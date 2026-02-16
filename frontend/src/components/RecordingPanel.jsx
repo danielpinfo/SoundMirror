@@ -408,7 +408,9 @@ export const RecordingPanel = ({
             }
           };
 
-          mediaRecorder.start();
+          // Start recording with timeslice (500ms) to capture audio in chunks
+          mediaRecorder.start(500);
+          console.log('[RecordingPanel] MediaRecorder (fallback) started with 500ms timeslice');
           setIsRecording(true);
           
           // Timer with auto-stop after 10 seconds
