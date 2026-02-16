@@ -259,16 +259,17 @@ function drawNasalAirflow(ctx, width, height, intensity, phase, isInhale = false
     drawArrowhead(ctx, isInhale ? startX : lastX, isInhale ? lineY : lastY, arrowAngle, 6, color);
   }
   
-  // === NOSTRIL EXIT - 5 ribbons, RANDOMIZED positions, with arrows ===
-  // Randomized X offsets to avoid linear 90-degree alignment
-  const randomXOffsets = [-8, 3, -5, 7, -2];  // Staggered start positions
-  const randomYOffsets = [2, -3, 5, -1, 4];   // Varied Y positions
+  // === NOSTRIL EXIT - 5 ribbons, positioned lower/right to avoid nose tip ===
+  // Randomized offsets for natural look
+  const randomXOffsets = [3, 8, 5, 10, 6];   // All positive = more to the right
+  const randomYOffsets = [2, -2, 4, 0, 3];   // Varied Y positions
   
-  // Base position much further LEFT when inhaling
-  const nostrilBaseX = isInhale ? width * 0.03 : width * 0.08;
-  const nostrilExitY = height * 0.38;
-  const nostrilSpread = height * 0.018;
-  const exitLengths = [35, 50, 40, 55, 30];
+  // Position: Lower (closer to top lip) and more to the right
+  // Same position for inhale and exhale - just direction changes
+  const nostrilBaseX = width * 0.12;  // More to the right, away from nose tip
+  const nostrilExitY = height * 0.44;  // Lower, closer to top lip
+  const nostrilSpread = height * 0.016;
+  const nostrilExitLengths = [35, 50, 40, 55, 30];
   
   for (let i = 0; i < 5; i++) {
     // Apply random offsets for natural look
