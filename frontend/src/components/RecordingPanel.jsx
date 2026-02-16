@@ -388,9 +388,18 @@ export const RecordingPanel = ({
           mediaRecorder.start();
           setIsRecording(true);
           
+          // Timer with auto-stop after 10 seconds
           setRecordingTime(0);
           recordingTimerRef.current = setInterval(() => {
-            setRecordingTime(prev => prev + 1);
+            setRecordingTime(prev => {
+              const newTime = prev + 1;
+              // Auto-stop after 10 seconds
+              if (newTime >= 10) {
+                console.log('[RecordingPanel] Auto-stopping after 10 seconds');
+                stopCameraAndRecording();
+              }
+              return newTime;
+            });
           }, 1000);
         }
       }
