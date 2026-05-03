@@ -1,2 +1,0 @@
-# SoundMirror
-Emergent
