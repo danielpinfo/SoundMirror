@@ -1,0 +1,702 @@
+{
+  "version": "universal-mouth-sprites-v2",
+  "status": "grid-5x4-generated-from-github-frames",
+  "frameCount": 20,
+  "layout": {
+    "type": "grid",
+    "columns": 5,
+    "rows": 4,
+    "padding": 0,
+    "spacing": 0,
+    "frontFrameSize": {
+      "w": 939,
+      "h": 793
+    },
+    "sideFrameSize": {
+      "w": 939,
+      "h": 793
+    },
+    "frontSheetSize": {
+      "w": 4695,
+      "h": 3172
+    },
+    "sideSheetSize": {
+      "w": 4695,
+      "h": 3172
+    }
+  },
+  "sheets": {
+    "front": "front_universal_20.png",
+    "side": "side_universal_20.png"
+  },
+  "frameLockRule": "front frame N must always pair with side frame N",
+  "frames": {
+    "00": {
+      "index": 0,
+      "label": "neutral",
+      "grid": {
+        "col": 0,
+        "row": 0
+      },
+      "front": {
+        "sourceFile": "front_00_neutral.png",
+        "x": 0,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      },
+      "side": {
+        "sourceFile": "side_00_neutral.png",
+        "x": 0,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      }
+    },
+    "01": {
+      "index": 1,
+      "label": "a_u",
+      "grid": {
+        "col": 1,
+        "row": 0
+      },
+      "front": {
+        "sourceFile": "front_01_a_u.png",
+        "x": 939,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      },
+      "side": {
+        "sourceFile": "side_01_a_u.png",
+        "x": 939,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      }
+    },
+    "02": {
+      "index": 2,
+      "label": "e",
+      "grid": {
+        "col": 2,
+        "row": 0
+      },
+      "front": {
+        "sourceFile": "front_02_e.png",
+        "x": 1878,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      },
+      "side": {
+        "sourceFile": "side_02_e.png",
+        "x": 1878,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      }
+    },
+    "03": {
+      "index": 3,
+      "label": "ee_z_x",
+      "grid": {
+        "col": 3,
+        "row": 0
+      },
+      "front": {
+        "sourceFile": "front_03_ee_z_x.png",
+        "x": 2817,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      },
+      "side": {
+        "sourceFile": "side_03_ee_z_x.png",
+        "x": 2817,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      }
+    },
+    "04": {
+      "index": 4,
+      "label": "ue",
+      "grid": {
+        "col": 4,
+        "row": 0
+      },
+      "front": {
+        "sourceFile": "front_04_ue.png",
+        "x": 3756,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      },
+      "side": {
+        "sourceFile": "side_04_ue.png",
+        "x": 3756,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      }
+    },
+    "05": {
+      "index": 5,
+      "label": "oo_o_ou_w",
+      "grid": {
+        "col": 0,
+        "row": 1
+      },
+      "front": {
+        "sourceFile": "front_05_oo_o_ou_w.png",
+        "x": 0,
+        "y": 793,
+        "w": 939,
+        "h": 793
+      },
+      "side": {
+        "sourceFile": "side_05_oo_o_ou_w.png",
+        "x": 0,
+        "y": 793,
+        "w": 939,
+        "h": 793
+      }
+    },
+    "06": {
+      "index": 6,
+      "label": "c_k_q_g",
+      "grid": {
+        "col": 1,
+        "row": 1
+      },
+      "front": {
+        "sourceFile": "front_06_c_k_q_g.png",
+        "x": 939,
+        "y": 793,
+        "w": 939,
+        "h": 793
+      },
+      "side": {
+        "sourceFile": "side_06_c_k_q_g.png",
+        "x": 939,
+        "y": 793,
+        "w": 939,
+        "h": 793
+      }
+    },
+    "07": {
+      "index": 7,
+      "label": "t_tsk_d_j",
+      "grid": {
+        "col": 2,
+        "row": 1
+      },
+      "front": {
+        "sourceFile": "front_07_t_tsk_d_j.png",
+        "x": 1878,
+        "y": 793,
+        "w": 939,
+        "h": 793
+      },
+      "side": {
+        "sourceFile": "side_07_t_tsk_d_j.png",
+        "x": 1878,
+        "y": 793,
+        "w": 939,
+        "h": 793
+      }
+    },
+    "08": {
+      "index": 8,
+      "label": "b_p_m",
+      "grid": {
+        "col": 3,
+        "row": 1
+      },
+      "front": {
+        "sourceFile": "front_08_b_p_m.png",
+        "x": 2817,
+        "y": 793,
+        "w": 939,
+        "h": 793
+      },
+      "side": {
+        "sourceFile": "side_08_b_p_m.png",
+        "x": 2817,
+        "y": 793,
+        "w": 939,
+        "h": 793
+      }
+    },
+    "09": {
+      "index": 9,
+      "label": "n",
+      "grid": {
+        "col": 4,
+        "row": 1
+      },
+      "front": {
+        "sourceFile": "front_09_n.png",
+        "x": 3756,
+        "y": 793,
+        "w": 939,
+        "h": 793
+      },
+      "side": {
+        "sourceFile": "side_09_n.png",
+        "x": 3756,
+        "y": 793,
+        "w": 939,
+        "h": 793
+      }
+    },
+    "10": {
+      "index": 10,
+      "label": "ng",
+      "grid": {
+        "col": 0,
+        "row": 2
+      },
+      "front": {
+        "sourceFile": "front_10_ng.png",
+        "x": 0,
+        "y": 1586,
+        "w": 939,
+        "h": 793
+      },
+      "side": {
+        "sourceFile": "side_10_ng.png",
+        "x": 0,
+        "y": 1586,
+        "w": 939,
+        "h": 793
+      }
+    },
+    "11": {
+      "index": 11,
+      "label": "s",
+      "grid": {
+        "col": 1,
+        "row": 2
+      },
+      "front": {
+        "sourceFile": "front_11_s.png",
+        "x": 939,
+        "y": 1586,
+        "w": 939,
+        "h": 793
+      },
+      "side": {
+        "sourceFile": "side_11_s.png",
+        "x": 939,
+        "y": 1586,
+        "w": 939,
+        "h": 793
+      }
+    },
+    "12": {
+      "index": 12,
+      "label": "sh",
+      "grid": {
+        "col": 2,
+        "row": 2
+      },
+      "front": {
+        "sourceFile": "front_12_sh.png",
+        "x": 1878,
+        "y": 1586,
+        "w": 939,
+        "h": 793
+      },
+      "side": {
+        "sourceFile": "side_12_sh.png",
+        "x": 1878,
+        "y": 1586,
+        "w": 939,
+        "h": 793
+      }
+    },
+    "13": {
+      "index": 13,
+      "label": "th",
+      "grid": {
+        "col": 3,
+        "row": 2
+      },
+      "front": {
+        "sourceFile": "front_13_th.png",
+        "x": 2817,
+        "y": 1586,
+        "w": 939,
+        "h": 793
+      },
+      "side": {
+        "sourceFile": "side_13_th.png",
+        "x": 2817,
+        "y": 1586,
+        "w": 939,
+        "h": 793
+      }
+    },
+    "14": {
+      "index": 14,
+      "label": "f_v",
+      "grid": {
+        "col": 4,
+        "row": 2
+      },
+      "front": {
+        "sourceFile": "front_14_f_v.png",
+        "x": 3756,
+        "y": 1586,
+        "w": 939,
+        "h": 793
+      },
+      "side": {
+        "sourceFile": "side_14_f_v.png",
+        "x": 3756,
+        "y": 1586,
+        "w": 939,
+        "h": 793
+      }
+    },
+    "15": {
+      "index": 15,
+      "label": "ch",
+      "grid": {
+        "col": 0,
+        "row": 3
+      },
+      "front": {
+        "sourceFile": "front_15_ch.png",
+        "x": 0,
+        "y": 2379,
+        "w": 939,
+        "h": 793
+      },
+      "side": {
+        "sourceFile": "side_15_ch.png",
+        "x": 0,
+        "y": 2379,
+        "w": 939,
+        "h": 793
+      }
+    },
+    "16": {
+      "index": 16,
+      "label": "h",
+      "grid": {
+        "col": 1,
+        "row": 3
+      },
+      "front": {
+        "sourceFile": "front_16_h.png",
+        "x": 939,
+        "y": 2379,
+        "w": 939,
+        "h": 793
+      },
+      "side": {
+        "sourceFile": "side_16_h.png",
+        "x": 939,
+        "y": 2379,
+        "w": 939,
+        "h": 793
+      }
+    },
+    "17": {
+      "index": 17,
+      "label": "r",
+      "grid": {
+        "col": 2,
+        "row": 3
+      },
+      "front": {
+        "sourceFile": "front_17_r.png",
+        "x": 1878,
+        "y": 2379,
+        "w": 939,
+        "h": 793
+      },
+      "side": {
+        "sourceFile": "side_17_r.png",
+        "x": 1878,
+        "y": 2379,
+        "w": 939,
+        "h": 793
+      }
+    },
+    "18": {
+      "index": 18,
+      "label": "L",
+      "grid": {
+        "col": 3,
+        "row": 3
+      },
+      "front": {
+        "sourceFile": "front_18_L.png",
+        "x": 2817,
+        "y": 2379,
+        "w": 939,
+        "h": 793
+      },
+      "side": {
+        "sourceFile": "side_18_L.png",
+        "x": 2817,
+        "y": 2379,
+        "w": 939,
+        "h": 793
+      }
+    },
+    "19": {
+      "index": 19,
+      "label": "LL_y",
+      "grid": {
+        "col": 4,
+        "row": 3
+      },
+      "front": {
+        "sourceFile": "front_19_LL_y.png",
+        "x": 3756,
+        "y": 2379,
+        "w": 939,
+        "h": 793
+      },
+      "side": {
+        "sourceFile": "side_19_LL_y.png",
+        "x": 3756,
+        "y": 2379,
+        "w": 939,
+        "h": 793
+      }
+    }
+  },
+  "phonemeToFrame": {
+    "neutral": 0,
+    "sil": 0,
+    "sp": 0,
+    "pause": 0,
+    "a": 1,
+    "ɑ": 1,
+    "æ": 1,
+    "ʌ": 1,
+    "ə": 1,
+    "ɐ": 1,
+    "ɜ": 1,
+    "ɚ": 1,
+    "u": 1,
+    "e": 2,
+    "ɛ": 2,
+    "ɪ": 2,
+    "i": 3,
+    "ɨ": 3,
+    "ɯ": 3,
+    "z": 3,
+    "ʒ": 12,
+    "x": 3,
+    "ü": 4,
+    "y": 4,
+    "ʉ": 4,
+    "ue": 4,
+    "o": 5,
+    "ɔ": 5,
+    "ʊ": 5,
+    "oo": 5,
+    "ou": 5,
+    "w": 5,
+    "k": 6,
+    "c": 6,
+    "q": 6,
+    "g": 6,
+    "ɡ": 6,
+    "ʔ": 6,
+    "t": 7,
+    "d": 7,
+    "j": 7,
+    "ɟ": 7,
+    "tsk": 7,
+    "ǀ": 7,
+    "b": 8,
+    "p": 8,
+    "m": 8,
+    "n": 9,
+    "ng": 10,
+    "ŋ": 10,
+    "s": 11,
+    "ss": 11,
+    "sh": 12,
+    "ʃ": 12,
+    "zh": 12,
+    "th": 13,
+    "θ": 13,
+    "ð": 13,
+    "dh": 13,
+    "f": 14,
+    "v": 14,
+    "ɸ": 14,
+    "ch": 15,
+    "tʃ": 15,
+    "t͡ʃ": 15,
+    "dʒ": 15,
+    "d͡ʒ": 15,
+    "h": 16,
+    "ɦ": 16,
+    "r": 17,
+    "ɹ": 17,
+    "ɾ": 17,
+    "ʁ": 17,
+    "l": 18,
+    "L": 18,
+    "ɫ": 18,
+    "ll": 19,
+    "LL": 19,
+    "ɬ": 19,
+    "ʎ": 19,
+    "j_semivowel": 19
+  },
+  "compoundPhonemes": {
+    "ks": [
+      "k",
+      "s"
+    ],
+    "kh": [
+      "k",
+      "h"
+    ],
+    "gh": [
+      "g",
+      "h"
+    ],
+    "pf": [
+      "p",
+      "f"
+    ],
+    "kv": [
+      "k",
+      "v"
+    ],
+    "ts": [
+      "t",
+      "s"
+    ],
+    "dz": [
+      "d",
+      "z"
+    ],
+    "sht": [
+      "sh",
+      "t"
+    ],
+    "shp": [
+      "sh",
+      "p"
+    ],
+    "zu": [
+      "z",
+      "u"
+    ],
+    "di": [
+      "d",
+      "i"
+    ],
+    "du": [
+      "d",
+      "u"
+    ],
+    "ye": [
+      "y",
+      "e"
+    ],
+    "fu": [
+      "f",
+      "u"
+    ],
+    "dd": [
+      "d"
+    ],
+    "tt": [
+      "t"
+    ],
+    "qq": [
+      "q"
+    ],
+    "ph": [
+      "p",
+      "h"
+    ],
+    "bh": [
+      "b",
+      "h"
+    ],
+    "ly": [
+      "l",
+      "y"
+    ],
+    "oy": [
+      "o",
+      "y"
+    ],
+    "ang": [
+      "a",
+      "ng"
+    ],
+    "eng": [
+      "e",
+      "ng"
+    ],
+    "ing": [
+      "i",
+      "ng"
+    ],
+    "ong": [
+      "o",
+      "ng"
+    ],
+    "an": [
+      "a",
+      "n"
+    ],
+    "en": [
+      "e",
+      "n"
+    ],
+    "in": [
+      "i",
+      "n"
+    ],
+    "un": [
+      "u",
+      "n"
+    ],
+    "uan": [
+      "u",
+      "a",
+      "n"
+    ],
+    "uang": [
+      "u",
+      "a",
+      "ng"
+    ]
+  },
+  "notes": [
+    "Runtime sprite sheets contain only image cells; labels live in metadata.",
+    "No timing values are stored here. Timing must come from TTS audio duration.",
+    "PE provides phoneme sequence truth. AE maps phonemes to frames using this metadata."
+  ],
+  "source": {
+    "repository": "danielpinfo/SoundMirror",
+    "branch": "Heads_front-_side",
+    "frontFolder": "animation_front",
+    "sideFolder": "animation_side"
+  },
+  "checksums": {
+    "front": {
+      "sha256": "1748ca89849f2e3051bf471fb11c29b32d329bef38c96e37fa742ba8b811d0f7"
+    },
+    "side": {
+      "sha256": "805706abd992ac28947739623217bdec00d0dafa879ea72d58efaaf3eb8041aa"
+    }
+  }
+}
