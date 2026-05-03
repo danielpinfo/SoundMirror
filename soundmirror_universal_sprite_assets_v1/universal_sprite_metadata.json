@@ -1,0 +1,619 @@
+{
+  "version": "universal-mouth-sprites-v1",
+  "status": "draft-generated-from-github-frames",
+  "frameCount": 20,
+  "layout": {
+    "type": "horizontal-strip",
+    "columns": 20,
+    "rows": 1,
+    "padding": 0,
+    "spacing": 0,
+    "frontFrameSize": {
+      "w": 939,
+      "h": 793
+    },
+    "sideFrameSize": {
+      "w": 939,
+      "h": 793
+    },
+    "frontSheetSize": {
+      "w": 18780,
+      "h": 793
+    },
+    "sideSheetSize": {
+      "w": 18780,
+      "h": 793
+    }
+  },
+  "sheets": {
+    "front": "front_universal_20.png",
+    "side": "side_universal_20.png"
+  },
+  "frameLockRule": "front frame N must always pair with side frame N",
+  "frames": {
+    "00": {
+      "index": 0,
+      "label": "neutral",
+      "front": {
+        "sourceFile": "front_00_neutral.png",
+        "x": 0,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      },
+      "side": {
+        "sourceFile": "side_00_neutral.png",
+        "x": 0,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      }
+    },
+    "01": {
+      "index": 1,
+      "label": "a_u",
+      "front": {
+        "sourceFile": "front_01_a_u.png",
+        "x": 939,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      },
+      "side": {
+        "sourceFile": "side_01_a_u.png",
+        "x": 939,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      }
+    },
+    "02": {
+      "index": 2,
+      "label": "e",
+      "front": {
+        "sourceFile": "front_02_e.png",
+        "x": 1878,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      },
+      "side": {
+        "sourceFile": "side_02_e.png",
+        "x": 1878,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      }
+    },
+    "03": {
+      "index": 3,
+      "label": "ee_z_x",
+      "front": {
+        "sourceFile": "front_03_ee_z_x.png",
+        "x": 2817,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      },
+      "side": {
+        "sourceFile": "side_03_ee_z_x.png",
+        "x": 2817,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      }
+    },
+    "04": {
+      "index": 4,
+      "label": "ue",
+      "front": {
+        "sourceFile": "front_04_ue.png",
+        "x": 3756,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      },
+      "side": {
+        "sourceFile": "side_04_ue.png",
+        "x": 3756,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      }
+    },
+    "05": {
+      "index": 5,
+      "label": "oo_o_ou_w",
+      "front": {
+        "sourceFile": "front_05_oo_o_ou_w.png",
+        "x": 4695,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      },
+      "side": {
+        "sourceFile": "side_05_oo_o_ou_w.png",
+        "x": 4695,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      }
+    },
+    "06": {
+      "index": 6,
+      "label": "c_k_q_g",
+      "front": {
+        "sourceFile": "front_06_c_k_q_g.png",
+        "x": 5634,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      },
+      "side": {
+        "sourceFile": "side_06_c_k_q_g.png",
+        "x": 5634,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      }
+    },
+    "07": {
+      "index": 7,
+      "label": "t_tsk_d_j",
+      "front": {
+        "sourceFile": "front_07_t_tsk_d_j.png",
+        "x": 6573,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      },
+      "side": {
+        "sourceFile": "side_07_t_tsk_d_j.png",
+        "x": 6573,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      }
+    },
+    "08": {
+      "index": 8,
+      "label": "b_p_m",
+      "front": {
+        "sourceFile": "front_08_b_p_m.png",
+        "x": 7512,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      },
+      "side": {
+        "sourceFile": "side_08_b_p_m.png",
+        "x": 7512,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      }
+    },
+    "09": {
+      "index": 9,
+      "label": "n",
+      "front": {
+        "sourceFile": "front_09_n.png",
+        "x": 8451,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      },
+      "side": {
+        "sourceFile": "side_09_n.png",
+        "x": 8451,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      }
+    },
+    "10": {
+      "index": 10,
+      "label": "ng",
+      "front": {
+        "sourceFile": "front_10_ng.png",
+        "x": 9390,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      },
+      "side": {
+        "sourceFile": "side_10_ng.png",
+        "x": 9390,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      }
+    },
+    "11": {
+      "index": 11,
+      "label": "s",
+      "front": {
+        "sourceFile": "front_11_s.png",
+        "x": 10329,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      },
+      "side": {
+        "sourceFile": "side_11_s.png",
+        "x": 10329,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      }
+    },
+    "12": {
+      "index": 12,
+      "label": "sh",
+      "front": {
+        "sourceFile": "front_12_sh.png",
+        "x": 11268,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      },
+      "side": {
+        "sourceFile": "side_12_sh.png",
+        "x": 11268,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      }
+    },
+    "13": {
+      "index": 13,
+      "label": "th",
+      "front": {
+        "sourceFile": "front_13_th.png",
+        "x": 12207,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      },
+      "side": {
+        "sourceFile": "side_13_th.png",
+        "x": 12207,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      }
+    },
+    "14": {
+      "index": 14,
+      "label": "f_v",
+      "front": {
+        "sourceFile": "front_14_f_v.png",
+        "x": 13146,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      },
+      "side": {
+        "sourceFile": "side_14_f_v.png",
+        "x": 13146,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      }
+    },
+    "15": {
+      "index": 15,
+      "label": "ch",
+      "front": {
+        "sourceFile": "front_15_ch.png",
+        "x": 14085,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      },
+      "side": {
+        "sourceFile": "side_15_ch.png",
+        "x": 14085,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      }
+    },
+    "16": {
+      "index": 16,
+      "label": "h",
+      "front": {
+        "sourceFile": "front_16_h.png",
+        "x": 15024,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      },
+      "side": {
+        "sourceFile": "side_16_h.png",
+        "x": 15024,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      }
+    },
+    "17": {
+      "index": 17,
+      "label": "r",
+      "front": {
+        "sourceFile": "front_17_r.png",
+        "x": 15963,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      },
+      "side": {
+        "sourceFile": "side_17_r.png",
+        "x": 15963,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      }
+    },
+    "18": {
+      "index": 18,
+      "label": "L",
+      "front": {
+        "sourceFile": "front_18_L.png",
+        "x": 16902,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      },
+      "side": {
+        "sourceFile": "side_18_L.png",
+        "x": 16902,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      }
+    },
+    "19": {
+      "index": 19,
+      "label": "LL_y",
+      "front": {
+        "sourceFile": "front_19_LL_y.png",
+        "x": 17841,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      },
+      "side": {
+        "sourceFile": "side_19_LL_y.png",
+        "x": 17841,
+        "y": 0,
+        "w": 939,
+        "h": 793
+      }
+    }
+  },
+  "phonemeToFrame": {
+    "neutral": 0,
+    "sil": 0,
+    "sp": 0,
+    "pause": 0,
+    "a": 1,
+    "ɑ": 1,
+    "æ": 1,
+    "ʌ": 1,
+    "ə": 1,
+    "ɐ": 1,
+    "ɜ": 1,
+    "ɚ": 1,
+    "u": 1,
+    "e": 2,
+    "ɛ": 2,
+    "ɪ": 2,
+    "i": 3,
+    "ɨ": 3,
+    "ɯ": 3,
+    "z": 3,
+    "ʒ": 12,
+    "x": 3,
+    "ü": 4,
+    "y": 4,
+    "ʉ": 4,
+    "ue": 4,
+    "o": 5,
+    "ɔ": 5,
+    "ʊ": 5,
+    "oo": 5,
+    "ou": 5,
+    "w": 5,
+    "k": 6,
+    "c": 6,
+    "q": 6,
+    "g": 6,
+    "ɡ": 6,
+    "ʔ": 6,
+    "t": 7,
+    "d": 7,
+    "j": 7,
+    "ɟ": 7,
+    "tsk": 7,
+    "ǀ": 7,
+    "b": 8,
+    "p": 8,
+    "m": 8,
+    "n": 9,
+    "ng": 10,
+    "ŋ": 10,
+    "s": 11,
+    "ss": 11,
+    "sh": 12,
+    "ʃ": 12,
+    "zh": 12,
+    "th": 13,
+    "θ": 13,
+    "ð": 13,
+    "dh": 13,
+    "f": 14,
+    "v": 14,
+    "ɸ": 14,
+    "ch": 15,
+    "tʃ": 15,
+    "t͡ʃ": 15,
+    "dʒ": 15,
+    "d͡ʒ": 15,
+    "h": 16,
+    "ɦ": 16,
+    "r": 17,
+    "ɹ": 17,
+    "ɾ": 17,
+    "ʁ": 17,
+    "l": 18,
+    "L": 18,
+    "ɫ": 18,
+    "ll": 19,
+    "LL": 19,
+    "ɬ": 19,
+    "ʎ": 19,
+    "j_semivowel": 19
+  },
+  "compoundPhonemes": {
+    "ks": [
+      "k",
+      "s"
+    ],
+    "kh": [
+      "k",
+      "h"
+    ],
+    "gh": [
+      "g",
+      "h"
+    ],
+    "pf": [
+      "p",
+      "f"
+    ],
+    "kv": [
+      "k",
+      "v"
+    ],
+    "ts": [
+      "t",
+      "s"
+    ],
+    "dz": [
+      "d",
+      "z"
+    ],
+    "sht": [
+      "sh",
+      "t"
+    ],
+    "shp": [
+      "sh",
+      "p"
+    ],
+    "zu": [
+      "z",
+      "u"
+    ],
+    "di": [
+      "d",
+      "i"
+    ],
+    "du": [
+      "d",
+      "u"
+    ],
+    "ye": [
+      "y",
+      "e"
+    ],
+    "fu": [
+      "f",
+      "u"
+    ],
+    "dd": [
+      "d"
+    ],
+    "tt": [
+      "t"
+    ],
+    "qq": [
+      "q"
+    ],
+    "ph": [
+      "p",
+      "h"
+    ],
+    "bh": [
+      "b",
+      "h"
+    ],
+    "ly": [
+      "l",
+      "y"
+    ],
+    "oy": [
+      "o",
+      "y"
+    ],
+    "ang": [
+      "a",
+      "ng"
+    ],
+    "eng": [
+      "e",
+      "ng"
+    ],
+    "ing": [
+      "i",
+      "ng"
+    ],
+    "ong": [
+      "o",
+      "ng"
+    ],
+    "an": [
+      "a",
+      "n"
+    ],
+    "en": [
+      "e",
+      "n"
+    ],
+    "in": [
+      "i",
+      "n"
+    ],
+    "un": [
+      "u",
+      "n"
+    ],
+    "uan": [
+      "u",
+      "a",
+      "n"
+    ],
+    "uang": [
+      "u",
+      "a",
+      "ng"
+    ]
+  },
+  "notes": [
+    "Metadata contains no timing values.",
+    "Language packs may keep language-specific normalization/helper rules, but should not use pack-owned animation timing.",
+    "Compound phonemes are expansion hints only; AE/TTS duration remains timing truth.",
+    "Frame labels follow the current 20-frame source filenames."
+  ],
+  "source": {
+    "repository": "danielpinfo/SoundMirror",
+    "branch": "Heads_front-_side",
+    "frontFolder": "animation_front",
+    "sideFolder": "animation_side"
+  },
+  "checksums": {
+    "front_universal_20.png": "sha256:61605a74d6947432c14bf2e791211d35d07bcef47e428eeae6385bbd6c54d436",
+    "side_universal_20.png": "sha256:b44b2e2f3cdb30f1deff882b770d04266e09cea77429eb16ebb2bcf8fe5e01cb"
+  }
+}
