@@ -1,0 +1,1 @@
+export class PackPurchaseService { purchase(_id: string) { /* stub */ } }

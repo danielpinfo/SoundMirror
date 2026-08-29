@@ -1,0 +1,48 @@
+{
+  "name": "PhonemeAudio",
+  "type": "object",
+  "properties": {
+    "language": {
+      "type": "string",
+      "enum": [
+        "en",
+        "es",
+        "fr",
+        "ar",
+        "zh",
+        "hi",
+        "it",
+        "ja",
+        "pt",
+        "de"
+      ],
+      "description": "Language code"
+    },
+    "phoneme": {
+      "type": "string",
+      "description": "Phoneme identifier (e.g. 'ah', 'b', 'th')"
+    },
+    "s3_key": {
+      "type": "string",
+      "description": "Original S3 file key (e.g. Chat_phonemes/ar-ah.mp3)"
+    },
+    "cdn_url": {
+      "type": "string",
+      "description": "Base44 CDN URL after upload"
+    },
+    "file_name": {
+      "type": "string",
+      "description": "Original file name (e.g. ar-ah.mp3)"
+    },
+    "synced": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this file has been synced to Base44 CDN"
+    }
+  },
+  "required": [
+    "language",
+    "phoneme",
+    "file_name"
+  ]
+}

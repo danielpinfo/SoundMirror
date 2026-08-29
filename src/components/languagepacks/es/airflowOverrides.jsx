@@ -1,0 +1,28 @@
+const airflowOverrides = {
+  p: { airflowClass: 'stop_unaspirated', oral: 0.44, velocity: 0.48, width: 'narrow', turbulent: false },
+  t: { airflowClass: 'stop_unaspirated', oral: 0.46, velocity: 0.5, width: 'narrow', turbulent: false },
+  k: { airflowClass: 'stop_unaspirated', oral: 0.5, velocity: 0.54, width: 'medium', turbulent: false },
+  b: { airflowClass: 'stop_unaspirated', oral: 0.38, velocity: 0.42, width: 'narrow', turbulent: false },
+  d: { airflowClass: 'stop_unaspirated', oral: 0.4, velocity: 0.44, width: 'narrow', turbulent: false },
+  g: { airflowClass: 'stop_unaspirated', oral: 0.44, velocity: 0.48, width: 'medium', turbulent: false },
+  s: { airflowClass: 'fricative_strong', oral: 0.86, velocity: 0.7, width: 'narrow', turbulent: true },
+  h: { airflowClass: 'fricative_strong', oral: 0.82, velocity: 0.68, width: 'wide', turbulent: true },
+  f: { airflowClass: 'fricative_weak', oral: 0.62, velocity: 0.5, width: 'medium', turbulent: true },
+  v: { airflowClass: 'fricative_weak', oral: 0.58, velocity: 0.46, width: 'medium', turbulent: true },
+  ch: { airflowClass: 'affricate', oral: 0.76, velocity: 0.7, width: 'medium', turbulent: true },
+  m: { airflowClass: 'nasal', oral: 0.04, nasal: 0.76, velocity: 0.42, width: 'medium', turbulent: false },
+  n: { airflowClass: 'nasal', oral: 0.04, nasal: 0.74, velocity: 0.4, width: 'medium', turbulent: false },
+  ny: { airflowClass: 'nasal', oral: 0.03, nasal: 0.72, velocity: 0.38, width: 'medium', turbulent: false },
+  l: { airflowClass: 'liquid', oral: 0.42, velocity: 0.34, width: 'medium', turbulent: false },
+  r: { airflowClass: 'liquid', oral: 0.4, velocity: 0.34, width: 'medium', turbulent: false },
+  rr: { airflowClass: 'trill', oral: 0.52, velocity: 0.44, width: 'medium', turbulent: true },
+  y: { airflowClass: 'glide', oral: 0.3, velocity: 0.24, width: 'narrow', turbulent: false },
+  w: { airflowClass: 'glide', oral: 0.34, velocity: 0.28, width: 'narrow', turbulent: false },
+  a: { airflowClass: 'vowel_short', oral: 0.66, velocity: 0.44, width: 'medium' },
+  e: { airflowClass: 'vowel_short', oral: 0.6, velocity: 0.4, width: 'medium' },
+  i: { airflowClass: 'vowel_short', oral: 0.56, velocity: 0.38, width: 'medium' },
+  o: { airflowClass: 'vowel_short', oral: 0.64, velocity: 0.42, width: 'medium' },
+  u: { airflowClass: 'vowel_short', oral: 0.6, velocity: 0.4, width: 'medium' },
+};
+
+export default airflowOverrides;

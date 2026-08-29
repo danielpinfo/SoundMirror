@@ -1,0 +1,47 @@
+{
+  "name": "LangPack",
+  "type": "object",
+  "properties": {
+    "language": {
+      "type": "string",
+      "enum": [
+        "en",
+        "es",
+        "fr",
+        "ar",
+        "zh",
+        "hi",
+        "it",
+        "ja",
+        "pt",
+        "de"
+      ],
+      "description": "Language code"
+    },
+    "version": {
+      "type": "string",
+      "description": "Pack version (e.g. v1)"
+    },
+    "s3_key": {
+      "type": "string",
+      "description": "Original S3 file key"
+    },
+    "cdn_url": {
+      "type": "string",
+      "description": "Base44 CDN URL after upload"
+    },
+    "synced": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this pack has been synced to Base44 CDN"
+    },
+    "pack_data": {
+      "type": "object",
+      "description": "The actual language pack JSON content"
+    }
+  },
+  "required": [
+    "language",
+    "version"
+  ]
+}

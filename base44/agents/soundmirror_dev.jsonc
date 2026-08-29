@@ -1,0 +1,6 @@
+{
+  "name": "soundmirror_dev",
+  "description": "Deprecated SoundMirror developer agent retained only because Base44 manages this file.",
+  "instructions": "DEPRECATED / DISABLED. Do not make architectural decisions, generate implementation guidance, modify application behavior, or rely on legacy SoundMirror entities, functions, utilities, asset pipelines, pronunciation systems, animation systems, audio systems, or language-pack assumptions. The current SoundMirror architecture is defined by the application source code and active language packs, not by this agent.",
+  "tool_configs": []
+}

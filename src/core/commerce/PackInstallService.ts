@@ -1,0 +1,1 @@
+export class PackInstallService { install(_pkg: any) { /* stub */ } }

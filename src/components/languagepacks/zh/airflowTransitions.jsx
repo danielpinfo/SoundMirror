@@ -1,0 +1,26 @@
+const airflowTransitions = {
+  'closure->stop_unaspirated': { attack: 0.22, release: 0.24, sustain: 0.16 },
+  'closure->stop_aspirated': { attack: 0.18, release: 0.38, sustain: 0.22 },
+  'stop_unaspirated->vowel_short': { attack: 0.16, release: 0.2, sustain: 0.74 },
+  'stop_unaspirated->vowel_long': { attack: 0.16, release: 0.22, sustain: 0.82 },
+  'stop_aspirated->vowel_short': { attack: 0.14, release: 0.32, sustain: 0.76 },
+  'stop_aspirated->vowel_long': { attack: 0.14, release: 0.36, sustain: 0.84 },
+  'affricate_unaspirated->fricative_soft': { release: 0.2, turbulenceRamp: 0.24 },
+  'affricate_unaspirated->fricative_strong': { release: 0.22, turbulenceRamp: 0.28 },
+  'affricate_aspirated->fricative_soft': { release: 0.24, turbulenceRamp: 0.3 },
+  'affricate_aspirated->fricative_strong': { release: 0.26, turbulenceRamp: 0.34 },
+  'fricative_soft->vowel_short': { soften: 0.24 },
+  'fricative_soft->vowel_long': { soften: 0.28 },
+  'fricative_strong->vowel_short': { soften: 0.28 },
+  'fricative_strong->vowel_long': { soften: 0.32 },
+  'nasal->vowel_short': { blend: 0.34, nasalFade: 0.24 },
+  'nasal->vowel_long': { blend: 0.38, nasalFade: 0.26 },
+  'liquid->vowel_short': { blend: 0.42 },
+  'liquid->vowel_long': { blend: 0.46 },
+  'glide->vowel_short': { blend: 0.46 },
+  'glide->vowel_long': { blend: 0.52 },
+  'vowel_short->syllable_tail': { blend: 0.54 },
+  'vowel_long->syllable_tail': { blend: 0.6 },
+};
+
+export default airflowTransitions;

@@ -1,0 +1,1 @@
+export class PackPackageVerifier { verify(_pkg: any) { return true; } }

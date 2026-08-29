@@ -1,0 +1,38 @@
+{
+  "name": "AnimationAsset",
+  "type": "object",
+  "properties": {
+    "asset_name": {
+      "type": "string",
+      "description": "Name of the animation asset (e.g., animation_front, animation_side)"
+    },
+    "github_url": {
+      "type": "string",
+      "description": "Original GitHub file URL"
+    },
+    "cdn_url": {
+      "type": "string",
+      "description": "CDN URL of frame 0 (neutral) - kept for legacy"
+    },
+    "frame_urls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of CDN URLs, one per frame (index = frame number 0-19)"
+    },
+    "file_type": {
+      "type": "string",
+      "description": "File type (e.g., png_sprites)"
+    },
+    "synced": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this asset has been fully synced to Base44 CDN"
+    }
+  },
+  "required": [
+    "asset_name",
+    "github_url"
+  ]
+}

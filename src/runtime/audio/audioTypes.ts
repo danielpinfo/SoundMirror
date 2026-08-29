@@ -1,0 +1,1 @@
+export type TimelineEntry = { startMs: number; endMs: number; frame: number; phoneme?: string };
