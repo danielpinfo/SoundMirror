@@ -2401,11 +2401,21 @@ export const setLanguageCode = (code) => {
   }
 };
 
+const normalizeUiLanguageCode = (code) => {
+  const normalized = String(code || 'en')
+    .trim()
+    .toLowerCase()
+    .replace(/_/g, '-');
+
+  return normalized.split('-')[0] || 'en';
+};
+
 export const t = (key, lang = 'en', params = {}) => {
+  const languageCode = normalizeUiLanguageCode(lang);
   const keys = key.split('.');
   const localized =
-    readPath(translations[lang], keys) ??
-    readPath(uiMessages[lang], keys);
+    readPath(translations[languageCode], keys) ??
+    readPath(uiMessages[languageCode], keys);
   const fallback =
     readPath(translations.en, keys) ??
     readPath(uiMessages.en, keys);

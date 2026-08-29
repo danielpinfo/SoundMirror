@@ -3227,15 +3227,19 @@ async function auditHindiRuntime(report) {
     ];
     const translationFallbacks = verdictTranslationKeys.filter((suffix) => {
       const key = `pronunciationVerdict.${suffix}`;
-      return translationModule.t(key, 'hi', { count: 2, weight: 70 }) ===
-        translationModule.t(key, 'en', { count: 2, weight: 70 });
+      const hindi = translationModule.t(key, 'hi', { count: 2, weight: 70 });
+      const english = translationModule.t(key, 'en', { count: 2, weight: 70 });
+
+      return hindi === english ||
+        translationModule.t(key, 'hi-IN', { count: 2, weight: 70 }) !== hindi ||
+        translationModule.t(key, 'hi_IN', { count: 2, weight: 70 }) !== hindi;
     });
 
     if (translationFallbacks.length === 0) {
       pass(
         report,
         'HI_VERDICT_UI_LOCALIZATION',
-        `All ${verdictTranslationKeys.length} Hindi verdict strings are localized without English fallback.`
+        `All ${verdictTranslationKeys.length} Hindi verdict strings and regional Hindi locale codes resolve without English fallback.`
       );
     } else {
       fail(
